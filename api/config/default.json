@@ -1,0 +1,17 @@
+{
+    "mysql": {
+        "host": "localhost",
+        "user": "root",
+        "password": "12003000",
+        "database": "transport"
+    },
+    "allow": {
+        "ip": [
+            "*"
+        ]
+    },
+    "path": {
+        "dir": "/opt/ran/ecommerce/assets",
+        "temp_path": "D://work/PBANK"
+    }
+}
