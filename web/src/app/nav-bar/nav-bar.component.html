@@ -1,0 +1,10 @@
+<div class="nav-bar">
+  <div class="d-inline" *ngFor="let item of data; let i = index">
+
+    <a *ngIf="!item.isActive" class="nav-inactive" [routerLink]="[item.path]" routerLinkActive="router-link-active">{{item.name}}</a>
+
+    <span *ngIf="item.isActive">{{item.name}}</span>
+    <span class="nav-arrow" *ngIf="i != (data.length - 1)"> > </span>
+
+  </div>
+</div>

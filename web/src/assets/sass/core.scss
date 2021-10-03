@@ -1,8 +1,9 @@
-@import 'bootstrap';
-@import 'bootstrap-extended';
-@import 'colors';
-@import 'components';
+@import "assets/fonts/font-kanit/kanit";
+@import "~ngx-toastr/toastr";
+@import "bootstrap";
+@import "bootstrap-extended";
+@import "colors";
+@import "components";
 @import "themes/layout-dark";
 @import "core/menu/horizontal-menu";
-@import 'overrides';
-
+@import "overrides";

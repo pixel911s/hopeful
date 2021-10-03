@@ -4,5 +4,13 @@
   "Second Level": "Second Level",
   "Second Level Child": "Second Level Child",
   "Third Level 1.1": "Third Level 1.1",
-  "Third Level 1.2": "Third Level 1.2"
+  "Third Level 1.2": "Third Level 1.2",
+
+  "common" : {
+    "please-select": "โปรดเลือก"
+  },
+
+  "error" : {
+    "required": "Required"
+  }
 }

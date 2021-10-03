@@ -57,6 +57,8 @@ export class LoginPageComponent {
       return;
     }
 
+    this.spinner.show();
+
     try {
       await this.authService.signinUser(
         this.loginForm.value.username,
@@ -67,6 +69,8 @@ export class LoginPageComponent {
       console.log(e);
       this.loginFailed = e.error;
       this.cdr.detectChanges();
+    } finally {
+      this.spinner.hide();
     }
   }
 }

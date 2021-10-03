@@ -51,7 +51,26 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.menuItems = ROUTES;
+    this.menuItems = [
+      {
+        path: "/page",
+        title: "หน้าแรก",
+        icon: "ft-home",
+        class: "",
+        // badge: "0",
+        // badgeClass: "badge badge-pill badge-primary float-right mr-1 mt-1",
+        isExternalLink: false,
+        submenu: [],
+      },
+      {
+        path: "/user",
+        title: "ข้อมูลผู้ใช้งาน",
+        icon: "ft-users",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      },
+    ];
   }
 
   ngAfterViewInit() {
@@ -89,16 +108,16 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadLayout() {
-    if (this.config.layout.menuPosition === "Top") {
-      // Horizontal Menu
-      if (this.innerWidth < 1200) {
-        // Screen size < 1200
-        this.menuItems = HROUTES;
-      }
-    } else if (this.config.layout.menuPosition === "Side") {
-      // Vertical Menu{
-      this.menuItems = ROUTES;
-    }
+    // if (this.config.layout.menuPosition === "Top") {
+    //   // Horizontal Menu
+    //   if (this.innerWidth < 1200) {
+    //     // Screen size < 1200
+    //     this.menuItems = HROUTES;
+    //   }
+    // } else if (this.config.layout.menuPosition === "Side") {
+    //   // Vertical Menu{
+    //   this.menuItems = ROUTES;
+    // }
 
     if (this.config.layout.sidebar.backgroundColor === "white") {
       this.logoUrl = "assets/img/logo-dark.png";

@@ -1,0 +1,139 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <h5 class="d-inline">จัดการข้อมูลผู้ใช้งาน</h5>
+        <hr />
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            (keyup.enter)="criteria.page = 1; search()"
+            autocomplete="off"
+            [(ngModel)]="criteria.username"
+            class="form-control form-control-sm"
+            id="username"
+          />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">สถานะ</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.status"
+            class="form-control form-control-sm"
+            id="status"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="1">ใช้งาน</option>
+            <option [ngValue]="0">ไม่ใช้งาน</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">สาขา</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.branch"
+            class="form-control form-control-sm"
+            id="status"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option *ngFor="let item of master.branchs" [ngValue]="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <button
+          id="btnSearch"
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="criteria.page = 1; search()"
+        >
+          ค้นหา
+        </button>
+        <button
+          id="btnSearch"
+          type="button"
+          class="btn btn-sm btn-primary m-l-10"
+          [routerLink]="['/user/create']"
+          routerLinkActive="router-link-active"
+        >
+          เพิ่มผู้ใช้งาน
+        </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12 text-right">
+        <hr />
+        ข้อมูลทั้งหมด {{ data.totalRecord | number: ".0" }} รายการ
+      </div>
+    </div>
+    <div class="row" *ngIf="data.totalRecord > 0">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover custom-table" id="tblData">
+            <thead>
+              <tr>
+                <th class="text-left">Username</th>
+                <th class="text-left">สาขา</th>
+                <th class="text-center" style="width: 70px">สถานะ</th>
+                <th style="width: 70px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data.data">
+                <td class="text-left">{{ item.username }}</td>
+                <td class="text-left">{{ item.branchName }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.status == 0" class="badge bg-light-danger"
+                    >ไม่ใช้งาน</span
+                  >
+                  <span *ngIf="item.status == 1" class="badge bg-light-success"
+                    >ใช้งาน</span
+                  >
+                </td>
+                <td class="text-center" style="width: 120px">
+                  <!-- <a
+                    style="color: #007bff"
+                    class="poiter"
+                    [matMenuTriggerFor]="menu"
+                  >
+                    ตัวจัดการ
+                  </a>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="update(item)">
+                      ดู / แก้ไขข้อมูล
+                    </button>
+                  </mat-menu> -->
+                  <a style="color: #007bff" href="#"
+                    ><b><small>ตัวจัดการ</small></b></a
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-12">
+        <ngb-pagination
+          class="float-right"
+          [(page)]="criteria.page"
+          [pageSize]="criteria.size"
+          [maxSize]="10"
+          [collectionSize]="data.totalRecord"
+          (pageChange)="search()"
+        ></ngb-pagination>
+      </div>
+    </div>
+  </div>
+</div>

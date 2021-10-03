@@ -1,0 +1,30 @@
+<app-nav-bar></app-nav-bar>
+
+<app-user-detail
+  *ngIf="data"
+  [isEdit]="isEdit"
+  [data]="data"
+  [formGroup]="formGroup"
+  [header]="'แก้ไขข้อมูลผู้ใช้งาน'"
+></app-user-detail>
+
+<div class="row m-b-20">
+  <div class="col-6">
+    <button (click)="resetPassword()" type="button" class="btn btn-primary">
+      Reset Password
+    </button>
+  </div>
+  <div class="col-6 text-right">
+    <button
+      [routerLink]="['/user']"
+      routerLinkActive="router-link-active"
+      type="button"
+      class="btn btn-secondary"
+    >
+      Back
+    </button>
+    <button (click)="save()" type="button" class="btn btn-primary m-l-10">
+      Save
+    </button>
+  </div>
+</div>

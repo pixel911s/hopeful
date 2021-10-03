@@ -1,0 +1,277 @@
+<div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
+  <div class="col-12 m-b-20">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">{{ header }}</h5>
+            <hr />
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.username.touched && f.username.errors
+              }"
+            >
+              <label for="username">Username *</label>
+              <input
+                autocomplete="off"
+                maxlength="50"
+                id="username"
+                class="form-control form-control-sm"
+                formControlName="username"
+                [(ngModel)]="data.username"
+                [ngClass]="{
+                  'is-invalid': f.username.touched && f.username.errors,
+                  'is-valid': f.username.touched && !f.username.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.username.touched && f.username.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+              <small
+                class="text-danger"
+                *ngIf="f.username.touched && f.username.errors?.pattern"
+                >กรอกได้เฉพาะภาษาอังกฤษและตัวเลขเท่านั้น</small
+              >
+              <small
+                class="text-danger d-block"
+                *ngIf="
+                  f.username.touched &&
+                  (f.username.errors?.maxlength || f.username.errors?.minlength)
+                "
+                >6 - 20 ตัวอักษร</small
+              >
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.branchId.touched && f.branchId.errors?.required
+              }"
+            >
+              <label for="branchId">สาขา *</label>
+              <select
+                class="form-control form-control-sm"
+                id="branchId"
+                formControlName="branchId"
+                [(ngModel)]="data.branchId"
+                [ngClass]="{
+                  'is-invalid': f.branchId.touched && f.branchId.errors,
+                  'is-valid': f.branchId.touched && !f.branchId.errors
+                }"
+              >
+                <option [ngValue]="undefined">
+                  {{ "common.please-select" | translate }}
+                </option>
+                <option *ngFor="let item of master.branchs" [ngValue]="item.id">
+                  {{ item.name }}
+                </option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.branchId.touched && f.branchId.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.status.touched && f.status.errors?.required
+              }"
+            >
+              <label for="status">Status *</label>
+              <select
+                class="form-control form-control-sm"
+                id="status"
+                formControlName="status"
+                [(ngModel)]="data.status"
+                [ngClass]="{
+                  'is-invalid': f.status.touched && f.status.errors,
+                  'is-valid': f.status.touched && !f.status.errors
+                }"
+              >
+                <option [ngValue]="undefined">
+                  {{ "common.please-select" | translate }}
+                </option>
+                <option [ngValue]="1">ใช้งาน</option>
+                <option [ngValue]="0">ไม่ใช้งาน</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.status.touched && f.status.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <hr />
+          </div>
+          <div class="col-12">
+            <h5>สิทธิ์การเข้าถึงเมนู</h5>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectUser"
+                formControlName="selectUser"
+                [(ngModel)]="data.selectUser"
+              />
+              <label class="custom-control-label" for="selectUser"
+                >จัดการข้อมูล ผู้ใช้งาน</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectTransaction"
+                formControlName="selectTransaction"
+                [(ngModel)]="data.selectTransaction"
+              />
+              <label class="custom-control-label" for="selectTransaction"
+                >จัดการข้อมูลส่งสินค้า</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectUpdateTransaction"
+                formControlName="selectUpdateTransaction"
+                [(ngModel)]="data.selectUpdateTransaction"
+              />
+              <label class="custom-control-label" for="selectUpdateTransaction"
+                >แก้ไขรายการข้อมูลส่งสินค้าผู้อื่นได้</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCancelTransaction"
+                formControlName="selectCancelTransaction"
+                [(ngModel)]="data.selectCancelTransaction"
+              />
+              <label class="custom-control-label" for="selectCancelTransaction"
+                >ยกเลิกรายการข้อมูลส่งสินค้าผู้อื่นได้</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectPayment"
+                formControlName="selectPayment"
+                [(ngModel)]="data.selectPayment"
+              />
+              <label class="custom-control-label" for="selectPayment"
+                >รับชำระข้ามสาขา</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewAllBranch"
+                formControlName="selectViewAllBranch"
+                [(ngModel)]="data.selectViewAllBranch"
+              />
+              <label class="custom-control-label" for="selectViewAllBranch"
+                >ดูข้อมูลได้ทุกสาขา</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCustomer"
+                formControlName="selectCustomer"
+                [(ngModel)]="data.selectCustomer"
+              />
+              <label class="custom-control-label" for="selectCustomer"
+                >จัดการข้อมูล ลูกค้า</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectRequestDiscount"
+                formControlName="selectRequestDiscount"
+                [(ngModel)]="data.selectRequestDiscount"
+              />
+              <label class="custom-control-label" for="selectRequestDiscount"
+                >จัดการคำร้องขอส่วนลด</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewDebtor"
+                formControlName="selectViewDebtor"
+                [(ngModel)]="data.selectViewDebtor"
+              />
+              <label class="custom-control-label" for="selectViewDebtor"
+                >ดูข้อมูลลูกหนี้</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewPayment"
+                formControlName="selectViewPayment"
+                [(ngModel)]="data.selectViewPayment"
+              />
+              <label class="custom-control-label" for="selectViewPayment"
+                >ดูรายการรับชำระเงิน</label
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewDashBoard"
+                formControlName="selectViewDashBoard"
+                [(ngModel)]="data.selectViewDashBoard"
+              />
+              <label class="custom-control-label" for="selectViewDashBoard"
+                >ดูข้อมูลแดชบอร์ด</label
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

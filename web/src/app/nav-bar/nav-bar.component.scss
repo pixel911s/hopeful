@@ -1,0 +1,30 @@
+.nav-bar {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 12px;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0px;
+  z-index: 1;
+  background-color: #f7f7f8;
+}
+
+.nav-active {
+  color: #1b1b1b !important;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.nav-inactive {
+  color: #858585 !important;
+  cursor: pointer;
+  &:hover {
+    color: #3f51b5 !important;
+  }
+}
+
+.nav-arrow {
+  color: #858585 !important;
+  padding-left: 10px;
+  padding-right: 10px;
+}

@@ -80,6 +80,10 @@ html body.layout-dark {
   }
 }
 
+.form-control {
+  border-radius: 0;
+}
+
 .form-control:focus {
   border-color: #232323;
 }
@@ -92,4 +96,74 @@ html body.layout-dark {
 .dropdown-item.active,
 .dropdown-item:active {
   color: #fff !important;
+}
+
+.card {
+  margin: 0;
+  border-radius: 0;
+}
+
+.btn {
+  border-radius: 0;
+}
+
+.m-b-20 {
+  margin-bottom: 20px;
+}
+
+.m-b-5 {
+  margin-bottom: 5px;
+}
+
+.m-b-10 {
+  margin-bottom: 10px;
+}
+
+.m-t-5 {
+  margin-top: 5px;
+}
+
+.m-l-10 {
+  margin-left: 10px;
+}
+
+.poiter {
+  cursor: pointer;
+}
+
+.table {
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  background-color: #f4f4f4;
+}
+
+.table th,
+.table td {
+  padding: 5px;
+  border-top: 1px solid #e0e0e0;
+}
+
+body {
+  font-family: "Kanit" !important;
+  font-weight: 300;
+  font-size: 14px;
+}
+
+hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn {
+  font-weight: 300;
+  font-size: 0.9rem;
+}
+
+.is-valid,
+.is-invalid {
+  background: none !important;
 }
