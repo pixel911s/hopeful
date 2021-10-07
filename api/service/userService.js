@@ -22,12 +22,13 @@ async function login(req, res) {
     let username = req.body.username;
     let password = req.body.password;
 
-    let data = await userDao.getById(conn, username);
+    let data = await userDao.get(conn, username);
     let result = false;
 
     if (data && data != null) {
       if (data.password && password == encypt.decrypt(data.password)) {
         result = true;
+        data.business = await userDao.getBusinessById(conn, data.businessId);
         let userFunction = await userDao.getUserFunction(conn, data.username);
         data.function = {};
         userFunction.forEach((uf) => {
@@ -37,6 +38,9 @@ async function login(req, res) {
     }
 
     if (result == true) {
+      if (encypt.decrypt(data.password) == "1111") {
+        data.status = 9;
+      }
       data.password = undefined;
       return res.send(util.callbackSuccess(null, data));
     } else {
@@ -57,51 +61,55 @@ async function get(req, res) {
 
     let result = await userDao.get(conn, criteria.username);
 
+    result.business = await userDao.getBusinessById(conn, result.businessId);
+
+    result.businessType = result.business.businessType;
+
     let userFunction = await userDao.getUserFunction(conn, criteria.username);
 
     userFunction.forEach((f) => {
-      if ("MANAGE_USER" == f.functionCode) {
-        result.selectUser = true;
+      if ("CREATE_AGENT" == f.functionCode) {
+        result.selectCreateAgent = true;
       }
 
-      if ("MANAGE_TRANSACTION" == f.functionCode) {
-        result.selectTransaction = true;
+      if ("VIEW_AGENT" == f.functionCode) {
+        result.selectViewAgent = true;
       }
 
-      if ("UPDATE_TRANSACTION" == f.functionCode) {
-        result.selectUpdateTransaction = true;
+      if ("CREATE_CUSTOMER" == f.functionCode) {
+        result.selectCreateCustomer = true;
       }
 
-      if ("CANCEL_TRANSACTION" == f.functionCode) {
-        result.selectCancelTransaction = true;
+      if ("VIEW_CUSTOMER" == f.functionCode) {
+        result.selectViewCustomer = true;
       }
 
-      if ("MANAGE_CUSTOMER" == f.functionCode) {
-        result.selectCustomer = true;
+      if ("CREATE_ORDER" == f.functionCode) {
+        result.selectCreateOrder = true;
       }
 
-      if ("APPROVE_DISCOUNT" == f.functionCode) {
-        result.selectRequestDiscount = true;
+      if ("VIEW_ORDER" == f.functionCode) {
+        result.selectViewOrder = true;
       }
 
-      if ("VIEW_DEBTOR" == f.functionCode) {
-        result.selectViewDebtor = true;
+      if ("CREATE_PRODUCT" == f.functionCode) {
+        result.selectCreateProduct = true;
       }
 
-      if ("VIEW_PAYMENT" == f.functionCode) {
-        result.selectViewPayment = true;
+      if ("VIEW_PRODUCT" == f.functionCode) {
+        result.selectViewProduct = true;
       }
 
-      if ("VIEW_DASHBOARD" == f.functionCode) {
-        result.selectViewDashBoard = true;
+      if ("CREATE_USER" == f.functionCode) {
+        result.selectCreateUser = true;
       }
 
-      if ("VIEW_ALLBRANCH" == f.functionCode) {
-        result.selectViewAllBranch = true;
+      if ("VIEW_USER" == f.functionCode) {
+        result.selectViewUser = true;
       }
 
-      if ("PAYMENT" == f.functionCode) {
-        result.selectPayment = true;
+      if ("CRM" == f.functionCode) {
+        result.selectCRM = true;
       }
     });
 
@@ -155,6 +163,10 @@ async function save(req, res) {
       }
 
       model.password = encypt.encrypt(model.password);
+    }
+
+    if (model.businessType == "H") {
+      model.businessId = 1;
     }
 
     await userDao.save(conn, model);

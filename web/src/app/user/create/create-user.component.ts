@@ -6,6 +6,9 @@ import { DatePipe } from "@angular/common";
 import { AuthService } from "app/shared/auth/auth.service";
 import { UserService } from "app/shared/services/user.service";
 import { BaseComponent } from "app/ิbase/base.component";
+import { TranslateService } from "@ngx-translate/core";
+import { NgxSpinnerService } from "ngx-spinner";
+import { ToastrService } from "ngx-toastr";
 
 @Component({
   selector: "app-create-user",
@@ -15,6 +18,9 @@ import { BaseComponent } from "app/ิbase/base.component";
 export class CreateUserComponent extends BaseComponent implements OnInit {
   public data: any = {
     loginType: "SYSTEM",
+    businessType: "H",
+    selectCRM: true,
+    status: 1,
   };
   public formGroup: FormGroup;
 
@@ -22,7 +28,10 @@ export class CreateUserComponent extends BaseComponent implements OnInit {
     private formBuilder: FormBuilder,
     private userService: UserService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private spinner: NgxSpinnerService,
+    private toastr: ToastrService,
+    private translate: TranslateService
   ) {
     super();
   }
@@ -33,19 +42,18 @@ export class CreateUserComponent extends BaseComponent implements OnInit {
 
   async save() {
     if (this.formGroup.invalid) {
-      // this.messageService.errorPopup("error.invalid-form");
+      this.toastr.show(this.translate.instant("error.please-fill-required"));
       await this.markFormGroupTouched(this.formGroup);
       return;
     }
-    // this.blockUI.start();
-    // await this.userService.save(this.data);
-    // this.blockUI.stop();
-    // this.messageService.successPopup(
-    //   "สร้างผู้ใช้งานสำเร็จ รหัสผ่านชั่วคราวของผู้ใช้งานคือ 1111"
-    // );
-    // let user = this.authService.getUser();
-    // user.users++;
-    // sessionStorage.setItem("USERLOGIN", JSON.stringify(user));
-    // this.router.navigateByUrl("/user");
+    this.spinner.show();
+    await this.userService.save(this.data);
+    this.spinner.hide();
+    this.toastr.show(
+      "รหัสผ่านชั่วคราวของผู้ใช้งานคือ 1111",
+      "✔️ เพิ่มผู้ใช้งานใหม่สำเร็จ"
+    );
+
+    this.router.navigateByUrl("/user");
   }
 }

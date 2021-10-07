@@ -5,24 +5,11 @@ module.exports = {
   getProvinces,
   getDistricts,
   getSubDistricts,
-  getBranchs,
 };
-
-async function getBranchs(conn) {
-  try {
-    let sql = "select * from branch order by id asc";
-
-    const result = await conn.query(sql, []);
-
-    return result;
-  } catch (err) {
-    throw err;
-  }
-}
 
 async function getProvinces(conn) {
   try {
-    let sql = "select * from provinces where 1=1 order by name_in_thai asc";
+    let sql = "select * from province where 1=1 order by nameInThai asc";
 
     const result = await conn.query(sql, []);
 
@@ -35,7 +22,7 @@ async function getProvinces(conn) {
 async function getDistricts(conn, id) {
   try {
     let sql =
-      "select * from districts where province_id = ?  order by name_in_thai asc";
+      "select * from district where provinceId = ?  order by nameInThai asc";
 
     const result = await conn.query(sql, [id]);
 
@@ -48,7 +35,7 @@ async function getDistricts(conn, id) {
 async function getSubDistricts(conn, id) {
   try {
     let sql =
-      "select * from subdistricts where district_id = ? order by name_in_thai asc";
+      "select * from subdistrict where districtId = ? order by nameInThai asc";
 
     const result = await conn.query(sql, [id]);
 

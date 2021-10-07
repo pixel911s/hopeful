@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { CommonModule, DatePipe } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { OverlayModule } from "@angular/cdk/overlay";
@@ -31,6 +31,8 @@ import { TopMenuLinkDirective } from "./directives/topmenu-link.directive";
 import { TopMenuDropdownDirective } from "./directives/topmenu-dropdown.directive";
 import { TopMenuAnchorToggleDirective } from "./directives/topmenu-anchor-toggle.directive";
 import { NavBarComponent } from "app/nav-bar/nav-bar.component";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import { ToastrModule } from "ngx-toastr";
 
 @NgModule({
   exports: [
@@ -49,6 +51,7 @@ import { NavBarComponent } from "app/nav-bar/nav-bar.component";
     NavBarComponent,
     ReactiveFormsModule,
     FormsModule,
+    ToastrModule,
   ],
   imports: [
     RouterModule,
@@ -64,6 +67,12 @@ import { NavBarComponent } from "app/nav-bar/nav-bar.component";
     PipeModule,
     ReactiveFormsModule.withConfig({ warnOnNgModelWithFormControl: "never" }),
     FormsModule,
+    ToastrModule.forRoot({
+      progressBar: true,
+      // closeButton: true,
+      // disableTimeOut: true,
+      enableHtml: true,
+    }),
   ],
   declarations: [
     FooterComponent,
@@ -83,5 +92,6 @@ import { NavBarComponent } from "app/nav-bar/nav-bar.component";
     TopMenuDirective,
     NavBarComponent,
   ],
+  providers: [DatePipe],
 })
 export class SharedModule {}

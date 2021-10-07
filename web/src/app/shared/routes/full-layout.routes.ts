@@ -9,8 +9,20 @@ export const Full_ROUTES: Routes = [
       import("../../page/page.module").then((m) => m.PageModule),
   },
   {
+    path: "agent",
+    loadChildren: () =>
+      import("../../agent/agent.module").then((m) => m.AgentModule),
+  },
+  {
     path: "user",
     loadChildren: () =>
       import("../../user/user.module").then((m) => m.UserModule),
+  },
+  {
+    path: "change-password",
+    loadChildren: () =>
+      import("../../change-password/change-password.module").then(
+        (m) => m.ChangePasswordModule
+      ),
   },
 ];

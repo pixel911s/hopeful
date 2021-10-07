@@ -10,7 +10,6 @@ export class UserService {
   get(username) {
     let criteria = {
       username: username,
-      shopId: this.authService.getUser().shopId,
     };
     return this.http
       .post(environment.apiUrl + "/user/get", criteria)
@@ -29,48 +28,48 @@ export class UserService {
 
     data.functions = [];
 
-    if (data.selectUser) {
-      data.functions.push("MANAGE_USER");
+    if (data.selectViewUser) {
+      data.functions.push("VIEW_USER");
     }
 
-    if (data.selectTransaction) {
-      data.functions.push("MANAGE_TRANSACTION");
+    if (data.selectCreateUser) {
+      data.functions.push("CREATE_USER");
     }
 
-    if (data.selectUpdateTransaction) {
-      data.functions.push("UPDATE_TRANSACTION");
+    if (data.selectViewProduct) {
+      data.functions.push("VIEW_PRODUCT");
     }
 
-    if (data.selectCancelTransaction) {
-      data.functions.push("CANCEL_TRANSACTION");
+    if (data.selectCreateProduct) {
+      data.functions.push("CREATE_PRODUCT");
     }
 
-    if (data.selectCustomer) {
-      data.functions.push("MANAGE_CUSTOMER");
+    if (data.selectViewCustomer) {
+      data.functions.push("VIEW_CUSTOMER");
     }
 
-    if (data.selectPayment) {
-      data.functions.push("PAYMENT");
+    if (data.selectCreateCustomer) {
+      data.functions.push("CREATE_CUSTOMER");
     }
 
-    if (data.selectRequestDiscount) {
-      data.functions.push("APPROVE_DISCOUNT");
+    if (data.selectViewOrder) {
+      data.functions.push("VIEW_ORDER");
     }
 
-    if (data.selectViewDebtor) {
-      data.functions.push("VIEW_DEBTOR");
+    if (data.selectCreateOrder) {
+      data.functions.push("CREATE_ORDER");
     }
 
-    if (data.selectViewPayment) {
-      data.functions.push("VIEW_PAYMENT");
+    if (data.selectViewAgent) {
+      data.functions.push("VIEW_AGENT");
     }
 
-    if (data.selectViewDashBoard) {
-      data.functions.push("VIEW_DASHBOARD");
+    if (data.selectCreateAgent) {
+      data.functions.push("CREATE_AGENT");
     }
 
-    if (data.selectViewAllBranch) {
-      data.functions.push("VIEW_ALLBRANCH");
+    if (data.selectCRM) {
+      data.functions.push("CRM");
     }
 
     return this.http.post(environment.apiUrl + "/user/save", data).toPromise();

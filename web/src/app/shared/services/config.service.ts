@@ -1,5 +1,4 @@
 import { Injectable } from "@angular/core";
-import { CookieService } from "ngx-cookie-service";
 import { BehaviorSubject } from "rxjs";
 
 export interface ITemplateConfig {
@@ -35,12 +34,12 @@ export class ConfigService {
   templateConfSubject = new BehaviorSubject<ITemplateConfig>(this.templateConf);
   templateConf$ = this.templateConfSubject.asObservable();
 
-  constructor(private cookieService: CookieService) {}
+  constructor() {}
 
   // Default configurations for Light layout. Please check *customizer.service.ts* for different colors and bg images options
 
   setConfigValue() {
-    let setup = this.cookieService.get("hopeful-setup");
+    let setup = localStorage.getItem("HOPEFUL_SETUP");
 
     if (setup) {
       this.templateConf = JSON.parse(setup);
@@ -120,6 +119,6 @@ export class ConfigService {
   applyTemplateConfigChange(tempConfig: ITemplateConfig) {
     this.templateConf = Object.assign(this.templateConf, tempConfig);
     this.templateConfSubject.next(this.templateConf);
-    this.cookieService.set("hopeful-setup", JSON.stringify(this.templateConf));
+    localStorage.setItem("HOPEFUL_SETUP", JSON.stringify(this.templateConf));
   }
 }

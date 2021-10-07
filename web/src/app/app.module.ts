@@ -6,7 +6,11 @@ import { AngularFireAuthModule } from "@angular/fire/auth";
 
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { AgmCoreModule } from "@agm/core";
-import { HttpClientModule, HttpClient } from "@angular/common/http";
+import {
+  HttpClientModule,
+  HttpClient,
+  HTTP_INTERCEPTORS,
+} from "@angular/common/http";
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { NgxSpinnerModule } from "ngx-spinner";
@@ -26,6 +30,7 @@ import { FullLayoutComponent } from "./layouts/full/full-layout.component";
 import { AuthService } from "./shared/auth/auth.service";
 import { AuthGuard } from "./shared/auth/auth-guard.service";
 import { WINDOW_PROVIDERS } from "./shared/services/window.service";
+import { AuthInterceptor } from "./shared/services/interceptor";
 
 var firebaseConfig = {
   apiKey: "YOUR_API_KEY", //YOUR_API_KEY
@@ -71,6 +76,7 @@ export function createTranslateLoader(http: HttpClient) {
     PerfectScrollbarModule,
   ],
   providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     AuthService,
     AuthGuard,
     {

@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, ViewChild } from "@angular/core";
 import { NgForm, FormGroup, FormControl, Validators } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AuthService } from "app/shared/auth/auth.service";
-import { CookieService } from "ngx-cookie-service";
 import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
@@ -24,8 +23,6 @@ export class LoginPageComponent {
     private router: Router,
     private authService: AuthService,
     private spinner: NgxSpinnerService,
-    private route: ActivatedRoute,
-    private cookieService: CookieService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -35,7 +32,7 @@ export class LoginPageComponent {
 
   async ngOnInit(): Promise<void> {
     this.loginFailed = null;
-    let cookkieAuth: any = this.cookieService.get("hopeful-auth");
+    let cookkieAuth: any = localStorage.getItem("hopeful-auth");
     if (cookkieAuth) {
       cookkieAuth = JSON.parse(cookkieAuth);
       try {

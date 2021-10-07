@@ -2,7 +2,6 @@
 
 module.exports = {
   get,
-  getById,
   search,
   count,
   save,
@@ -10,41 +9,16 @@ module.exports = {
   saveUserFunction,
 
   getUserFunction,
-  getShopById,
 
   changePassword,
-  removeUser,
 
-  getByTel,
+  getBusinessById,
 };
 
-async function getShopById(conn, id) {
+async function getBusinessById(conn, id) {
   try {
-    let sql = "select * from shop where id = ?";
+    let sql = "select * from business where id = ?";
     const result = await conn.query(sql, [id]);
-
-    return result[0];
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function getById(conn, id) {
-  try {
-    let sql =
-      "select u.*, b.name as branchName, b.isHQ from user u left join branch b on u.branchId = b.id where u.username = ?";
-    const result = await conn.query(sql, [id]);
-
-    return result[0];
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function getByTel(conn, tel) {
-  try {
-    let sql = "select * from user where tel = ?";
-    const result = await conn.query(sql, [tel]);
 
     return result[0];
   } catch (err) {
@@ -65,7 +39,7 @@ async function get(conn, id) {
 
 async function getUserFunction(conn, username) {
   try {
-    let sql = "select * from user_function where username = ?";
+    let sql = "select * from userFunction where username = ?";
     const result = await conn.query(sql, [username]);
 
     return result;
@@ -78,20 +52,26 @@ async function count(conn, criteria) {
   try {
     let params = [];
 
-    let sql = "select count(username) as totalRecord from user where 1=1";
+    let sql =
+      "select count(u.username) as totalRecord from user u left join business b on u.businessId = b.id where 1=1";
 
     if (criteria.status != undefined) {
-      sql += " and status = ?";
+      sql += " and u.status = ?";
       params.push(criteria.status);
     }
 
-    if (criteria.branch != undefined) {
-      sql += " and branchId = ?";
-      params.push(criteria.branch);
+    if (criteria.businessType != undefined) {
+      sql += " and b.businessType = ?";
+      params.push(criteria.businessType);
+    }
+
+    if (criteria.agent != undefined) {
+      sql += " and b.id = ?";
+      params.push(criteria.agent);
     }
 
     if (criteria.username) {
-      sql += " and username like ?";
+      sql += " and u.username like ?";
       params.push("%" + criteria.username + "%");
     }
 
@@ -110,16 +90,21 @@ async function search(conn, criteria) {
     let params = [];
 
     let sql =
-      "select u.*, b.name as branchName from user u left join branch b on u.branchId = b.id where 1=1";
+      "select u.*, b.businessType, b.name as agentName from user u left join business b on u.businessId = b.id where 1=1";
 
     if (criteria.status != undefined) {
       sql += " and u.status = ?";
       params.push(criteria.status);
     }
 
-    if (criteria.branch != undefined) {
-      sql += " and u.branchId = ?";
-      params.push(criteria.branch);
+    if (criteria.businessType != undefined) {
+      sql += " and b.businessType = ?";
+      params.push(criteria.businessType);
+    }
+
+    if (criteria.agent != undefined) {
+      sql += " and b.id = ?";
+      params.push(criteria.agent);
     }
 
     if (criteria.username) {
@@ -169,7 +154,7 @@ async function save(conn, model) {
       sql += "status = ? ";
       params.push(model.status);
 
-      sql += ",updateUser = ? ";
+      sql += ",updateBy = ? ";
       params.push(model.updateUser);
 
       sql += ",updateDttm = ? ";
@@ -180,9 +165,9 @@ async function save(conn, model) {
         params.push(model.password);
       }
 
-      if (model.branchId) {
-        sql += ",branchId = ? ";
-        params.push(model.branchId);
+      if (model.businessId) {
+        sql += ",businessId = ? ";
+        params.push(model.businessId);
       }
 
       sql += " where username = ?";
@@ -192,11 +177,11 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `user` (`username`,`password`,`status`, `createUser`, `createDttm`, `updateUser`, `updateDttm`, `loginType`, branchId)";
+        "INSERT INTO `user` (`username`,`password`,`status`, `createBy`, `createDttm`, `updateBy`, `updateDttm`, `loginType`, businessId)";
       sql += "  VALUES (?,?,?,?,?,?,?,?,?)";
 
       await conn.query(sql, [
-        model.username,
+        model.username.toLowerCase(),
         model.password,
         model.status,
         model.updateUser,
@@ -204,7 +189,7 @@ async function save(conn, model) {
         model.updateUser,
         new Date(),
         "SYSTEM",
-        model.branchId,
+        model.businessId,
       ]);
     }
 
@@ -217,7 +202,7 @@ async function save(conn, model) {
 async function saveUserFunction(conn, username, functionId) {
   try {
     //insert
-    let sql = "INSERT INTO `user_function` (`username`,`functionCode`)";
+    let sql = "INSERT INTO `userFunction` (`username`,`functionCode`)";
     sql += "  VALUES (?,?)";
 
     await conn.query(sql, [username, functionId]);
@@ -231,22 +216,9 @@ async function saveUserFunction(conn, username, functionId) {
 async function deleteUserFunction(conn, username) {
   try {
     //insert
-    let sql = "DELETE from user_function where username = ?";
+    let sql = "DELETE from userFunction where username = ?";
 
     await conn.query(sql, [username]);
-
-    return true;
-  } catch (e) {
-    throw e;
-  }
-}
-
-async function removeUser(conn, shopId) {
-  try {
-    //insert
-    let sql = "DELETE from user where shopId = ? and isOwner = 0";
-
-    await conn.query(sql, [shopId]);
 
     return true;
   } catch (e) {

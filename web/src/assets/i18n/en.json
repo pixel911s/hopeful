@@ -11,6 +11,11 @@
   },
 
   "error" : {
-    "required": "Required"
+    "required": "Required",
+    "please-fill-required":"❌ กรุณากรอกข้อมูลให้สมบูรณ์"
+  },
+
+  "success": {
+    "save-complete": "✔️ บันทึกข้อมูลเสร็จสมบูรณ์"
   }
 }

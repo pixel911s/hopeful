@@ -2,9 +2,11 @@ import { OnInit, Component } from "@angular/core";
 import { Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
+import { AgentService } from "app/shared/services/agent.service";
 import { MasterService } from "app/shared/services/master.service";
 import { UserService } from "app/shared/services/user.service";
 import { NgxSpinnerService } from "ngx-spinner";
+import { ToastrService } from "ngx-toastr";
 
 @Component({
   selector: "app-search-user",
@@ -15,16 +17,18 @@ export class SearchUserComponent implements OnInit {
   public data: any = {};
   public criteria: any = {
     page: 1,
-    size: 10,
+    size: 20,
   };
 
   public master: any = {
-    branchs: [],
+    agents: [],
   };
+
+  user;
 
   constructor(
     private userService: UserService,
-    private masterService: MasterService,
+    private agentService: AgentService,
     private router: Router,
     private authService: AuthService,
     translate: TranslateService,
@@ -34,9 +38,17 @@ export class SearchUserComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    let res: any = await this.masterService.getBranchs();
+    this.user = this.authService.getUser();
 
-    this.master.branchs = res.data;
+    let res: any = await this.agentService.gets();
+
+    this.master.agents = res.data;
+
+    let session = JSON.parse(sessionStorage.getItem("HOPEFUL_CRITERIA"));
+
+    if (session) {
+      this.criteria = session;
+    }
 
     await this.search();
   }
@@ -46,16 +58,17 @@ export class SearchUserComponent implements OnInit {
 
     let res: any = await this.userService.search(this.criteria);
     this.data = res;
-    console.log(this.data);
 
     this.spinner.hide();
   }
 
   view(item) {
+    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
     this.router.navigateByUrl("/user/view/" + item.username);
   }
 
   update(item) {
+    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
     this.router.navigateByUrl("/user/update/" + item.username);
   }
 }

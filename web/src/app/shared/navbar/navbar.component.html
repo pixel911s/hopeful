@@ -486,7 +486,7 @@
               <div class="user d-md-flex d-none mr-2">
                 <span class="text-right">{{ user.username }}</span
                 ><span class="text-right text-muted font-small-3">{{
-                  user.branchName
+                  user.business.name
                 }}</span>
               </div>
               <!-- <img
@@ -505,7 +505,12 @@
               aria-labelledby="dropdownBasic2"
               ngbDropdownMenu
             >
-              <a class="dropdown-item" href="javascript:;">
+              <a
+                class="dropdown-item"
+                [routerLink]="['/change-password']"
+                routerLinkActive="router-link-active"
+                (click)="beforRoute()"
+              >
                 <div class="d-flex align-items-center">
                   <i class="ft-edit mr-2"></i><span>Change Password</span>
                 </div>

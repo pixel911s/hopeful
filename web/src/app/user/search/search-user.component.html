@@ -19,6 +19,39 @@
           />
         </div>
       </div>
+
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="businessType">กลุ่มผู้ใช้งาน</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.businessType"
+            class="form-control form-control-sm"
+            id="businessType"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="'H'">สำนักงานใหญ่</option>
+            <option [ngValue]="'A'">ตัวแทนจำหน่าย</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="agent">ตัวแทนจำหน่าย</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.agent"
+            class="form-control form-control-sm"
+            id="agent"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option *ngFor="let item of master.agents" [ngValue]="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
       <div class="col-md-3">
         <div class="form-group">
           <label for="status">สถานะ</label>
@@ -31,22 +64,6 @@
             <option [ngValue]="undefined">ทั้งหมด</option>
             <option [ngValue]="1">ใช้งาน</option>
             <option [ngValue]="0">ไม่ใช้งาน</option>
-          </select>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="status">สาขา</label>
-          <select
-            (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.branch"
-            class="form-control form-control-sm"
-            id="status"
-          >
-            <option [ngValue]="undefined">ทั้งหมด</option>
-            <option *ngFor="let item of master.branchs" [ngValue]="item.id">
-              {{ item.name }}
-            </option>
           </select>
         </div>
       </div>
@@ -66,6 +83,7 @@
           class="btn btn-sm btn-primary m-l-10"
           [routerLink]="['/user/create']"
           routerLinkActive="router-link-active"
+          *ngIf="user.function.CREATE_USER"
         >
           เพิ่มผู้ใช้งาน
         </button>
@@ -85,7 +103,8 @@
             <thead>
               <tr>
                 <th class="text-left">Username</th>
-                <th class="text-left">สาขา</th>
+                <th class="text-center" style="width: 120px">กลุ่มผู้ใช้งาน</th>
+                <th class="text-center" style="width: 120px">ตัวแทนจำหน่าย</th>
                 <th class="text-center" style="width: 70px">สถานะ</th>
                 <th style="width: 70px"></th>
               </tr>
@@ -93,7 +112,16 @@
             <tbody>
               <tr *ngFor="let item of data.data">
                 <td class="text-left">{{ item.username }}</td>
-                <td class="text-left">{{ item.branchName }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.businessType == 'H'">สำนักงานใหญ่</span>
+                  <span *ngIf="item.businessType == 'A'">ตัวแทนจำหน่าย</span>
+                </td>
+                <td class="text-center">
+                  <span *ngIf="item.businessType == 'H'">-</span>
+                  <span *ngIf="item.businessType == 'A'">{{
+                    item.agentName
+                  }}</span>
+                </td>
                 <td class="text-center">
                   <span *ngIf="item.status == 0" class="badge bg-light-danger"
                     >ไม่ใช้งาน</span
@@ -103,28 +131,51 @@
                   >
                 </td>
                 <td class="text-center" style="width: 120px">
-                  <!-- <a
-                    style="color: #007bff"
-                    class="poiter"
-                    [matMenuTriggerFor]="menu"
-                  >
-                    ตัวจัดการ
-                  </a>
-                  <mat-menu #menu="matMenu">
-                    <button mat-menu-item (click)="update(item)">
-                      ดู / แก้ไขข้อมูล
-                    </button>
-                  </mat-menu> -->
-                  <a style="color: #007bff" href="#"
-                    ><b><small>ตัวจัดการ</small></b></a
-                  >
+                  <div ngbDropdown container="body">
+                    <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                      ><b><small>ตัวจัดการ</small></b></a
+                    >
+                    <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                      <button
+                        class="w-100"
+                        (click)="update(item)"
+                        ngbDropdownItem
+                        *ngIf="user.function.CREATE_USER"
+                      >
+                        ดู / แก้ไขข้อมูล
+                      </button>
+                      <button
+                        class="w-100"
+                        (click)="view(item)"
+                        ngbDropdownItem
+                        *ngIf="!user.function.CREATE_USER"
+                      >
+                        ดูข้อมูล
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <div class="col-12">
+      <div class="col-6">
+        <div class="form-group">
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.size"
+            class="form-control form-control-sm"
+            id="status"
+            style="width: auto"
+          >
+            <option [ngValue]="5">แสดงผล 5 รายการ</option>
+            <option [ngValue]="20">แสดงผล 20 รายการ</option>
+            <option [ngValue]="100">แสดงผล 100 รายการ</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
         <ngb-pagination
           class="float-right"
           [(page)]="criteria.page"

@@ -127,12 +127,16 @@ html body.layout-dark {
   margin-left: 10px;
 }
 
+.m-l-20 {
+  margin-left: 20px;
+}
+
 .poiter {
   cursor: pointer;
 }
 
 .table {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .table thead th {
@@ -161,9 +165,23 @@ hr {
 .btn {
   font-weight: 300;
   font-size: 0.9rem;
+  min-width: 100px;
 }
 
 .is-valid,
 .is-invalid {
   background: none !important;
+}
+
+.toast-container .ngx-toastr {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 6px;
+  padding: 15px 15px 15px 15px;
+  width: 300px;
+  border-radius: 0;
+  background: none;
+  font-size: 0.9rem;
+  background-color: #ffffff !important;
+  color: #626262 !important;
 }
