@@ -40,6 +40,7 @@ async function count(conn, criteria) {
 
         return result[0].totalRecord;
     } catch (e) {
+        console.log("ERROR : ",e);
         throw e;
     }
 }
@@ -71,6 +72,7 @@ async function search(conn, criteria) {
 
         return result;
     } catch (e) {
+        console.log("ERROR : ",e);
         throw e;
     }
 }
@@ -121,7 +123,7 @@ async function save(conn, model) {
         } else {
             //insert
             let sql =
-                "insert into product (`code`,`name`,`unit`,`remainingDay`,`price`,`dicounnt`,`sellPrice`,`imageUrl`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
+                "insert into product (`code`,`name`,`unit`,`remainingDay`,`price`,`discount`,`sellPrice`,`imageUrl`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
             sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
 
             await conn.query(sql, [
@@ -142,6 +144,7 @@ async function save(conn, model) {
 
         return true;
     } catch (e) {
+        console.log("ERROR : ",e);
         throw e;
     }
 }
@@ -155,6 +158,7 @@ async function deleteProduct(conn, id) {
 
         return true;
     } catch (e) {
+        console.log("ERROR : ",e);
         throw e;
     }
 }
