@@ -1,5 +1,5 @@
 <div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
-  <div class="col-12 m-b-20">
+  <div class="col-12">
     <div class="card">
       <div class="card-body">
         <div class="row">
@@ -51,30 +51,66 @@
             <div
               class="form-group"
               [ngClass]="{
-                'is-invalid': f.branchId.touched && f.branchId.errors?.required
+                'is-invalid':
+                  f.businessType.touched && f.businessType.errors?.required
               }"
             >
-              <label for="branchId">สาขา *</label>
+              <label for="businessType">กลุ่มผู้ใช้งาน *</label>
               <select
                 class="form-control form-control-sm"
-                id="branchId"
-                formControlName="branchId"
-                [(ngModel)]="data.branchId"
+                id="businessType"
+                formControlName="businessType"
+                [(ngModel)]="data.businessType"
                 [ngClass]="{
-                  'is-invalid': f.branchId.touched && f.branchId.errors,
-                  'is-valid': f.branchId.touched && !f.branchId.errors
+                  'is-invalid': f.businessType.touched && f.businessType.errors,
+                  'is-valid': f.businessType.touched && !f.businessType.errors
+                }"
+                (change)="changeBusinessType()"
+              >
+                <option [ngValue]="undefined">
+                  {{ "common.please-select" | translate }}
+                </option>
+                <option [ngValue]="'H'">สำนักงานใหญ่</option>
+                <option [ngValue]="'A'">ตัวแทนจำหน่าย</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.businessType.touched && f.businessType.errors?.required
+                "
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-3" *ngIf="data.businessType == 'A'">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid':
+                  f.businessId.touched && f.businessId.errors?.required
+              }"
+            >
+              <label for="businessId">ตัวแทนจำหน่าย *</label>
+              <select
+                class="form-control form-control-sm"
+                id="businessId"
+                formControlName="businessId"
+                [(ngModel)]="data.businessId"
+                [ngClass]="{
+                  'is-invalid': f.businessId.touched && f.businessId.errors,
+                  'is-valid': f.businessId.touched && !f.businessId.errors
                 }"
               >
                 <option [ngValue]="undefined">
                   {{ "common.please-select" | translate }}
                 </option>
-                <option *ngFor="let item of master.branchs" [ngValue]="item.id">
+                <option *ngFor="let item of master.agents" [ngValue]="item.id">
                   {{ item.name }}
                 </option>
               </select>
               <small
                 class="text-danger"
-                *ngIf="f.branchId.touched && f.branchId.errors?.required"
+                *ngIf="f.businessId.touched && f.businessId.errors?.required"
                 >{{ "error.required" | translate }}</small
               >
             </div>
@@ -113,160 +149,178 @@
           <div class="col-12">
             <hr />
           </div>
-          <div class="col-12">
+          <!-- <div class="col-12">
             <h5>สิทธิ์การเข้าถึงเมนู</h5>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+          </div> -->
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ข้อมูลผู้ใช้งาน</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectUser"
-                formControlName="selectUser"
-                [(ngModel)]="data.selectUser"
+                id="selectViewUser"
+                formControlName="selectViewUser"
+                [(ngModel)]="data.selectViewUser"
               />
-              <label class="custom-control-label" for="selectUser"
-                >จัดการข้อมูล ผู้ใช้งาน</label
+              <label class="custom-control-label" for="selectViewUser"
+                >ดูข้อมูล</label
+              >
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCreateUser"
+                formControlName="selectCreateUser"
+                [(ngModel)]="data.selectCreateUser"
+              />
+              <label class="custom-control-label" for="selectCreateUser"
+                >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
           </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ข้อมูลลูกค้า</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectTransaction"
-                formControlName="selectTransaction"
-                [(ngModel)]="data.selectTransaction"
+                id="selectViewCustomer"
+                formControlName="selectViewCustomer"
+                [(ngModel)]="data.selectViewCustomer"
               />
-              <label class="custom-control-label" for="selectTransaction"
-                >จัดการข้อมูลส่งสินค้า</label
+              <label class="custom-control-label" for="selectViewCustomer"
+                >ดูข้อมูล</label
+              >
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCreateCustomer"
+                formControlName="selectCreateCustomer"
+                [(ngModel)]="data.selectCreateCustomer"
+              />
+              <label class="custom-control-label" for="selectCreateCustomer"
+                >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
           </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ข้อมูลรายการสั่งซื้อ</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectUpdateTransaction"
-                formControlName="selectUpdateTransaction"
-                [(ngModel)]="data.selectUpdateTransaction"
+                id="selectViewOrder"
+                formControlName="selectViewOrder"
+                [(ngModel)]="data.selectViewOrder"
               />
-              <label class="custom-control-label" for="selectUpdateTransaction"
-                >แก้ไขรายการข้อมูลส่งสินค้าผู้อื่นได้</label
+              <label class="custom-control-label" for="selectViewOrder"
+                >ดูข้อมูล</label
+              >
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCreateOrder"
+                formControlName="selectCreateOrder"
+                [(ngModel)]="data.selectCreateOrder"
+              />
+              <label class="custom-control-label" for="selectCreateOrder"
+                >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
           </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ฟังก์ชั่น CRM</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectCancelTransaction"
-                formControlName="selectCancelTransaction"
-                [(ngModel)]="data.selectCancelTransaction"
+                id="selectCRM"
+                formControlName="selectCRM"
+                [(ngModel)]="data.selectCRM"
               />
-              <label class="custom-control-label" for="selectCancelTransaction"
-                >ยกเลิกรายการข้อมูลส่งสินค้าผู้อื่นได้</label
+              <label class="custom-control-label" for="selectCRM"
+                >ใช้งาน CRM</label
               >
             </div>
           </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+
+          <div class="col-12" *ngIf="data.businessType == 'H'">
+            <hr />
+          </div>
+
+          <div class="col-6 col-md-3 m-b-20" *ngIf="data.businessType == 'H'">
+            <div>
+              <h6>ข้อมูลตัวแทนจำหน่าย</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectPayment"
-                formControlName="selectPayment"
-                [(ngModel)]="data.selectPayment"
+                id="selectViewAgent"
+                formControlName="selectViewAgent"
+                [(ngModel)]="data.selectViewAgent"
               />
-              <label class="custom-control-label" for="selectPayment"
-                >รับชำระข้ามสาขา</label
+              <label class="custom-control-label" for="selectViewAgent"
+                >ดูข้อมูล</label
+              >
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectCreateAgent"
+                formControlName="selectCreateAgent"
+                [(ngModel)]="data.selectCreateAgent"
+              />
+              <label class="custom-control-label" for="selectCreateAgent"
+                >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
           </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+
+          <div class="col-6 col-md-3 m-b-20" *ngIf="data.businessType == 'H'">
+            <div>
+              <h6>ข้อมูลสินค้า</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectViewAllBranch"
-                formControlName="selectViewAllBranch"
-                [(ngModel)]="data.selectViewAllBranch"
+                id="selectViewProduct"
+                formControlName="selectViewProduct"
+                [(ngModel)]="data.selectViewProduct"
               />
-              <label class="custom-control-label" for="selectViewAllBranch"
-                >ดูข้อมูลได้ทุกสาขา</label
+              <label class="custom-control-label" for="selectViewProduct"
+                >ดูข้อมูล</label
               >
             </div>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
+            <div class="custom-control custom-checkbox">
               <input
                 type="checkbox"
                 class="custom-control-input"
-                id="selectCustomer"
-                formControlName="selectCustomer"
-                [(ngModel)]="data.selectCustomer"
+                id="selectCreateProduct"
+                formControlName="selectCreateProduct"
+                [(ngModel)]="data.selectCreateProduct"
               />
-              <label class="custom-control-label" for="selectCustomer"
-                >จัดการข้อมูล ลูกค้า</label
-              >
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
-              <input
-                type="checkbox"
-                class="custom-control-input"
-                id="selectRequestDiscount"
-                formControlName="selectRequestDiscount"
-                [(ngModel)]="data.selectRequestDiscount"
-              />
-              <label class="custom-control-label" for="selectRequestDiscount"
-                >จัดการคำร้องขอส่วนลด</label
-              >
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
-              <input
-                type="checkbox"
-                class="custom-control-input"
-                id="selectViewDebtor"
-                formControlName="selectViewDebtor"
-                [(ngModel)]="data.selectViewDebtor"
-              />
-              <label class="custom-control-label" for="selectViewDebtor"
-                >ดูข้อมูลลูกหนี้</label
-              >
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
-              <input
-                type="checkbox"
-                class="custom-control-input"
-                id="selectViewPayment"
-                formControlName="selectViewPayment"
-                [(ngModel)]="data.selectViewPayment"
-              />
-              <label class="custom-control-label" for="selectViewPayment"
-                >ดูรายการรับชำระเงิน</label
-              >
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="custom-control custom-checkbox mr-sm-2">
-              <input
-                type="checkbox"
-                class="custom-control-input"
-                id="selectViewDashBoard"
-                formControlName="selectViewDashBoard"
-                [(ngModel)]="data.selectViewDashBoard"
-              />
-              <label class="custom-control-label" for="selectViewDashBoard"
-                >ดูข้อมูลแดชบอร์ด</label
+              <label class="custom-control-label" for="selectCreateProduct"
+                >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
           </div>

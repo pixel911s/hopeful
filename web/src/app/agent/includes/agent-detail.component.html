@@ -1,0 +1,68 @@
+<div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">{{ header }}</h5>
+            <hr />
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.code.touched && f.code.errors
+              }"
+            >
+              <label for="code">รหัสตัวแทนจำหน่าย *</label>
+              <input
+                autocomplete="off"
+                maxlength="20"
+                id="code"
+                class="form-control form-control-sm"
+                formControlName="code"
+                [(ngModel)]="data.code"
+                [ngClass]="{
+                  'is-invalid': f.code.touched && f.code.errors,
+                  'is-valid': f.code.touched && !f.code.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.code.touched && f.code.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.name.touched && f.name.errors
+              }"
+            >
+              <label for="name">ชื่อตัวแทนจำหน่าย *</label>
+              <input
+                autocomplete="off"
+                maxlength="100"
+                id="name"
+                class="form-control form-control-sm"
+                formControlName="name"
+                [(ngModel)]="data.name"
+                [ngClass]="{
+                  'is-invalid': f.name.touched && f.name.errors,
+                  'is-valid': f.name.touched && !f.name.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.name.touched && f.name.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<app-nav-bar></app-nav-bar>
+
+<app-agent-detail
+  *ngIf="data"
+  [isReadOnly]="true"
+  [data]="data"
+  [formGroup]="formGroup"
+  [header]="'ข้อมูลตัวแทนจำหน่าย'"
+></app-agent-detail>
+
+<div class="row m-b-20">
+  <div class="col-12 text-right">
+    <button
+      [routerLink]="['/agent']"
+      routerLinkActive="router-link-active"
+      type="button"
+      class="btn btn-secondary"
+    >
+      Back
+    </button>
+  </div>
+</div>

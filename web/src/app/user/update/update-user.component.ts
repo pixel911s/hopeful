@@ -4,6 +4,9 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { UserService } from "app/shared/services/user.service";
 import { BaseComponent } from "app/ิbase/base.component";
+import { NgxSpinnerService } from "ngx-spinner";
+import { ToastrService } from "ngx-toastr";
+import { TranslateService } from "@ngx-translate/core";
 
 @Component({
   selector: "app-update-user",
@@ -21,7 +24,9 @@ export class UpdateUserComponent extends BaseComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private cdRef: ChangeDetectorRef,
-    private datepipe: DatePipe
+    private spinner: NgxSpinnerService,
+    private toastr: ToastrService,
+    private translate: TranslateService
   ) {
     super();
   }
@@ -41,28 +46,30 @@ export class UpdateUserComponent extends BaseComponent implements OnInit {
   }
 
   async save() {
-    // if (this.formGroup.invalid) {
-    //   this.messageService.errorPopup('error.invalid-form');
-    //   await this.markFormGroupTouched(this.formGroup);
-    //   return;
-    // }
-    // this.blockUI.start();
-    // await this.userService.save(this.data);
-    // this.blockUI.stop();
-    // this.messageService.successPopup('success.save-data');
-    // this.router.navigateByUrl('/user');
+    if (this.formGroup.invalid) {
+      this.toastr.show(this.translate.instant("error.please-fill-required"));
+      await this.markFormGroupTouched(this.formGroup);
+      return;
+    }
+    this.spinner.show();
+    await this.userService.save(this.data);
+    this.spinner.hide();
+    this.toastr.show(this.translate.instant("success.save-complete"));
+    this.router.navigateByUrl("/user");
   }
 
   async resetPassword() {
-    // this.blockUI.start();
-    // let data = {
-    //   shopId : this.data.shopId,
-    //   username : this.data.username,
-    //   password : '1111'
-    // };
-    // await this.userService.changePassword(data);
-    // this.blockUI.stop();
-    // this.messageService.successPopup('Reset Password เสร็จสมบูรณ์ รหัสผ่านชั่วคราวของผู้ใช้งานคือ 1111');
-    // this.router.navigateByUrl('/user');
+    this.spinner.show();
+    let data = {
+      username: this.data.username,
+      password: "1111",
+    };
+    await this.userService.changePassword(data);
+    this.spinner.hide();
+    this.toastr.show(
+      "รหัสผ่านชั่วคราวของผู้ใช้งานคือ 1111",
+      "✔️ Reset Password เสร็จสมบูรณ์"
+    );
+    this.router.navigateByUrl("/user");
   }
 }

@@ -2,6 +2,7 @@ import { OnInit, Component, Input } from "@angular/core";
 import { FormGroup, FormControl, Validators } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
+import { AgentService } from "app/shared/services/agent.service";
 import { MasterService } from "app/shared/services/master.service";
 
 @Component({
@@ -30,7 +31,7 @@ export class UserDetailComponent implements OnInit {
   constructor(
     private authService: AuthService,
     translate: TranslateService,
-    private masterService: MasterService
+    private agentService: AgentService
   ) {
     translate.use(this.authService.getUser().lang);
   }
@@ -42,9 +43,9 @@ export class UserDetailComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.prepareFormGroup();
 
-    let res: any = await this.masterService.getBranchs();
+    let res: any = await this.agentService.gets();
 
-    this.master.branchs = res.data;
+    this.master.agents = res.data;
   }
 
   prepareFormGroup() {
@@ -66,7 +67,7 @@ export class UserDetailComponent implements OnInit {
     );
 
     this.formGroup.addControl(
-      "branchId",
+      "businessType",
       new FormControl(
         { value: "", disabled: this.isReadOnly },
         Validators.required
@@ -74,48 +75,74 @@ export class UserDetailComponent implements OnInit {
     );
 
     this.formGroup.addControl(
-      "selectUser",
+      "selectCreateUser",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectTransaction",
+      "selectViewUser",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectUpdateTransaction",
+      "selectCreateProduct",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectCancelTransaction",
+      "selectViewProduct",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectCustomer",
+      "selectCreateOrder",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectPayment",
+      "selectViewOrder",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectRequestDiscount",
+      "selectCreateCustomer",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectViewDashBoard",
+      "selectViewCustomer",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectViewDebtor",
+      "selectCreateAgent",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectViewAllBranch",
+      "selectViewAgent",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
     this.formGroup.addControl(
-      "selectViewPayment",
+      "selectCRM",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
+
+    this.changeBusinessType();
+  }
+
+  changeBusinessType() {
+    this.formGroup.removeControl("businessId");
+
+    if (this.data.businessType == "A") {
+      this.data.selectCreateAgent = false;
+      this.data.selectViewAgent = false;
+      this.data.selectCreateProduct = false;
+      this.data.selectViewProduct = false;
+
+      this.formGroup.addControl(
+        "businessId",
+        new FormControl({ value: "", disabled: this.isReadOnly }, [
+          Validators.required,
+        ])
+      );
+    } else {
+      this.data.businessId = undefined;
+      this.formGroup.addControl(
+        "businessId",
+        new FormControl({ value: "", disabled: this.isReadOnly }, [])
+      );
+    }
   }
 }

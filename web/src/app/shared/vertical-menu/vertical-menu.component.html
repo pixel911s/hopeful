@@ -74,6 +74,7 @@
           appSidebarAnchorToggle
           routerLink="{{ menuItem.path }}"
           *ngIf="menuItem.submenu.length === 0 && !menuItem.isExternalLink"
+          (click)="beforRoute()"
         >
           <i [ngClass]="[menuItem.icon]"></i>
           <span class="menu-title">{{ menuItem.title | translate }}</span>
