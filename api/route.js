@@ -6,6 +6,7 @@ var express = require("express");
 var router = require("express").Router();
 router.use("/user", require("./routes/user-route"));
 router.use("/master", require("./routes/master-route"));
+router.use("/product", require("./routes/product-route"));
 
 router.use(function (req, res, next) {
   next();
