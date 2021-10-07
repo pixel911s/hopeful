@@ -148,7 +148,7 @@ async function save(conn, model) {
 
 async function deleteProduct(conn, id) {
     try {
-        //insert
+        //delete
         let sql = "delete from product where id = ?";
 
         await conn.query(sql, [id]);
