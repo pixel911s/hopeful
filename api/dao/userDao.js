@@ -13,6 +13,10 @@ module.exports = {
   changePassword,
 
   getBusinessById,
+
+  saveAgent,
+  deleteAgent,
+  getAgent
 };
 
 async function getBusinessById(conn, id) {
@@ -223,5 +227,43 @@ async function deleteUserFunction(conn, username) {
     return true;
   } catch (e) {
     throw e;
+  }
+}
+
+async function deleteAgent(conn, username) {
+  try {
+    //delete
+    let sql = "DELETE from userAgent where username = ?";
+
+    await conn.query(sql, [username]);
+
+    return true;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function saveAgent(conn, username, createBy,  model) {
+  try {
+    //insert
+    let sql = "INSERT INTO `userAgent` (`username`,`agentId`,`createBy`,`createDate`)";
+    sql += "  VALUES (?,?,?,?)";
+
+    await conn.query(sql, [username, model.agentId, createBy, new Date()]);
+
+    return true;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getAgent(conn, username) {
+  try {
+    let sql = "select * from userAgent where userName = ?";
+    const result = await conn.query(sql, [username]);
+
+    return result;
+  } catch (err) {
+    throw err;
   }
 }

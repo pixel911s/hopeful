@@ -14,6 +14,7 @@ module.exports = {
   search,
   save,
   changePassword,
+  saveAgents
 };
 
 async function login(req, res) {
@@ -34,6 +35,7 @@ async function login(req, res) {
         userFunction.forEach((uf) => {
           data.function[uf.functionCode] = true;
         });
+        data.userAgents = await userDao.getAgent(conn, username);
       }
     }
 
@@ -66,6 +68,8 @@ async function get(req, res) {
     result.businessType = result.business.businessType;
 
     let userFunction = await userDao.getUserFunction(conn, criteria.username);
+
+    result.userAgents = await userDao.getAgent(conn, criteria.username);
 
     userFunction.forEach((f) => {
       if ("CREATE_AGENT" == f.functionCode) {
@@ -215,6 +219,46 @@ async function changePassword(req, res) {
   } catch (e) {
     conn.rollback();
     return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function saveAgents(req, res) {
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
+
+    //=================================
+    // Object Info
+    // {username : "xxx", createBy : "xxx", userAgents[ {agentId} ]}
+    //=================================
+
+    await userDao.deleteAgent(conn, model.username);
+
+    for (let index = 0; index < model.userAgents.length; index++) {
+      
+      await userDao.saveAgent(
+        conn,       
+        model.username,
+        model.createBy,
+        model.userAgents[index]
+      );
+    }
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูลเอเจ้นท์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    conn.rollback();
+    if (e.code == "ER_DUP_ENTRY") {
+      return res.status(401).send("มีเอเจ้นท์นี้แล้วในระบบ");
+    } else {
+      return res.status(500).send(e.message);
+    }
   } finally {
     conn.release();
   }
