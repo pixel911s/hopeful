@@ -21,6 +21,7 @@ export class CreateUserComponent extends BaseComponent implements OnInit {
     businessType: "H",
     selectCRM: true,
     status: 1,
+    userAgents: [],
   };
   public formGroup: FormGroup;
 

@@ -47,7 +47,7 @@
               >
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
             <div
               class="form-group"
               [ngClass]="{
@@ -82,7 +82,12 @@
               >
             </div>
           </div>
-          <div class="col-md-3" *ngIf="data.businessType == 'A'">
+          <div
+            class="col-md-3"
+            *ngIf="
+              data.businessType == 'A' && user.business.businessType == 'H'
+            "
+          >
             <div
               class="form-group"
               [ngClass]="{
@@ -104,7 +109,10 @@
                 <option [ngValue]="undefined">
                   {{ "common.please-select" | translate }}
                 </option>
-                <option *ngFor="let item of master.agents" [ngValue]="item.id">
+                <option
+                  *ngFor="let item of user.userAgents"
+                  [ngValue]="item.id"
+                >
                   {{ item.name }}
                 </option>
               </select>
@@ -323,6 +331,18 @@
                 >สร้าง / แก้ไขข้อมูล</label
               >
             </div>
+          </div>
+
+          <div class="col-12" *ngIf="data.businessType == 'H'">
+            <hr />
+            <h5>ตัวแทนจำหน่ายที่สามารถจัดการได้</h5>
+            <dual-list
+              [display]="'name'"
+              [key]="'id'"
+              [source]="master.agents"
+              [(destination)]="data.userAgents"
+              [height]="'150px'"
+            ></dual-list>
           </div>
         </div>
       </div>

@@ -28,7 +28,6 @@ export class SearchUserComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private agentService: AgentService,
     private router: Router,
     private authService: AuthService,
     translate: TranslateService,
@@ -40,14 +39,20 @@ export class SearchUserComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.user = this.authService.getUser();
 
-    let res: any = await this.agentService.gets();
-
-    this.master.agents = res.data;
+    this.master.agents = this.user.userAgents;
 
     let session = JSON.parse(sessionStorage.getItem("HOPEFUL_CRITERIA"));
 
     if (session) {
       this.criteria = session;
+    }
+
+    this.criteria.userAgents = this.user.userAgents;
+
+    console.log(this.user);
+    if (this.user.business.businessType == "A") {
+      this.criteria.businessType = this.user.business.businessType;
+      this.criteria.agent = this.user.business.id;
     }
 
     await this.search();

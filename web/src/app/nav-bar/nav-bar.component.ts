@@ -14,8 +14,6 @@ export class NavBarComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.data = JSON.parse(sessionStorage.getItem("NAV"));
 
-    console.log(this.data);
-
     if (!this.data) {
       this.data = [{ name: "หน้าหลัก", path: "/dashboard", isActive: false }];
       sessionStorage.setItem("NAV", JSON.stringify(this.data));
@@ -37,7 +35,7 @@ export class NavBarComponent implements OnInit {
 
     if (this.router.url !== "/dashboard") {
       let nav = this.route.snapshot.data;
-      console.log(nav);
+
       nav.isActive = true;
       nav.path = this.router.url;
 

@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
         <div class="form-group">
           <label for="businessType">กลุ่มผู้ใช้งาน</label>
           <select
@@ -35,7 +35,7 @@
           </select>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
         <div class="form-group">
           <label for="agent">ตัวแทนจำหน่าย</label>
           <select
