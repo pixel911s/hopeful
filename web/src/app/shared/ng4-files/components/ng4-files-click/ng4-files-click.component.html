@@ -1,0 +1,13 @@
+<label style="display: block">
+  <ng-content></ng-content>
+  <input
+    type="file"
+    class="ng4-files-upload-btn"
+    #spyNg4FilesInputSpy
+    accept="{{ acceptExtensions }}"
+    (change)="
+      onChange(spyNg4FilesInputSpy.files); spyNg4FilesInputSpy.value = ''
+    "
+    multiple
+  />
+</label>

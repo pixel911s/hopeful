@@ -90,6 +90,17 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
         submenu: [],
       });
     }
+
+    if (this.user.function.CREATE_PRODUCT || this.user.function.VIEW_PRODUCT) {
+      this.menuItems.push({
+        path: "/product",
+        title: "ข้อมูลสินค้า",
+        icon: "ft-box",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
   }
 
   ngAfterViewInit() {

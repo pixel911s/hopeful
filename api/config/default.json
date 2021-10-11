@@ -12,6 +12,8 @@
     },
     "path": {
         "dir": "/opt/ran/ecommerce/assets",
-        "temp_path": "D://work/PBANK"
+        "temp_path": "D://work/PBANK",
+        "product_file_input": "D://P-BANK/GIT/hopeful/web/src/assets/img/test-img/product/",
+        "product_file_output": "http://localhost:4200/assets/img/test-img/product/"
     }
 }

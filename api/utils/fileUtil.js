@@ -12,7 +12,8 @@ module.exports.uploadImg = async function (
   _fileName = null
 ) {
   try {
-    console.log(_img);
+    const webp = require("webp-converter");
+    webp.grant_permission();
 
     let subPathArr = _subPath.split("/");
     let fullPath = _inputPath.substr(0, _inputPath.length - 1);
@@ -36,10 +37,20 @@ module.exports.uploadImg = async function (
     // }
 
     let imgPath = fullPath + "/" + _img.name;
+    let imgWebp =
+      fullPath + "/" + _img.name.split(".").slice(0, -1).join(".") + ".webp";
 
     //upload image
 
     if (_img.mimetype == "image/gif") {
+      await fs_writeFile(imgPath, _img.data);
+
+      await webp.gwebp(imgPath, imgWebp, "-q 90", (logging = "-v"));
+
+      if (fs.existsSync(imgPath)) {
+        fs.unlink(imgPath, function (err) {});
+      }
+    } else if (_img.mimetype == "image/webp") {
       await fs_writeFile(imgPath, _img.data);
     } else {
       const sharp = require("sharp");
@@ -48,13 +59,26 @@ module.exports.uploadImg = async function (
         .resize(1110, undefined, {
           withoutEnlargement: true,
         })
-        .jpeg({ quality: 80 })
+        .jpeg({ quality: 100 })
         .toFile(imgPath);
+
+      await webp.cwebp(imgPath, imgWebp, "-q 80", (logging = "-v"));
+
+      if (fs.existsSync(imgPath)) {
+        fs.unlink(imgPath, function (err) {});
+      }
     }
 
     const d = new Date();
 
-    return _outputPath + _subPath + "/" + _img.name + "?v=" + d.getTime();
+    return (
+      _outputPath +
+      _subPath +
+      "/" +
+      (_img.name.split(".").slice(0, -1).join(".") + ".webp") +
+      "?v=" +
+      d.getTime()
+    );
   } catch (e) {
     throw e;
   }
@@ -73,9 +97,7 @@ module.exports.deleteImg = function (_fullPath) {
 module.exports.deleteFloder = async function (_fullPath) {
   try {
     if (fs.existsSync(_fullPath)) {
-      console.log(_fullPath);
       let result = await rimraf.sync(_fullPath);
-      console.log(result);
     }
   } catch (e) {
     throw e;

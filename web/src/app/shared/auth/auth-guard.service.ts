@@ -40,6 +40,17 @@ export class AuthGuard implements CanActivate {
       this.authService.logout();
     }
 
+    if (
+      (("MANAGE_PRODUCT" == route.routeConfig.data.id ||
+        "VIEW_PRODUCT" == route.routeConfig.data.id) &&
+        !this.authService.getUser().function.CREATE_PRODUCT &&
+        !this.authService.getUser().function.VIEW_PRODUCT) ||
+      ("CREATE_PRODUCT" == route.routeConfig.data.id &&
+        !this.authService.getUser().function.CREATE_PRODUCT)
+    ) {
+      this.authService.logout();
+    }
+
     return true;
   }
 }

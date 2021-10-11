@@ -1,164 +1,196 @@
 "use strict";
 
 module.exports = {
-    get,
-    search,
-    count,
-    save,
-    deleteProduct
+  get,
+  search,
+  count,
+  save,
+  deleteProduct,
 };
 
-
 async function get(conn, id) {
-    try {
-        let sql = "select * from product where id = ?";
-        const result = await conn.query(sql, [id]);
+  try {
+    let sql = "select * from product where id = ?";
+    const result = await conn.query(sql, [id]);
 
-        return result[0];
-    } catch (err) {
-        throw err;
-    }
+    return result[0];
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function count(conn, criteria) {
-    try {
-        let params = [];
+  try {
+    let params = [];
 
-        let sql = "select count(id) as totalRecord from product where 1=1";
+    let sql = "select count(id) as totalRecord from product where 1=1";
 
-        if (criteria.code) {
-            sql += " and code like ?";
-            params.push("%" + criteria.code + "%");
-        }
-
-        if (criteria.name) {
-            sql += " and name like ?";
-            params.push("%" + criteria.name + "%");
-        }
-
-        let result = await conn.query(sql, params);
-
-        return result[0].totalRecord;
-    } catch (e) {
-        console.log("ERROR : ",e);
-        throw e;
+    if (criteria.code) {
+      sql += " and code like ?";
+      params.push("%" + criteria.code + "%");
     }
+
+    if (criteria.name) {
+      sql += " and name like ?";
+      params.push("%" + criteria.name + "%");
+    }
+
+    if (criteria.status) {
+      sql += " and status = ?";
+      params.push(criteria.status);
+    }
+
+    if (criteria.keyword) {
+      sql += " and (name like ? or code like ?)";
+      params.push("%" + criteria.keyword + "%");
+      params.push("%" + criteria.keyword + "%");
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result[0].totalRecord;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
 }
 
 async function search(conn, criteria) {
-    try {
-        let startRecord = (criteria.page - 1) * criteria.size;
+  try {
+    let startRecord = (criteria.page - 1) * criteria.size;
 
-        let params = [];
+    let params = [];
 
-        let sql =
-            "select * from product where 1=1";
+    let sql = "select * from product where 1=1";
 
-        if (criteria.code) {
-            sql += " and code like ?";
-            params.push("%" + criteria.code + "%");
-        }
-
-        if (criteria.name) {
-            sql += " and name like ?";
-            params.push("%" + criteria.name + "%");
-        }
-
-        sql += " order by code";
-
-        sql += " limit " + startRecord + "," + criteria.size;
-
-        let result = await conn.query(sql, params);
-
-        return result;
-    } catch (e) {
-        console.log("ERROR : ",e);
-        throw e;
+    if (criteria.code) {
+      sql += " and code like ?";
+      params.push("%" + criteria.code + "%");
     }
+
+    if (criteria.name) {
+      sql += " and name like ?";
+      params.push("%" + criteria.name + "%");
+    }
+
+    if (criteria.status) {
+      sql += " and status = ?";
+      params.push(criteria.status);
+    }
+
+    if (criteria.keyword) {
+      sql += " and (name like ? or code like ?)";
+      params.push("%" + criteria.keyword + "%");
+      params.push("%" + criteria.keyword + "%");
+    }
+
+    sql += " order by code";
+
+    sql += " limit " + startRecord + "," + criteria.size;
+
+    let result = await conn.query(sql, params);
+
+    return result;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
 }
 
 async function save(conn, model) {
-    try {
-        if (model.id) {
-            //update
+  try {
+    if (model.id) {
+      //update
 
-            let params = [];
+      let params = [];
 
-            let sql = "update product set ";
+      let sql = "update product set ";
 
-            sql += "code = ? ";
-            params.push(model.code);
+      sql += "code = ? ";
+      params.push(model.code.trim());
 
-            sql += ",name = ? ";
-            params.push(model.name);
+      sql += " ,name = ? ";
+      params.push(model.name.trim());
 
-            sql += ",unit = ? ";
-            params.push(model.unit);
+      sql += " ,`description` = ? ";
+      params.push(model.description);
 
-            sql += ",remainingDay = ? ";
-            params.push(model.remainingDay);
+      sql += " ,`weight` = ? ";
+      params.push(model.weight);
 
-            sql += ",price = ? ";
-            params.push(model.price);
+      sql += " ,unit = ? ";
+      params.push(model.unit);
 
-            sql += ",discount = ? ";
-            params.push(model.discount);
+      sql += " ,remainingDay = ? ";
+      params.push(model.remainingDay);
 
-            sql += ",sellPrice = ? ";
-            params.push(model.sellPrice);
+      sql += " ,price = ? ";
+      params.push(model.price);
 
-            sql += ",imageUrl = ? ";
-            params.push(model.imageUrl);
-           
-            sql += ",updateBy = ? ";
-            params.push(model.updateBy);
+      sql += " ,discount = ? ";
+      params.push(model.discount);
 
-            sql += ",updateDate = ? ";
-            params.push(new Date());
-           
-            sql += " where id = ?";
-            params.push(model.id);
+      sql += " ,sellPrice = ? ";
+      params.push(model.sellPrice);
 
-            await conn.query(sql, params);
-        } else {
-            //insert
-            let sql =
-                "insert into product (`code`,`name`,`unit`,`remainingDay`,`price`,`discount`,`sellPrice`,`imageUrl`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
-            sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+      sql += " ,imageUrl = ? ";
+      params.push(model.imageUrl);
 
-            await conn.query(sql, [
-                model.code,
-                model.name,
-                model.unit,
-                model.remainingDay,
-                model.price,
-                model.discount,
-                model.sellPrice,
-                model.imageUrl,
-                model.createBy,
-                new Date(),
-                model.updateBy,
-                new Date()               
-            ]);
-        }
+      sql += " ,`status` = ? ";
+      params.push(model.status);
 
-        return true;
-    } catch (e) {
-        console.log("ERROR : ",e);
-        throw e;
+      sql += " ,updateBy = ? ";
+      params.push(model.updateUser);
+
+      sql += " ,updateDate = ? ";
+      params.push(new Date());
+
+      sql += " where id = ?";
+      params.push(model.id);
+
+      await conn.query(sql, params);
+    } else {
+      //insert
+      let sql =
+        "insert into product (`code`,`name`,`description`, `weight` ,`unit`,`remainingDay`,`price`,`discount`,`sellPrice`,`imageUrl`,`status`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+      await conn.query(sql, [
+        model.code.trim(),
+        model.name.trim(),
+        model.description,
+        model.weight,
+        model.unit,
+        model.remainingDay,
+        model.price,
+        model.discount,
+        model.sellPrice,
+        model.imageUrl,
+        model.status,
+        model.updateUser,
+        new Date(),
+        model.updateUser,
+        new Date(),
+      ]);
     }
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
 }
 
 async function deleteProduct(conn, id) {
-    try {
-        //delete
-        let sql = "delete from product where id = ?";
+  try {
+    //delete
+    let sql = "delete from product where id = ?";
 
-        await conn.query(sql, [id]);
+    await conn.query(sql, [id]);
 
-        return true;
-    } catch (e) {
-        console.log("ERROR : ",e);
-        throw e;
-    }
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
 }
