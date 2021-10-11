@@ -162,7 +162,7 @@ async function save(conn, model) {
                 "insert into product (`code`,`name`,`description`, `weight` ,`unit`,`remainingDay`,`price`,`discount`,`sellPrice`,`imageUrl`,`status`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
             sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-            await conn.query(sql, [
+            let _result = await conn.query(sql, [
                 model.code.trim(),
                 model.name.trim(),
                 model.description,
