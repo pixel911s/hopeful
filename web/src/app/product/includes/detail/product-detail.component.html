@@ -1,0 +1,249 @@
+<div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
+  <div class="col-12 m-b-20">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">{{ header }}</h5>
+            <hr />
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.barcode.touched && f.barcode.errors
+              }"
+            >
+              <label for="barcode">SKU ID *</label>
+              <input
+                autocomplete="off"
+                maxlength="20"
+                id="barcode"
+                class="form-control form-control-sm"
+                formControlName="barcode"
+                [(ngModel)]="data.code"
+                [ngClass]="{
+                  'is-invalid': f.barcode.touched && f.barcode.errors,
+                  'is-valid': f.barcode.touched && !f.barcode.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.barcode.touched && f.barcode.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.name.touched && f.name.errors }"
+            >
+              <label for="name">ชื่อสินค้า *</label>
+              <input
+                autocomplete="off"
+                maxlength="100"
+                id="name"
+                class="form-control form-control-sm"
+                formControlName="name"
+                [(ngModel)]="data.name"
+                [ngClass]="{
+                  'is-invalid': f.name.touched && f.name.errors,
+                  'is-valid': f.name.touched && !f.name.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.name.touched && f.name.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.description.touched && f.description.errors
+              }"
+            >
+              <label for="description">รายละเอียดสินค้า *</label>
+              <textarea
+                maxlength="2000"
+                autocomplete="off"
+                id="description"
+                class="form-control form-control-sm"
+                formControlName="description"
+                [(ngModel)]="data.description"
+                rows="5"
+                [ngClass]="{
+                  'is-invalid': f.description.touched && f.description.errors,
+                  'is-valid': f.description.touched && !f.description.errors
+                }"
+              >
+              </textarea>
+              <small
+                class="text-danger"
+                *ngIf="f.description.touched && f.description.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.unit.touched && f.unit.errors }"
+            >
+              <label for="unit">หน่วยนับ *</label>
+              <input
+                autocomplete="off"
+                maxlength="20"
+                id="unit"
+                class="form-control form-control-sm"
+                formControlName="unit"
+                [(ngModel)]="data.unit"
+                [ngClass]="{
+                  'is-invalid': f.unit.touched && f.unit.errors,
+                  'is-valid': f.unit.touched && !f.unit.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.unit.touched && f.unit.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.price.touched && f.price.errors }"
+            >
+              <label for="price">ราคา *</label>
+              <input
+                (keyup)="checkNumberValue($event)"
+                autocomplete="off"
+                maxlength="100"
+                id="price"
+                class="form-control form-control-sm"
+                formControlName="price"
+                [(ngModel)]="data.price"
+                [ngClass]="{
+                  'is-invalid': f.price.touched && f.price.errors,
+                  'is-valid': f.price.touched && !f.price.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.price.touched && f.price.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.weight.touched && f.weight.errors }"
+            >
+              <label for="weight">น้ำหนัก (กรัม)*</label>
+              <input
+                autocomplete="off"
+                maxlength="10"
+                id="weight"
+                class="form-control form-control-sm"
+                formControlName="weight"
+                [(ngModel)]="data.weight"
+                type="number"
+                [ngClass]="{
+                  'is-invalid': f.weight.touched && f.weight.errors,
+                  'is-valid': f.weight.touched && !f.weight.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.weight.touched && f.weight.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.remainingDay.touched && f.remainingDay.errors
+              }"
+            >
+              <label for="remainingDay">จำนวนวันที่ต้องติดตามผล *</label>
+              <input
+                autocomplete="off"
+                maxlength="3"
+                id="remainingDay"
+                class="form-control form-control-sm"
+                formControlName="remainingDay"
+                [(ngModel)]="data.remainingDay"
+                type="number"
+                [ngClass]="{
+                  'is-invalid': f.remainingDay.touched && f.remainingDay.errors,
+                  'is-valid': f.remainingDay.touched && !f.remainingDay.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.remainingDay.touched && f.remainingDay.errors?.required
+                "
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="form-group">
+              <label for="status">สถานะสินค้า</label>
+              <select
+                class="form-control form-control-sm"
+                id="status"
+                formControlName="status"
+                [(ngModel)]="data.status"
+                [ngClass]="{
+                  'is-invalid': f.status.touched && f.status.errors,
+                  'is-valid': f.status.touched && !f.status.errors
+                }"
+              >
+                <option [ngValue]="1">ใช้งาน</option>
+                <option [ngValue]="0">ไม่ใช้งาน</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-12 m-b-20">
+            <hr />
+            <h5>อัพโหลดรูปภาพสินค้า</h5>
+            <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
+              <ng4-files-click
+                class="upload"
+                (filesSelect)="filesSelect($event)"
+              >
+                <div
+                  [ngClass]="{ invalid: data.imgInvalid }"
+                  class="upload-box"
+                  *ngIf="!data.imgUrl"
+                >
+                  <div class="upload-icon">
+                    <i class="ft-image"></i>
+                  </div>
+                  <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปภาพสินค้า</p>
+                </div>
+                <div class="upload-box" *ngIf="data.imgUrl">
+                  <img class="img-fluid2" [src]="data.imgUrl" />
+                  <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปภาพสินค้าอีกครั้ง</p>
+                </div>
+              </ng4-files-click>
+            </ng4-files-drop>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

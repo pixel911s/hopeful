@@ -16,7 +16,8 @@ module.exports = {
 
   saveAgent,
   deleteAgent,
-  getAgent
+  getAgent,
+  getAgentObj,
 };
 
 async function getBusinessById(conn, id) {
@@ -72,6 +73,14 @@ async function count(conn, criteria) {
     if (criteria.agent != undefined) {
       sql += " and b.id = ?";
       params.push(criteria.agent);
+    } else {
+      let userAgents = [];
+      for (let index = 0; index < criteria.userAgents.length; index++) {
+        const element = criteria.userAgents[index];
+        userAgents.push(element.id);
+      }
+      sql += " and ( b.id in (?) or b.businessType = 'H')";
+      params.push(userAgents);
     }
 
     if (criteria.username) {
@@ -109,6 +118,14 @@ async function search(conn, criteria) {
     if (criteria.agent != undefined) {
       sql += " and b.id = ?";
       params.push(criteria.agent);
+    } else {
+      let userAgents = [];
+      for (let index = 0; index < criteria.userAgents.length; index++) {
+        const element = criteria.userAgents[index];
+        userAgents.push(element.id);
+      }
+      sql += " and ( b.id in (?) or b.businessType = 'H')";
+      params.push(userAgents);
     }
 
     if (criteria.username) {
@@ -243,13 +260,19 @@ async function deleteAgent(conn, username) {
   }
 }
 
-async function saveAgent(conn, username, createBy,  model) {
+async function saveAgent(conn, username, createBy, model) {
   try {
     //insert
-    let sql = "INSERT INTO `userAgent` (`username`,`agentId`,`createBy`,`createDate`)";
+    let sql =
+      "INSERT INTO `userAgent` (`username`,`agentId`,`createBy`,`createDate`)";
     sql += "  VALUES (?,?,?,?)";
 
-    await conn.query(sql, [username, model.agentId, createBy, new Date()]);
+    await conn.query(sql, [
+      username,
+      model.agentId ? model.agentId : model.id,
+      createBy,
+      new Date(),
+    ]);
 
     return true;
   } catch (e) {
@@ -260,6 +283,18 @@ async function saveAgent(conn, username, createBy,  model) {
 async function getAgent(conn, username) {
   try {
     let sql = "select * from userAgent where userName = ?";
+    const result = await conn.query(sql, [username]);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function getAgentObj(conn, username) {
+  try {
+    let sql =
+      "select bu.* from business bu left join userAgent ua on bu.id = ua.agentId where ua.userName = ?";
     const result = await conn.query(sql, [username]);
 
     return result;

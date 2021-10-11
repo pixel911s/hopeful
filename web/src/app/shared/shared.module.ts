@@ -33,6 +33,7 @@ import { TopMenuAnchorToggleDirective } from "./directives/topmenu-anchor-toggle
 import { NavBarComponent } from "app/nav-bar/nav-bar.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { ToastrModule } from "ngx-toastr";
+import { Ng4FilesModule } from "./ng4-files";
 
 @NgModule({
   exports: [
@@ -52,6 +53,7 @@ import { ToastrModule } from "ngx-toastr";
     ReactiveFormsModule,
     FormsModule,
     ToastrModule,
+    Ng4FilesModule,
   ],
   imports: [
     RouterModule,
@@ -73,6 +75,7 @@ import { ToastrModule } from "ngx-toastr";
       // disableTimeOut: true,
       enableHtml: true,
     }),
+    Ng4FilesModule,
   ],
   declarations: [
     FooterComponent,

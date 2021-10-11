@@ -14,7 +14,7 @@ module.exports = {
   search,
   save,
   changePassword,
-  saveAgents
+  saveAgents,
 };
 
 async function login(req, res) {
@@ -35,7 +35,7 @@ async function login(req, res) {
         userFunction.forEach((uf) => {
           data.function[uf.functionCode] = true;
         });
-        data.userAgents = await userDao.getAgent(conn, username);
+        data.userAgents = await userDao.getAgentObj(conn, username);
       }
     }
 
@@ -69,7 +69,7 @@ async function get(req, res) {
 
     let userFunction = await userDao.getUserFunction(conn, criteria.username);
 
-    result.userAgents = await userDao.getAgent(conn, criteria.username);
+    result.userAgents = await userDao.getAgentObj(conn, criteria.username);
 
     userFunction.forEach((f) => {
       if ("CREATE_AGENT" == f.functionCode) {
@@ -184,6 +184,17 @@ async function save(req, res) {
       );
     }
 
+    await userDao.deleteAgent(conn, model.username);
+
+    for (let index = 0; index < model.userAgents.length; index++) {
+      await userDao.saveAgent(
+        conn,
+        model.username,
+        model.createBy,
+        model.userAgents[index]
+      );
+    }
+
     conn.commit();
 
     return res.send(
@@ -238,9 +249,8 @@ async function saveAgents(req, res) {
     await userDao.deleteAgent(conn, model.username);
 
     for (let index = 0; index < model.userAgents.length; index++) {
-      
       await userDao.saveAgent(
-        conn,       
+        conn,
         model.username,
         model.createBy,
         model.userAgents[index]

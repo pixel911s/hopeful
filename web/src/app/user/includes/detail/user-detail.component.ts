@@ -1,6 +1,7 @@
 import { OnInit, Component, Input } from "@angular/core";
 import { FormGroup, FormControl, Validators } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
+import { DualListComponent } from "angular-dual-listbox";
 import { AuthService } from "app/shared/auth/auth.service";
 import { AgentService } from "app/shared/services/agent.service";
 import { MasterService } from "app/shared/services/master.service";
@@ -28,6 +29,10 @@ export class UserDetailComponent implements OnInit {
   @Input()
   isReadOnly: any;
 
+  userAgents = [];
+  user;
+  validate = [];
+
   constructor(
     private authService: AuthService,
     translate: TranslateService,
@@ -41,6 +46,14 @@ export class UserDetailComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.user = this.authService.getUser();
+
+    if (this.user.business.businessType == "A") {
+      this.data.businessType = this.user.business.businessType;
+      this.data.businessId = this.user.business.id;
+      this.data.ignoreValidate = true;
+    }
+
     this.prepareFormGroup();
 
     let res: any = await this.agentService.gets();
@@ -49,6 +62,10 @@ export class UserDetailComponent implements OnInit {
   }
 
   prepareFormGroup() {
+    if (!this.data.ignoreValidate) {
+      this.validate = [Validators.required];
+    }
+
     this.formGroup.addControl(
       "username",
       new FormControl({ value: "", disabled: this.isReadOnly || this.isEdit }, [
@@ -68,10 +85,7 @@ export class UserDetailComponent implements OnInit {
 
     this.formGroup.addControl(
       "businessType",
-      new FormControl(
-        { value: "", disabled: this.isReadOnly },
-        Validators.required
-      )
+      new FormControl({ value: "", disabled: this.isReadOnly }, this.validate)
     );
 
     this.formGroup.addControl(
@@ -133,9 +147,7 @@ export class UserDetailComponent implements OnInit {
 
       this.formGroup.addControl(
         "businessId",
-        new FormControl({ value: "", disabled: this.isReadOnly }, [
-          Validators.required,
-        ])
+        new FormControl({ value: "", disabled: this.isReadOnly }, this.validate)
       );
     } else {
       this.data.businessId = undefined;

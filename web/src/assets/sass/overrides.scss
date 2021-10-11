@@ -185,3 +185,25 @@ hr {
   background-color: #ffffff !important;
   color: #626262 !important;
 }
+
+.upload-box {
+  border: 1px dotted darkgrey;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  cursor: pointer;
+
+  .upload-icon {
+    font-size: 3rem;
+    color: #454545;
+  }
+}
+
+.upload-box.invalid {
+  border: 1px dotted #dc3545;
+  color: #dc3545 !important;
+}
+
+.img-fluid2 {
+  max-width: 150px;
+}

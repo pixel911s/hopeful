@@ -12,7 +12,8 @@
 
   "error" : {
     "required": "Required",
-    "please-fill-required":"❌ กรุณากรอกข้อมูลให้สมบูรณ์"
+    "please-fill-required":"❌ กรุณากรอกข้อมูลให้สมบูรณ์",
+    "file-large":"❌ ขนาดไฟล์สูงสุดไม่เกิน 10MB"
   },
 
   "success": {

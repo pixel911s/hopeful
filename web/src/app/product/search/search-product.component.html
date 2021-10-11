@@ -4,51 +4,19 @@
   <div class="card-body">
     <div class="row">
       <div class="col-12">
-        <h5 class="d-inline">จัดการข้อมูลผู้ใช้งาน</h5>
+        <h5 class="d-inline">จัดการข้อมูลสินค้า</h5>
         <hr />
       </div>
-      <div class="col-md-3">
+      <div class="col-12 col-md-9">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="keyword">Keyword</label>
           <input
             (keyup.enter)="criteria.page = 1; search()"
             autocomplete="off"
-            [(ngModel)]="criteria.username"
+            [(ngModel)]="criteria.keyword"
             class="form-control form-control-sm"
-            id="username"
+            id="keyword"
           />
-        </div>
-      </div>
-
-      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
-        <div class="form-group">
-          <label for="businessType">กลุ่มผู้ใช้งาน</label>
-          <select
-            (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.businessType"
-            class="form-control form-control-sm"
-            id="businessType"
-          >
-            <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="'H'">สำนักงานใหญ่</option>
-            <option [ngValue]="'A'">ตัวแทนจำหน่าย</option>
-          </select>
-        </div>
-      </div>
-      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
-        <div class="form-group">
-          <label for="agent">ตัวแทนจำหน่าย</label>
-          <select
-            (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.agent"
-            class="form-control form-control-sm"
-            id="agent"
-          >
-            <option [ngValue]="undefined">ทั้งหมด</option>
-            <option *ngFor="let item of master.agents" [ngValue]="item.id">
-              {{ item.name }}
-            </option>
-          </select>
         </div>
       </div>
 
@@ -81,11 +49,11 @@
           id="btnSearch"
           type="button"
           class="btn btn-sm btn-primary m-l-10"
-          [routerLink]="['/user/create']"
+          [routerLink]="['/product/create']"
           routerLinkActive="router-link-active"
-          *ngIf="user.function.CREATE_USER"
+          *ngIf="user.function.CREATE_AGENT"
         >
-          เพิ่มผู้ใช้งาน
+          เพิ่มสินค้า
         </button>
       </div>
     </div>
@@ -102,25 +70,22 @@
           <table class="table table-hover custom-table" id="tblData">
             <thead>
               <tr>
-                <th class="text-left">Username</th>
-                <th class="text-center" style="width: 120px">กลุ่มผู้ใช้งาน</th>
-                <th class="text-center" style="width: 120px">ตัวแทนจำหน่าย</th>
+                <th class="text-center" style="width: 100px">รหัสสินค้า</th>
+                <th class="text-left">ชื่อสินค้า</th>
+                <th class="text-right" style="width: 120px">ราคาขาย</th>
+                <th class="text-right" style="width: 120px">วันที่ติดตาม</th>
                 <th class="text-center" style="width: 70px">สถานะ</th>
                 <th style="width: 70px"></th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let item of data.data">
-                <td class="text-left">{{ item.username }}</td>
-                <td class="text-center">
-                  <span *ngIf="item.businessType == 'H'">สำนักงานใหญ่</span>
-                  <span *ngIf="item.businessType == 'A'">ตัวแทนจำหน่าย</span>
-                </td>
-                <td class="text-center">
-                  <span *ngIf="item.businessType == 'H'">-</span>
-                  <span *ngIf="item.businessType == 'A'">{{
-                    item.agentName
-                  }}</span>
+                <td class="text-center">{{ item.code }}</td>
+                <td class="text-left">{{ item.name }}</td>
+                <td class="text-right">{{ item.sellPrice | number: ".2" }}</td>
+
+                <td class="text-right">
+                  {{ item.remainingDay | number: ".0" }}
                 </td>
                 <td class="text-center">
                   <span *ngIf="item.status == 0" class="badge bg-light-danger"
@@ -130,6 +95,7 @@
                     >ใช้งาน</span
                   >
                 </td>
+
                 <td class="text-center" style="width: 120px">
                   <div ngbDropdown container="body">
                     <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
@@ -140,7 +106,7 @@
                         class="w-100"
                         (click)="update(item)"
                         ngbDropdownItem
-                        *ngIf="user.function.CREATE_USER"
+                        *ngIf="user.function.CREATE_AGENT"
                       >
                         ดู / แก้ไขข้อมูล
                       </button>
@@ -148,7 +114,7 @@
                         class="w-100"
                         (click)="view(item)"
                         ngbDropdownItem
-                        *ngIf="!user.function.CREATE_USER"
+                        *ngIf="!user.function.CREATE_AGENT"
                       >
                         ดูข้อมูล
                       </button>
