@@ -5,7 +5,10 @@ module.exports = {
     search,
     count,
     save,
-    deleteProduct
+    deleteProduct,
+    addAgentPrice,
+    deleteAgentPrice,
+    getAgentPrice
 };
 
 
@@ -40,7 +43,7 @@ async function count(conn, criteria) {
 
         return result[0].totalRecord;
     } catch (e) {
-        console.log("ERROR : ",e);
+        console.log("ERROR : ", e);
         throw e;
     }
 }
@@ -72,15 +75,19 @@ async function search(conn, criteria) {
 
         return result;
     } catch (e) {
-        console.log("ERROR : ",e);
+        console.log("ERROR : ", e);
         throw e;
     }
 }
 
 async function save(conn, model) {
     try {
+        let _id = 0;
+
         if (model.id) {
             //update
+
+            _id = model.id;
 
             let params = [];
 
@@ -109,13 +116,13 @@ async function save(conn, model) {
 
             sql += ",imageUrl = ? ";
             params.push(model.imageUrl);
-           
+
             sql += ",updateBy = ? ";
             params.push(model.updateBy);
 
             sql += ",updateDate = ? ";
             params.push(new Date());
-           
+
             sql += " where id = ?";
             params.push(model.id);
 
@@ -126,7 +133,7 @@ async function save(conn, model) {
                 "insert into product (`code`,`name`,`unit`,`remainingDay`,`price`,`discount`,`sellPrice`,`imageUrl`,`createBy`, `createDate`, `updateBy`, `updateDate`)";
             sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
 
-            await conn.query(sql, [
+            let _result = await conn.query(sql, [
                 model.code,
                 model.name,
                 model.unit,
@@ -138,13 +145,19 @@ async function save(conn, model) {
                 model.createBy,
                 new Date(),
                 model.updateBy,
-                new Date()               
+                new Date()
             ]);
+
+            console.log("INSERT RESULT : ",_result);
+
+            _id = _result.insertId;
+
+            console.log("AUTO ID : ", _id);
         }
 
-        return true;
+        return _id;
     } catch (e) {
-        console.log("ERROR : ",e);
+        console.log("ERROR : ", e);
         throw e;
     }
 }
@@ -158,7 +171,58 @@ async function deleteProduct(conn, id) {
 
         return true;
     } catch (e) {
-        console.log("ERROR : ",e);
+        console.log("ERROR : ", e);
+        throw e;
+    }
+}
+
+async function addAgentPrice(conn, id) {
+    try {
+        //insert
+        let sql =
+            "insert into agentPrice (`productId`,`qty`,`price`,`createBy`, `createDate`)";
+        sql += "  VALUES (?,?,?,?,?)";
+
+        await conn.query(sql, [
+            model.productId,
+            model.qty,
+            model.price,
+            model.createBy,
+            new Date()
+        ]);
+
+        return true;
+    } catch (e) {
+        console.log("ERROR : ", e);
+        throw e;
+    }
+}
+
+async function deleteAgentPrice(conn, productId) {
+    try {
+        //delete
+        let sql = "delete from agentPrice where productId = ?";
+
+        await conn.query(sql, [productId]);
+
+        return true;
+    } catch (e) {
+        console.log("ERROR : ", e);
+        throw e;
+    }
+}
+
+async function getAgentPrice(conn, productId) {
+    try {
+
+        let sql = "select * from agentPrice where productId=?";
+        sql += " order by qty";
+
+        let result = await conn.query(sql, [productId]);
+
+        return result;
+    } catch (e) {
+        console.log("ERROR : ", e);
         throw e;
     }
 }

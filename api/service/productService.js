@@ -22,6 +22,7 @@ async function get(req, res) {
         let criteria = req.body;
 
         let result = await productDao.get(conn, criteria.id);
+        result.agentPrices = await productDao.getAgentPrice(conn,criteria.id);
 
         return res.send(util.callbackSuccess(null, result));
     } catch (e) {
@@ -64,7 +65,13 @@ async function save(req, res) {
     try {
         let model = req.body;
 
-        await productDao.save(conn, model);
+        let _productId = await productDao.save(conn, model);
+
+        await productDao.deleteAgentPrice(conn, _productId);
+        for (let index = 0; index < model.agentPrices.length; index++) {
+            model.agentPrices[index].produtId = _productId;
+            await productDao.addAgentPrice(conn, model.agentPrices[index]);
+        }
 
         conn.commit();
 
@@ -89,6 +96,7 @@ async function deleteProduct(req, res) {
     try {
         let model = req.body;
 
+        await productDao.deleteAgentPrice(conn, model.id);
         await productDao.deleteProduct(conn, model.id);
 
         conn.commit();
