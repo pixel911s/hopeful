@@ -26,6 +26,7 @@ export class ProductService {
     if (data.newImageFlag) {
       fd.append("image", data.tmpNewImage);
       data.tmpNewImage = undefined;
+      data.imageUrl = undefined;
     }
 
     fd.append("data", JSON.stringify(data));
@@ -35,10 +36,19 @@ export class ProductService {
 
   get(code) {
     let criteria = {
-      code: code,
+      id: code,
     };
     return this.http
       .post(environment.apiUrl + "/product/get", criteria)
+      .toPromise();
+  }
+
+  remove(code) {
+    let criteria = {
+      id: code,
+    };
+    return this.http
+      .post(environment.apiUrl + "/product/deleteProduct", criteria)
       .toPromise();
   }
 }

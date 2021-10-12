@@ -6,6 +6,8 @@ import { ProductRoutingModule } from "./product-routing.module";
 import { SearchProductComponent } from "./search/search-product.component";
 import { CreateProductComponent } from "./create/create-product.component";
 import { ProductDetailComponent } from "./includes/detail/product-detail.component";
+import { PriceListFormComponent } from "./includes/pricelist-form/pricelist-form.component";
+import { UpdateProductComponent } from "./update/update-product.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, ProductRoutingModule],
@@ -13,10 +15,10 @@ import { ProductDetailComponent } from "./includes/detail/product-detail.compone
     SearchProductComponent,
     CreateProductComponent,
     ProductDetailComponent,
-    // AgentDetailComponent,
+    PriceListFormComponent,
     // ViewAgentComponent,
-    // UpdateAgentComponent,
+    UpdateProductComponent,
   ],
-  entryComponents: [],
+  entryComponents: [PriceListFormComponent],
 })
 export class ProductModule {}

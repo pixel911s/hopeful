@@ -118,7 +118,7 @@
               class="form-group"
               [ngClass]="{ 'is-invalid': f.price.touched && f.price.errors }"
             >
-              <label for="price">ราคา *</label>
+              <label for="price">ราคาขายให้ลูกค้า *</label>
               <input
                 (keyup)="checkNumberValue($event)"
                 autocomplete="off"
@@ -217,6 +217,47 @@
             </div>
           </div>
 
+          <div class="col-12">
+            <hr />
+            <h5>ราคาขายให้ตัวแทน</h5>
+          </div>
+          <div class="col-12">
+            <button
+              (click)="createPriceList()"
+              type="button"
+              class="btn btn-primary"
+            >
+              เพิ่มข้อมูลราคา
+            </button>
+          </div>
+          <div class="col-12 col-md-3">
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData">
+                <thead>
+                  <tr>
+                    <th class="text-center">จำนวน</th>
+                    <th class="text-right">ราคาขาย</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of data.agentPrices; let i = index">
+                    <td class="text-center">{{ item.qty }}</td>
+                    <td class="text-right">{{ item.price | number: ".2" }}</td>
+
+                    <td class="text-right">
+                      <a
+                        (click)="removePriceList(item, i)"
+                        style="color: #007bff"
+                        ><b><small>ลบข้อมูล</small></b></a
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="col-12 m-b-20">
             <hr />
             <h5>อัพโหลดรูปภาพสินค้า</h5>
@@ -228,15 +269,15 @@
                 <div
                   [ngClass]="{ invalid: data.imgInvalid }"
                   class="upload-box"
-                  *ngIf="!data.imgUrl"
+                  *ngIf="!data.imageUrl"
                 >
                   <div class="upload-icon">
                     <i class="ft-image"></i>
                   </div>
                   <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปภาพสินค้า</p>
                 </div>
-                <div class="upload-box" *ngIf="data.imgUrl">
-                  <img class="img-fluid2" [src]="data.imgUrl" />
+                <div class="upload-box" *ngIf="data.imageUrl">
+                  <img class="img-fluid2" [src]="data.imageUrl" />
                   <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปภาพสินค้าอีกครั้ง</p>
                 </div>
               </ng4-files-click>

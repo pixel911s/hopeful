@@ -1,0 +1,84 @@
+<div
+  *ngIf="formGroup"
+  mat-dialog-content
+  class="m-b-20"
+  [formGroup]="formGroup"
+>
+  <div class="row">
+    <div class="col-12">
+      <h5 class="d-inline">จัดการราคาขาย</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.qty.touched && f.qty.errors
+        }"
+      >
+        <label for="qty">จำนวน</label>
+        <input
+          type="number"
+          autocomplete="off"
+          id="qty"
+          class="form-control form-control-sm"
+          formControlName="qty"
+          [(ngModel)]="data.qty"
+          [ngClass]="{
+            'is-invalid': f.qty.touched && f.qty.errors,
+            'is-valid': f.qty.touched && !f.qty.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.qty.touched && f.qty.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.price.touched && f.price.errors
+        }"
+      >
+        <label for="price">ราคาขาย</label>
+        <input
+          type="number"
+          autocomplete="off"
+          id="price"
+          class="form-control form-control-sm"
+          formControlName="price"
+          [(ngModel)]="data.price"
+          [ngClass]="{
+            'is-invalid': f.price.touched && f.price.errors,
+            'is-valid': f.price.touched && !f.price.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.price.touched && f.price.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <hr />
+    </div>
+
+    <div class="col-12 text-right">
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary"
+        (click)="save()"
+      >
+        ตกลง
+      </button>
+    </div>
+  </div>
+</div>

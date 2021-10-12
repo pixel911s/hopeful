@@ -67,22 +67,25 @@ async function save(req, res) {
     let inputFile = config.path.product_file_input;
     let outputFile = config.path.product_file_output;
 
-    let img = files["image"];
+    if (files) {
+      let img = files["image"];
 
-    if (img) {
-      model.imageUrl = await fileUtil.uploadImg(
-        inputFile,
-        outputFile,
-        model.code.trim(),
-        img
-      );
+      if (img) {
+        model.imageUrl = await fileUtil.uploadImg(
+          inputFile,
+          outputFile,
+          model.code.trim(),
+          img
+        );
+      }
     }
 
     let _productId = await productDao.save(conn, model);
 
     await productDao.deleteAgentPrice(conn, _productId);
     for (let index = 0; index < model.agentPrices.length; index++) {
-      model.agentPrices[index].produtId = _productId;
+      model.agentPrices[index].productId = _productId;
+      model.agentPrices[index].createBy = model.updateUser;
       await productDao.addAgentPrice(conn, model.agentPrices[index]);
     }
 
@@ -92,6 +95,7 @@ async function save(req, res) {
       util.callbackSuccess("บันทึกข้อมูลสินค้าเสร็จสมบูรณ์", true)
     );
   } catch (e) {
+    console.log(e);
     conn.rollback();
     if (e.code == "ER_DUP_ENTRY") {
       return res.status(401).send("มีข้อมูลสินค้านี้แล้วในระบบ");

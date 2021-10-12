@@ -1,0 +1,21 @@
+<div mat-dialog-content class="m-b-20">
+  <h5>
+    {{ data.message | translate }}
+  </h5>
+  <h6 *ngIf="data.remark" class="text-primary">
+    <small>{{ data.remark }}</small>
+  </h6>
+</div>
+<div class="text-center" *ngIf="!data.hideBtn">
+  <button id="btnNo" type="button" class="btn btn-secondary" (click)="no()">
+    ยกเลิก
+  </button>
+  <button
+    id="btnOk"
+    type="button"
+    class="btn btn-primary m-l-10"
+    (click)="yes()"
+  >
+    ยืนยัน
+  </button>
+</div>

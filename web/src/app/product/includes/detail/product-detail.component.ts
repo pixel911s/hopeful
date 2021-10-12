@@ -6,12 +6,15 @@ import {
   FormArray,
   FormBuilder,
 } from "@angular/forms";
+import { MatDialog } from "@angular/material/dialog";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
 import { Ng4FilesSelected } from "app/shared/ng4-files";
+import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 import { BaseComponent } from "app/ิbase/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
+import { PriceListFormComponent } from "../pricelist-form/pricelist-form.component";
 
 @Component({
   selector: "app-product-detail",
@@ -45,7 +48,8 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
     private translate: TranslateService,
     private formBuilder: FormBuilder,
     private spinner: NgxSpinnerService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    protected dialog: MatDialog
   ) {
     super();
     translate.use(this.authService.getUser().lang);
@@ -147,10 +151,46 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
       let image = new Image();
       image.src = event.target.result;
       image.onload = () => {
-        this.data.imgUrl = event.target.result;
+        this.data.imageUrl = event.target.result;
         this.data.newImageFlag = true;
         this.data.tmpNewImage = file;
       };
     };
+  }
+
+  removePriceList(item, index) {
+    const dialogRef = this.dialog.open(PopupConfirmComponent, {
+      maxWidth: "1000px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการลบข้อมูล",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        console.log(this.data.agentPrices, index);
+        this.data.agentPrices.splice(index, 1);
+      }
+    });
+  }
+
+  createPriceList() {
+    const dialogRef = this.dialog.open(PriceListFormComponent, {
+      maxWidth: "300px",
+      minWidth: "200px",
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.data.agentPrices.push(result);
+        this.data.agentPrices.sort((a, b) =>
+          a.qty > b.qty ? 1 : b.qty > a.qty ? -1 : 0
+        );
+
+        console.log(this.data.agentPrices);
+      }
+    });
   }
 }

@@ -34,6 +34,8 @@ import { NavBarComponent } from "app/nav-bar/nav-bar.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { ToastrModule } from "ngx-toastr";
 import { Ng4FilesModule } from "./ng4-files";
+import { MatDialogModule } from "@angular/material/dialog";
+import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 
 @NgModule({
   exports: [
@@ -54,6 +56,7 @@ import { Ng4FilesModule } from "./ng4-files";
     FormsModule,
     ToastrModule,
     Ng4FilesModule,
+    MatDialogModule,
   ],
   imports: [
     RouterModule,
@@ -76,6 +79,7 @@ import { Ng4FilesModule } from "./ng4-files";
       enableHtml: true,
     }),
     Ng4FilesModule,
+    MatDialogModule,
   ],
   declarations: [
     FooterComponent,
@@ -94,7 +98,9 @@ import { Ng4FilesModule } from "./ng4-files";
     TopMenuAnchorToggleDirective,
     TopMenuDirective,
     NavBarComponent,
+    PopupConfirmComponent,
   ],
+  entryComponents: [PopupConfirmComponent],
   providers: [DatePipe],
 })
 export class SharedModule {}

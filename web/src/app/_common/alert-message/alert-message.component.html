@@ -1,0 +1,29 @@
+<alert type="warning" *ngIf="expiredDateStatus == 1">
+  <strong>แจ้งเตือน!</strong> สมาชิกจะหมดอายุภายในวันที่
+  {{ user.shop.expriedDate | date: "dd/MM/yyyy HH:mm:ss" }}
+  <a
+    [routerLink]="['/shop/2']"
+    routerLinkActive="router-link-active"
+    class="alert-link"
+    >สั่งซื้อ {{ user.shop.plan }} Plan คลิก</a
+  >
+</alert>
+<alert type="danger" *ngIf="expiredDateStatus == 2">
+  <strong>แจ้งเตือน!</strong> สมาชิกหมดอายุแล้ว
+  <a
+    [routerLink]="['/shop/2']"
+    routerLinkActive="router-link-active"
+    class="alert-link"
+    >สั่งซื้อ {{ user.shop.plan }} Plan คลิก</a
+  >
+</alert>
+<alert type="primary" [dismissible]="dismissible">
+  <small>🔥2/6/2021🔥 </small> อัพเดทข่าวสาร และ วิธีการใช้งาน รวมถึง
+  การแก้ปัญหาเบื้องต้นได้ที่เมนู
+  <a
+    [routerLink]="['/how-to']"
+    routerLinkActive="router-link-active"
+    class="alert-link"
+    >คู่มือการใช้งาน</a
+  >
+</alert>

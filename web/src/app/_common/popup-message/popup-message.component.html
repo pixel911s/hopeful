@@ -1,0 +1,20 @@
+<div mat-dialog-content class="m-b-20">
+  <i *ngIf="data.info" class="material-icons info">check_circle</i>
+  <i *ngIf="data.error" class="far fa-times-circle error"></i>
+  <h5
+    class="d-inline"
+    style="word-break: break-all; max-height: 80vh; white-space: pre-line"
+  >
+    {{ data.message | translate }}
+  </h5>
+</div>
+<div class="text-center" *ngIf="!data.hideBtn">
+  <button
+    id="btnOk"
+    type="button"
+    class="btn btn-secondary"
+    (click)="onNoClick()"
+  >
+    Ok
+  </button>
+</div>

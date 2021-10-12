@@ -112,6 +112,14 @@
                       </button>
                       <button
                         class="w-100"
+                        (click)="remove(item)"
+                        ngbDropdownItem
+                        *ngIf="user.function.CREATE_AGENT"
+                      >
+                        ลบข้อมูล
+                      </button>
+                      <button
+                        class="w-100"
                         (click)="view(item)"
                         ngbDropdownItem
                         *ngIf="!user.function.CREATE_AGENT"

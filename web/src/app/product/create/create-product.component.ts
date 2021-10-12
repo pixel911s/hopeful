@@ -18,6 +18,7 @@ export class CreateProductComponent extends BaseComponent implements OnInit {
     status: 1,
     weight: 100,
     remainingDay: 0,
+    agentPrices: [],
   };
   public formGroup: FormGroup;
 
@@ -43,7 +44,7 @@ export class CreateProductComponent extends BaseComponent implements OnInit {
       return;
     }
 
-    if (!this.data.imgUrl) {
+    if (!this.data.imageUrl) {
       this.data.imgInvalid = true;
       this.toastr.show(this.translate.instant("❌ กรุณาอัพโหลดรูปภาพสินค้า"));
       return;
