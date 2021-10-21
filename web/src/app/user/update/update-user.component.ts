@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { UserService } from "app/shared/services/user.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 import { TranslateService } from "@ngx-translate/core";

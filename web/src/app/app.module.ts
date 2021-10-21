@@ -31,6 +31,7 @@ import { AuthService } from "./shared/auth/auth.service";
 import { AuthGuard } from "./shared/auth/auth-guard.service";
 import { WINDOW_PROVIDERS } from "./shared/services/window.service";
 import { AuthInterceptor } from "./shared/services/interceptor";
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 
 var firebaseConfig = {
   apiKey: "YOUR_API_KEY", //YOUR_API_KEY
@@ -74,6 +75,7 @@ export function createTranslateLoader(http: HttpClient) {
       apiKey: "YOUR_GOOGLE_MAP_API_KEY",
     }),
     PerfectScrollbarModule,
+    BsDatepickerModule.forRoot(),
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

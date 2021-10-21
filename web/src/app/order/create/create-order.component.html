@@ -1,0 +1,24 @@
+<app-nav-bar></app-nav-bar>
+
+<app-hf-order-form
+  *ngIf="data"
+  [data]="data"
+  [formGroup]="formGroup"
+  [header]="'สร้างคำสั่งซื้อ'"
+></app-hf-order-form>
+
+<div class="row m-b-20">
+  <div class="col-12 text-right">
+    <button
+      [routerLink]="['/order']"
+      routerLinkActive="router-link-active"
+      type="button"
+      class="btn btn-secondary"
+    >
+      Back
+    </button>
+    <button (click)="save()" type="button" class="btn btn-primary m-l-10">
+      Save
+    </button>
+  </div>
+</div>

@@ -2,7 +2,7 @@ import { OnInit, Component, ChangeDetectorRef } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { UserService } from "app/shared/services/user.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 
 @Component({
   selector: "app-view-user",

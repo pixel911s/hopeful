@@ -1,5 +1,5 @@
 <div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
-  <div class="col-12 m-b-20">
+  <div class="col-12 col-md-8 m-b-20">
     <div class="card">
       <div class="card-body">
         <div class="row">
@@ -7,6 +7,7 @@
             <h5 class="d-inline">{{ header }}</h5>
             <hr />
           </div>
+
           <div class="col-md-3">
             <div
               class="form-group"
@@ -216,51 +217,27 @@
               </select>
             </div>
           </div>
-
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4 m-b-20">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <div class="row">
           <div class="col-12">
+            <h5 class="d-inline" *ngIf="isReadOnly">รูปสินค้า</h5>
+            <h5 *ngIf="!isReadOnly">อัพโหลดรูปภาพสินค้า</h5>
             <hr />
-            <h5>ราคาขายให้ตัวแทน</h5>
           </div>
-          <div class="col-12">
-            <button
-              (click)="createPriceList()"
-              type="button"
-              class="btn btn-primary"
-            >
-              เพิ่มข้อมูลราคา
-            </button>
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="table-responsive">
-              <table class="table table-hover custom-table" id="tblData">
-                <thead>
-                  <tr>
-                    <th class="text-center">จำนวน</th>
-                    <th class="text-right">ราคาต่อชิ้น</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let item of data.agentPrices; let i = index">
-                    <td class="text-center">{{ item.qty }}</td>
-                    <td class="text-right">{{ item.price | number: ".2" }}</td>
 
-                    <td class="text-right">
-                      <a
-                        (click)="removePriceList(item, i)"
-                        style="color: #007bff"
-                        ><b><small>ลบข้อมูล</small></b></a
-                      >
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="col-12 m-b-20" *ngIf="isReadOnly">
+            <div class="upload-box" *ngIf="data.imageUrl">
+              <img class="img-fluid2" [src]="data.imageUrl" />
             </div>
           </div>
 
-          <div class="col-12 m-b-20">
-            <hr />
-            <h5>อัพโหลดรูปภาพสินค้า</h5>
+          <div class="col-12 m-b-20" *ngIf="!isReadOnly">
             <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
               <ng4-files-click
                 class="upload"
@@ -282,6 +259,54 @@
                 </div>
               </ng4-files-click>
             </ng4-files-drop>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">ราคาขายให้ตัวแทน</h5>
+            <hr />
+          </div>
+          <div class="col-12">
+            <button
+              *ngIf="!isReadOnly"
+              (click)="createPriceList()"
+              type="button"
+              class="btn btn-primary"
+            >
+              เพิ่มข้อมูลราคา
+            </button>
+          </div>
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData">
+                <thead>
+                  <tr>
+                    <th class="text-center">จำนวน</th>
+                    <th class="text-right">ราคาต่อชิ้น</th>
+                    <th *ngIf="!isReadOnly"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of data.agentPrices; let i = index">
+                    <td class="text-center">{{ item.qty }}</td>
+                    <td class="text-right">{{ item.price | number: ".2" }}</td>
+
+                    <td class="text-right" *ngIf="!isReadOnly">
+                      <a
+                        (click)="removePriceList(item, i)"
+                        style="color: #007bff"
+                        ><b><small>ลบข้อมูล</small></b></a
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

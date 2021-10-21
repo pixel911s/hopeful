@@ -9,6 +9,7 @@ router.use("/agent", require("./routes/agent-route"));
 router.use("/master", require("./routes/master-route"));
 router.use("/product", require("./routes/product-route"));
 router.use("/order", require("./routes/order-route"));
+router.use("/customer", require("./routes/customer-route"));
 
 router.use(function (req, res, next) {
   next();

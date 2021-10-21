@@ -3,6 +3,7 @@ import { AuthGuard } from "app/shared/auth/auth-guard.service";
 import { CreateProductComponent } from "./create/create-product.component";
 import { SearchProductComponent } from "./search/search-product.component";
 import { UpdateProductComponent } from "./update/update-product.component";
+import { ViewProductComponent } from "./view/view-product.component";
 
 const routes: Routes = [
   {
@@ -20,12 +21,12 @@ const routes: Routes = [
         data: { name: "เพิ่มข้อมูลสินค้า", id: "CREATE_PRODUCT" },
         canActivate: [AuthGuard],
       },
-      // {
-      //   path: "view/:id",
-      //   component: ViewAgentComponent,
-      //   data: { name: "ดูข้อมูลตัวแทนจำหน่าย", id: "VIEW_AGENT" },
-      //   canActivate: [AuthGuard],
-      // },
+      {
+        path: "view/:id",
+        component: ViewProductComponent,
+        data: { name: "ดูข้อมูลสินค้า", id: "VIEW_PRODUCT" },
+        canActivate: [AuthGuard],
+      },
       {
         path: "update/:id",
         component: UpdateProductComponent,

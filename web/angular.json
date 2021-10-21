@@ -29,7 +29,8 @@
               "src/favicon.ico"
             ],
             "styles": [
-
+              "./node_modules/ngx-bootstrap/datepicker/bs-datepicker.css",
+              "./node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/perfect-scrollbar/css/perfect-scrollbar.css",
               "node_modules/prismjs/plugins/toolbar/prism-toolbar.css",
               "src/assets/css/animate.min.css",
@@ -100,7 +101,6 @@
               "src/assets/vendor/pace/pace.min.js"
             ],
             "styles": [
-
               "src/assets/css/demo.css",
               "src/assets/sass/app.scss",
               "src/styles.css",

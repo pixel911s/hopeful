@@ -69,6 +69,17 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     ];
 
+    if (this.user.function.CREATE_ORDER || this.user.function.VIEW_ORDER) {
+      this.menuItems.push({
+        path: "/order",
+        title: "ข้อมูลคำสั่งซื้อ",
+        icon: "ft-file-text",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
+
     if (this.user.function.CREATE_USER || this.user.function.VIEW_USER) {
       this.menuItems.push({
         path: "/user",

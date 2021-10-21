@@ -8,6 +8,7 @@ import { CreateProductComponent } from "./create/create-product.component";
 import { ProductDetailComponent } from "./includes/detail/product-detail.component";
 import { PriceListFormComponent } from "./includes/pricelist-form/pricelist-form.component";
 import { UpdateProductComponent } from "./update/update-product.component";
+import { ViewProductComponent } from "./view/view-product.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, ProductRoutingModule],
@@ -16,7 +17,7 @@ import { UpdateProductComponent } from "./update/update-product.component";
     CreateProductComponent,
     ProductDetailComponent,
     PriceListFormComponent,
-    // ViewAgentComponent,
+    ViewProductComponent,
     UpdateProductComponent,
   ],
   entryComponents: [PriceListFormComponent],

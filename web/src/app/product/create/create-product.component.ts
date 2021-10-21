@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 import { ProductService } from "app/shared/services/product.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 
@@ -44,11 +44,18 @@ export class CreateProductComponent extends BaseComponent implements OnInit {
       return;
     }
 
+    if (this.data.agentPrices.length == 0) {
+      this.data.agentPriceInvalid = true;
+      this.toastr.show(this.translate.instant("❌ กรุณาเพิ่มราคาขายให้ตัวแทน"));
+      return;
+    }
+
     if (!this.data.imageUrl) {
       this.data.imgInvalid = true;
       this.toastr.show(this.translate.instant("❌ กรุณาอัพโหลดรูปภาพสินค้า"));
       return;
     }
+
     this.spinner.show();
 
     this.data.discount = 0;
@@ -56,7 +63,7 @@ export class CreateProductComponent extends BaseComponent implements OnInit {
 
     await this.productService.save(this.data);
     this.spinner.hide();
-    this.toastr.show("success.save-data");
+    this.toastr.show("success.save-complete");
     this.router.navigateByUrl("/product");
   }
 }

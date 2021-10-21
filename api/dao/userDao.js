@@ -74,13 +74,17 @@ async function count(conn, criteria) {
       sql += " and b.id = ?";
       params.push(criteria.agent);
     } else {
-      let userAgents = [];
-      for (let index = 0; index < criteria.userAgents.length; index++) {
-        const element = criteria.userAgents[index];
-        userAgents.push(element.id);
+      if (criteria.userAgents.length > 0) {
+        let userAgents = [];
+        for (let index = 0; index < criteria.userAgents.length; index++) {
+          const element = criteria.userAgents[index];
+          userAgents.push(element.id);
+        }
+        sql += " and ( b.id in (?) or b.businessType = 'H')";
+        params.push(userAgents);
+      } else {
+        sql += " and b.businessType = 'H'";
       }
-      sql += " and ( b.id in (?) or b.businessType = 'H')";
-      params.push(userAgents);
     }
 
     if (criteria.username) {
@@ -119,13 +123,17 @@ async function search(conn, criteria) {
       sql += " and b.id = ?";
       params.push(criteria.agent);
     } else {
-      let userAgents = [];
-      for (let index = 0; index < criteria.userAgents.length; index++) {
-        const element = criteria.userAgents[index];
-        userAgents.push(element.id);
+      if (criteria.userAgents.length > 0) {
+        let userAgents = [];
+        for (let index = 0; index < criteria.userAgents.length; index++) {
+          const element = criteria.userAgents[index];
+          userAgents.push(element.id);
+        }
+        sql += " and ( b.id in (?) or b.businessType = 'H')";
+        params.push(userAgents);
+      } else {
+        sql += " and b.businessType = 'H'";
       }
-      sql += " and ( b.id in (?) or b.businessType = 'H')";
-      params.push(userAgents);
     }
 
     if (criteria.username) {
@@ -294,7 +302,7 @@ async function getAgent(conn, username) {
 async function getAgentObj(conn, username) {
   try {
     let sql =
-      "select bu.* from business bu left join userAgent ua on bu.id = ua.agentId where ua.userName = ?";
+      "select bu.* from business bu left join userAgent ua on bu.id = ua.agentId where ua.userName = ? order by bu.name asc";
     const result = await conn.query(sql, [username]);
 
     return result;

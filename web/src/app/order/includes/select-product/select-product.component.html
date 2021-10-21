@@ -1,0 +1,85 @@
+<div mat-dialog-content class="m-b-20" *ngIf="data">
+  <div class="row">
+    <div class="col-12 m-b-20">
+      <h5 class="d-inline">กรุณาเลือกสินค้า</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+    </div>
+
+    <div class="col-md-12">
+      <div class="form-group">
+        <label for="namex">Keyword</label>
+        <input
+          autocomplete="off"
+          type="search"
+          [(ngModel)]="criteria.keyword"
+          class="form-control form-control-sm"
+          placeholder="ใส่ SKU ID, ชื่อ"
+          id="namex"
+          (key.enter)="criteria.page = 1; search()"
+        />
+      </div>
+    </div>
+
+    <div class="col-12">
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-secondary"
+        (click)="criteria.page = 1; search()"
+      >
+        ค้นหา
+      </button>
+      <hr />
+    </div>
+
+    <div class="col-12">
+      <div class="row" *ngIf="data.totalRecord > 0">
+        <div class="col-12">
+          <div class="table-responsive">
+            <table class="table table-hover custom-table" id="tblData">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 40px"></th>
+                  <th class="text-left">SKU ID</th>
+                  <th class="text-left">สินค้า</th>
+                  <th class="text-right">ราคาขาย</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  class="poiter"
+                  *ngFor="let item of data.data"
+                  (click)="select(item)"
+                >
+                  <td class="text-center">
+                    <img style="max-height: 30px" [src]="item.imageUrl" />
+                  </td>
+                  <td class="text-left">{{ item.code }}</td>
+                  <td class="text-left">{{ item.name }}</td>
+                  <td class="text-right">{{ item.price | number: ".2" }}</td>
+                  <td class="text-right" style="width: 50px">
+                    <i
+                      class="fas fa-check poiter text-success"
+                      (click)="select(item)"
+                    ></i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-12">
+          <ngb-pagination
+            class="float-right"
+            [(page)]="criteria.page"
+            [pageSize]="criteria.size"
+            [maxSize]="10"
+            [collectionSize]="data.totalRecord"
+            (pageChange)="search()"
+          ></ngb-pagination>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

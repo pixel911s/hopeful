@@ -1,0 +1,271 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <h5 class="d-inline">รายการสั่งซื้อ</h5>
+
+        <hr />
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="dates">วันที่สั่งซื้อ</label>
+          <input
+            readonly
+            autocomplete="off"
+            [(ngModel)]="criteria.dates"
+            [bsValue]="criteria.dates"
+            class="form-control form-control-sm"
+            id="dates"
+            bsDaterangepicker
+            [bsConfig]="{
+              rangeInputFormat: 'DD/MM/YYYY',
+              dateInputFormat: 'DD/MM/YYYY',
+              showWeekNumbers: false,
+              ranges: ranges
+            }"
+          />
+        </div>
+      </div>
+      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
+        <div class="form-group">
+          <label for="agent">ตัวแทนจำหน่าย</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.agent"
+            class="form-control form-control-sm"
+            id="agent"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="1">HQ</option>
+            <option *ngFor="let item of master.agents" [ngValue]="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="uuid">รหัสสั่งซื้อ</label>
+          <input
+            (keyup.enter)="criteria.page = 1; search()"
+            autocomplete="off"
+            [(ngModel)]="criteria.uuid"
+            class="form-control form-control-sm"
+            id="uuid"
+          />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="name">ชื่อลูกค้า</label>
+          <input
+            (keyup.enter)="criteria.page = 1; search()"
+            autocomplete="off"
+            [(ngModel)]="criteria.name"
+            class="form-control form-control-sm"
+            id="name"
+          />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="tel">เบอร์โทรศัพท์</label>
+          <input
+            (keyup.enter)="criteria.page = 1; search()"
+            autocomplete="off"
+            [(ngModel)]="criteria.tel"
+            class="form-control form-control-sm"
+            id="tel"
+          />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">การชำระเงิน</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.paymentType"
+            class="form-control form-control-sm"
+            id="status"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="'COD'">เก็บเงินปลายทาง</option>
+            <option [ngValue]="'TRANSFER'">โอนเงิน</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">สถานะ</label>
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.status"
+            class="form-control form-control-sm"
+            id="status"
+          >
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="'O'">สั่งซื้อใหม่</option>
+            <!-- <option [ngValue]="'Pack'">แพคสินค้าแล้ว</option>
+            <option [ngValue]="'Send'">ส่งสินค้าแล้ว</option> -->
+            <option [ngValue]="'C'">ยกเลิกรายการ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <button
+          id="btnSearch"
+          type="button"
+          class="btn btn-secondary"
+          (click)="criteria.page = 1; search()"
+        >
+          ค้นหา
+        </button>
+
+        <button
+          id="btnSearch"
+          type="button"
+          class="btn btn-primary m-l-10"
+          [routerLink]="['/order/create']"
+          routerLinkActive="router-link-active"
+          *ngIf="user.function.CREATE_ORDER"
+        >
+          สร้างคำสั่งซื้อใหม่
+        </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12 text-right">
+        <hr />
+        ข้อมูลทั้งหมด {{ data.totalRecord | number: ".0" }} รายการ
+      </div>
+    </div>
+    <div class="row" *ngIf="data.totalRecord > 0">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover custom-table" id="tblData">
+            <thead>
+              <tr>
+                <th class="text-left">รหัสสั่งซื้อ</th>
+                <th class="text-left">ชื่อลูกค้า</th>
+                <th class="text-center">สาขา</th>
+                <th class="text-right">ยอดชำระ</th>
+                <th class="text-center">การชำระเงิน</th>
+                <th class="text-center" style="width: 70px">สถานะ</th>
+                <th style="width: 70px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data.data; let i = index">
+                <!-- <td class="text-center">
+                  <div class="custom-control custom-checkbox">
+                    <input
+                      type="checkbox"
+                      class="custom-control-input poiter"
+                      [(ngModel)]="item.selected"
+                      id="{{ i }}"
+                    />
+                    <label
+                      class="custom-control-label poiter"
+                      for="{{ i }}"
+                    ></label>
+                  </div>
+                </td> -->
+                <td class="text-left">
+                  {{ item.orderNo }}
+                  <small class="d-block">{{
+                    item.createDate | date: "dd/MM/yyyy HH:mm:ss"
+                  }}</small>
+                </td>
+                <td class="text-left">
+                  {{ item.deliveryName }}
+                  <small class="d-block">{{ item.deliveryContact }}</small>
+                </td>
+                <td class="text-center">
+                  <span>{{ item.businessName }}</span>
+                </td>
+                <td class="text-right">{{ item.netAmount | number: ".2" }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.paymentType == 'COD'">เก็บเงินปลายทาง</span>
+                  <span *ngIf="item.paymentType == 'TRANSFER'">โอนเงิน</span>
+                </td>
+                <td class="text-center">
+                  <span *ngIf="item.status == 'O'" class="badge badge-warning"
+                    >สั่งซื้อใหม่</span
+                  >
+
+                  <span *ngIf="item.status == 'C'" class="badge badge-danger"
+                    >ยกเลิกรายการ</span
+                  >
+                </td>
+                <td class="text-center" style="width: 120px">
+                  <div ngbDropdown container="body">
+                    <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                      ><b><small>ตัวจัดการ</small></b></a
+                    >
+                    <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                      <button
+                        class="w-100"
+                        (click)="update(item)"
+                        ngbDropdownItem
+                        *ngIf="user.function.CREATE_ORDER && item.status != 'C'"
+                      >
+                        ดู / แก้ไขข้อมูล
+                      </button>
+                      <button
+                        class="w-100"
+                        (click)="remove(item)"
+                        ngbDropdownItem
+                        *ngIf="user.function.CREATE_ORDER && item.status != 'C'"
+                      >
+                        ยกเลิกรายการ
+                      </button>
+                      <button
+                        class="w-100"
+                        (click)="view(item)"
+                        ngbDropdownItem
+                        *ngIf="
+                          !user.function.CREATE_ORDER || item.status == 'C'
+                        "
+                      >
+                        ดูข้อมูล
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.size"
+            class="form-control form-control-sm"
+            id="status"
+            style="width: auto"
+          >
+            <option [ngValue]="5">แสดงผล 5 รายการ</option>
+            <option [ngValue]="20">แสดงผล 20 รายการ</option>
+            <option [ngValue]="100">แสดงผล 100 รายการ</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <ngb-pagination
+          class="float-right"
+          [(page)]="criteria.page"
+          [pageSize]="criteria.size"
+          [maxSize]="10"
+          [collectionSize]="data.totalRecord"
+          (pageChange)="search()"
+        ></ngb-pagination>
+      </div>
+    </div>
+  </div>
+</div>

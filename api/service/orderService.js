@@ -3,6 +3,7 @@
 var util = require("../utils/responseUtils");
 var encypt = require("../utils/encypt");
 var orderDao = require("../dao/orderDao");
+var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
 
 const config = require("config");
@@ -10,156 +11,230 @@ const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
 
 module.exports = {
-    get,
-    search,
-    create,
-    update,
-    deleteOrder,
+  get,
+  search,
+  create,
+  update,
+  deleteOrder,
 };
 
-
 async function get(req, res) {
-    const conn = await pool.getConnection();
-    try {
-        let criteria = req.body;
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
 
-        let result = await orderDao.get(conn, criteria.id);
+    let result = await orderDao.get(conn, criteria.id);
 
-        result.orderDetail = await orderDao.getDetail(conn, criteria.id);
+    result.orderDetail = await orderDao.getDetail(conn, criteria.id);
 
-        return res.send(util.callbackSuccess(null, result));
-    } catch (e) {
-        console.error(e);
-        return res.status(500).send(e.message);
-    } finally {
-        conn.release();
-    }
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }
 
 async function search(req, res) {
-    const conn = await pool.getConnection();
-    try {
-        let criteria = req.body;
-        let result = null;
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+    let result = null;
 
-        let totalRecord = await orderDao.count(conn, criteria);
+    let totalRecord = await orderDao.count(conn, criteria);
 
-        let totalPage = Math.round(totalRecord / criteria.size);
-        if (totalPage <= 0) {
-            totalPage = 1;
-        }
-
-        if (totalRecord > 0) {
-            result = await orderDao.search(conn, criteria);
-        }
-
-        return res.send(util.callbackPaging(result, totalPage, totalRecord));
-    } catch (e) {
-        console.error(e);
-        return res.status(500).send(e.message);
-    } finally {
-        conn.release();
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
     }
+
+    if (totalRecord > 0) {
+      result = await orderDao.search(conn, criteria);
+    }
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }
 
 async function create(req, res) {
+  console.log("CREATE ORDER");
 
-    console.log("CREATE ORDER");
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
 
-    const conn = await pool.getConnection();
-    conn.beginTransaction();
-    try {
-        let model = req.body;
+    model = await orderDao.calculateOrder(model);
 
-        model = await orderDao.calculateOrder(model);
+    console.log("MODEL : ", model);
 
-        console.log("MODEL : ",model);
-        
-        let _date = new Date();
+    let _date = new Date();
 
-        model.orderNo = await runningDao.getNextRunning(conn, "SO", _date.getFullYear(), _date.getMonth());
+    model.orderNo = await runningDao.getNextRunning(
+      conn,
+      "SO",
+      _date.getFullYear(),
+      _date.getMonth()
+    );
 
-        console.log("ORDER NO : ",model.orderNo);
+    console.log("ORDER NO : ", model.orderNo);
 
-        let _orderId = await orderDao.save(conn, model);    
-        
-        console.log("RET ORDER ID : ", _orderId);
-       
-        for (let index = 0; index < model.orderDetail.length; index++) {
-            model.orderDetail[index].orderId = _orderId;
-            await orderDao.saveDetail(conn, model.orderDetail[index]);
-        }
+    let customer = await customerDao.getByMobileNo(conn, model.deliveryContact);
 
-        conn.commit();
+    if (customer != undefined) {
+      //OLD CUSTOMER
+      model.customerId = customer.id;
 
-        return res.send(
-            util.callbackSuccess("บันทึกข้อมูลออเดอร์เสร็จสมบูรณ์", true)
-        );
-    } catch (e) {
-        conn.rollback();
-        if (e.code == "ER_DUP_ENTRY") {
-            return res.status(401).send("มีข้อมูลออเดอร์นี้แล้วในระบบ");
-        } else {
-            return res.status(500).send(e.message);
-        }
-    } finally {
-        conn.release();
+      let addresses = await customerDao.getAddress(conn, customer.id);
+
+      let duplicatedAddress = await addresses.filter(
+        (addr) =>
+          addr.name == model.deliveryName &&
+          addr.info == model.deliveryAddressInfo &&
+          addr.district == model.deliveryDistrict &&
+          addr.subDistrict == model.deliverySubDistrict &&
+          addr.province == model.deliveryProvince &&
+          addr.zipcode == model.deliveryZipcode
+      );
+
+      let address;
+
+      if (duplicatedAddress.length == 0) {
+        console.log("NEW");
+        address = {
+          businessId: customer.id,
+          name: model.deliveryName,
+          info: model.deliveryAddressInfo,
+          district: model.deliveryDistrict,
+          subDistrict: model.deliverySubDistrict,
+          province: model.deliveryProvince,
+          zipcode: model.deliveryZipcode,
+          contact: model.deliveryContact,
+          username: model.username,
+          addressType: "D",
+        };
+      } else {
+        console.log("DUPLICATED");
+        address = duplicatedAddress[0];
+        console.log(address);
+
+        await customerDao.deleteAddress(conn, address.id);
+
+        address.username = model.username;
+        address.id = undefined;
+      }
+
+      await customerDao.addAddress(conn, address);
+    } else {
+      //NEW CUSTOMER
+      customer = {
+        ownerId: model.ownerId,
+        name: model.deliveryName,
+        mobile: model.deliveryContact,
+        username: model.username,
+      };
+
+      let customerId = await customerDao.save(conn, customer);
+
+      let address = {
+        businessId: customerId,
+        name: model.deliveryName,
+        info: model.deliveryAddressInfo,
+        district: model.deliveryDistrict,
+        subDistrict: model.deliverySubDistrict,
+        province: model.deliveryProvince,
+        zipcode: model.deliveryZipcode,
+        contact: model.deliveryContact,
+        username: model.username,
+        addressType: "D",
+      };
+
+      await customerDao.addAddress(conn, address);
+
+      model.customerId = customerId;
     }
+
+    let _orderId = await orderDao.save(conn, model);
+
+    console.log("RET ORDER ID : ", _orderId);
+
+    for (let index = 0; index < model.orderDetail.length; index++) {
+      let product = model.orderDetail[index];
+      product.orderId = _orderId;
+      await orderDao.saveDetail(conn, model.orderDetail[index]);
+    }
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }
 
 async function update(req, res) {
-    const conn = await pool.getConnection();
-    conn.beginTransaction();
-    try {
-        let model = req.body;
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
 
-        model = await orderDao.calculateOrder(model);
+    model = await orderDao.calculateOrder(model);
 
-        await orderDao.save(conn, model);      
-        await orderDao.deleteOrderDetail(conn, model.id);
+    await orderDao.save(conn, model);
 
-        for (let index = 0; index < model.orderDetail.length; index++) {
-            model.orderDetail[index].orderId = model.id;
-            await orderDao.saveDetail(conn, model.orderDetail[index]);
-        }
+    conn.commit();
 
-        conn.commit();
-
-        return res.send(
-            util.callbackSuccess("บันทึกข้อมูลออเดอร์เสร็จสมบูรณ์", true)
-        );
-    } catch (e) {
-        conn.rollback();
-        if (e.code == "ER_DUP_ENTRY") {
-            return res.status(401).send("มีข้อมูลออเดอร์นี้แล้วในระบบ");
-        } else {
-            return res.status(500).send(e.message);
-        }
-    } finally {
-        conn.release();
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    conn.rollback();
+    if (e.code == "ER_DUP_ENTRY") {
+      return res.status(401).send("มีข้อมูลออเดอร์นี้แล้วในระบบ");
+    } else {
+      return res.status(500).send(e.message);
     }
+  } finally {
+    conn.release();
+  }
 }
 
 async function deleteOrder(req, res) {
-    const conn = await pool.getConnection();
-    conn.beginTransaction();
-    try {
-        let model = req.body;
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
 
-        await orderDao.deleteOrderDetail(conn, model.id);
+    // await orderDao.deleteOrderDetail(conn, model.id);
 
-        await orderDao.deleteOrder(conn, model.id);
+    let order = await orderDao.get(conn, model.id);
 
-        conn.commit();
+    order.username = model.username;
+    order.status = "C";
 
-        return res.send(
-            util.callbackSuccess("ทำการลบข้อมูลออเดอร์เสร็จสมบูรณ์", true)
-        );
-    } catch (e) {
-        conn.rollback();
-        return res.status(500).send(e.message);
-    } finally {
-        conn.release();
-    }
+    await orderDao.save(conn, order);
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("ทำการลบข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }
-

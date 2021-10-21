@@ -12,7 +12,7 @@ import {
   Validator,
 } from "@angular/forms";
 import { AuthService } from "app/shared/auth/auth.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { ToastrService } from "ngx-toastr";
 
 @Component({

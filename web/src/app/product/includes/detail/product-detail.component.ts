@@ -11,7 +11,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
 import { Ng4FilesSelected } from "app/shared/ng4-files";
 import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 import { PriceListFormComponent } from "../pricelist-form/pricelist-form.component";

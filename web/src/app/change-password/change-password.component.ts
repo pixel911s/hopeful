@@ -9,7 +9,7 @@ import {
 import { Router } from "@angular/router";
 import { AuthService } from "app/shared/auth/auth.service";
 import { UserService } from "app/shared/services/user.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 

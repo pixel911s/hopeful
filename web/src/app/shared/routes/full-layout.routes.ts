@@ -24,6 +24,11 @@ export const Full_ROUTES: Routes = [
       import("../../product/product.module").then((m) => m.ProductModule),
   },
   {
+    path: "order",
+    loadChildren: () =>
+      import("../../order/order.module").then((m) => m.OrderModule),
+  },
+  {
     path: "change-password",
     loadChildren: () =>
       import("../../change-password/change-password.module").then(

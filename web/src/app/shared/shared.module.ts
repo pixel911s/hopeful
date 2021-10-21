@@ -36,6 +36,10 @@ import { ToastrModule } from "ngx-toastr";
 import { Ng4FilesModule } from "./ng4-files";
 import { MatDialogModule } from "@angular/material/dialog";
 import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
+import {
+  BsDatepickerConfig,
+  BsDatepickerModule,
+} from "ngx-bootstrap/datepicker";
 
 @NgModule({
   exports: [
@@ -57,6 +61,7 @@ import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.c
     ToastrModule,
     Ng4FilesModule,
     MatDialogModule,
+    BsDatepickerModule,
   ],
   imports: [
     RouterModule,
@@ -80,6 +85,7 @@ import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.c
     }),
     Ng4FilesModule,
     MatDialogModule,
+    BsDatepickerModule,
   ],
   declarations: [
     FooterComponent,
@@ -101,6 +107,16 @@ import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.c
     PopupConfirmComponent,
   ],
   entryComponents: [PopupConfirmComponent],
-  providers: [DatePipe],
+  providers: [
+    { provide: BsDatepickerConfig, useFactory: getDatepickerConfig },
+    DatePipe,
+  ],
 })
 export class SharedModule {}
+
+export function getDatepickerConfig(): BsDatepickerConfig {
+  return Object.assign(new BsDatepickerConfig(), {
+    dateInputFormat: "DD/MM/YYYY",
+    showWeekNumbers: false,
+  });
+}

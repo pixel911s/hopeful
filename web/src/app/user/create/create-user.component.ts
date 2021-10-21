@@ -5,7 +5,7 @@ import * as moment from "moment";
 import { DatePipe } from "@angular/common";
 import { AuthService } from "app/shared/auth/auth.service";
 import { UserService } from "app/shared/services/user.service";
-import { BaseComponent } from "app/ิbase/base.component";
+import { BaseComponent } from "app/base/base.component";
 import { TranslateService } from "@ngx-translate/core";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";

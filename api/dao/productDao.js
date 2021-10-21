@@ -49,6 +49,8 @@ async function count(conn, criteria) {
       params.push("%" + criteria.keyword + "%");
     }
 
+    console.log(sql);
+
     let result = await conn.query(sql, params);
 
     return result[0].totalRecord;

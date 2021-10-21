@@ -1,0 +1,650 @@
+<div class="row m-b-20" *ngIf="data">
+  <div class="col-12 col-md-6 m-b-20">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5>รายละเอียดสินค้า</h5>
+            <small>
+              <div>
+                วันที่สร้างใบสั่งซื้อ :
+                {{ data.createDate | date: "dd/MM/yyyy HH:mm:ss" }}
+              </div>
+              <div class="row">
+                <div class="col-6">ผู้ทำรายการ : {{ data.createBy }}</div>
+                <div class="col-6 text-right">
+                  สาขา : {{ data.businessName }}
+                </div>
+              </div>
+            </small>
+            <hr />
+          </div>
+
+          <div class="col-12">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="selectProduct()"
+              *ngIf="!isReadOnly && !isEdit"
+            >
+              เพิ่มสินค้า
+            </button>
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData">
+                <thead>
+                  <tr>
+                    <th class="text-center"></th>
+                    <th class="text-left">สินค้า</th>
+                    <th class="text-center" style="width: 120px">จำนวน</th>
+
+                    <th class="text-right">ราคาต่อชิ้น</th>
+                    <th class="text-right">ยอดรวม</th>
+                    <th class="text-center" *ngIf="!isReadOnly && !isEdit"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    class="poiter"
+                    *ngFor="let item of data.orderDetail; let i = index"
+                  >
+                    <td style="width: 70px">
+                      <img style="max-width: 100%" [src]="item.imageUrl" />
+                    </td>
+                    <td class="text-left">
+                      <div>
+                        {{ item.code }}
+                      </div>
+                      <small>
+                        {{ item.name }}
+                      </small>
+                    </td>
+                    <td class="text-right">
+                      <input
+                        [(ngModel)]="item.qty"
+                        class="form-control"
+                        type="number"
+                        style="
+                          text-align: center;
+                          height: 25px;
+                          font-size: 0.8rem;
+                        "
+                        (change)="calPrice()"
+                        *ngIf="!isReadOnly && !isEdit"
+                      />
+                      <span *ngIf="isReadOnly || isEdit">
+                        {{ item.qty | number: ".0" }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      {{ item.price | number: ".2" }}
+                    </td>
+
+                    <td class="text-right">
+                      {{ item.price * item.qty | number: ".2" }}
+                    </td>
+                    <td class="text-center" *ngIf="!isReadOnly && !isEdit">
+                      <i class="far fa-trash-alt" (click)="removeItem(i)"></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <hr />
+          </div>
+          <div class="col-12" style="font-weight: bold">
+            <table style="width: 100%">
+              <tbody>
+                <tr>
+                  <td class="text-right" style="border-top: none">ค่าสินค้า</td>
+                  <td class="text-right" style="width: 150px; border-top: none">
+                    {{ data.totalAmount | number: ".2" }}
+                  </td>
+                  <td class="text-right" style="width: 30px; border-top: none">
+                    บาท
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-right" style="border-top: none">ค่าขนส่ง</td>
+                  <td
+                    class="text-right"
+                    style="width: 150px; border-top: none"
+                    *ngIf="!isReadOnly && !isEdit"
+                  >
+                    <input
+                      autocomplete="off"
+                      class="form-control form-control-sm text-right"
+                      [(ngModel)]="data.deliveryPrice"
+                      (change)="calPrice()"
+                    />
+                  </td>
+                  <td
+                    class="text-right"
+                    style="width: 150px; border-top: none"
+                    *ngIf="isReadOnly || isEdit"
+                  >
+                    {{ data.deliveryPrice | number: ".2" }}
+                  </td>
+                  <td class="text-right" style="border-top: none">บาท</td>
+                </tr>
+                <tr>
+                  <td class="text-right" style="border-top: none">ส่วนลด</td>
+                  <td
+                    class="text-right"
+                    style="width: 150px; border-top: none"
+                    *ngIf="!isReadOnly && !isEdit"
+                  >
+                    <input
+                      autocomplete="off"
+                      class="form-control form-control-sm text-right"
+                      [(ngModel)]="data.billDiscountAmount"
+                      (keyup)="checkNumberValue($event)"
+                      (change)="calPrice()"
+                    />
+                  </td>
+                  <td
+                    class="text-right"
+                    style="width: 150px; border-top: none"
+                    *ngIf="isReadOnly || isEdit"
+                  >
+                    {{ data.billDiscountAmount | number: ".2" }}
+                  </td>
+                  <td class="text-right" style="border-top: none">บาท</td>
+                </tr>
+                <tr>
+                  <td class="text-right" style="border-top: none">ยอดรวม</td>
+                  <td class="text-right" style="width: 150px; border-top: none">
+                    {{ data.netAmount | number: ".2" }}
+                  </td>
+                  <td class="text-right" style="border-top: none">บาท</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 m-b-20" [formGroup]="formGroup">
+    <div class="card m-b-20" *ngIf="!isReadOnly && !isEdit">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5>ค้นหาข้อมูลลูกค้า</h5>
+            <hr />
+          </div>
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.tel.touched && f.tel.errors }"
+            >
+              <label for="tel">เบอร์โทรศัพท์ *</label>
+              <input
+                autocomplete="off"
+                id="tel"
+                class="form-control form-control-sm"
+                formControlName="tel"
+                [(ngModel)]="data.deliveryContact"
+                (keyup.enter)="checkMobile()"
+                [ngClass]="{
+                  'is-invalid': f.tel.touched && f.tel.errors,
+                  'is-valid': f.tel.touched && !f.tel.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.tel.touched && f.tel.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12 text-right">
+            <button
+              (click)="checkMobile()"
+              type="button"
+              class="btn btn-secondary"
+            >
+              ค้นหา
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <h5 class="d-inline">ข้อมูลลูกค้า</h5>
+          </div>
+          <div class="col-6 text-right" *ngIf="!isReadOnly && !isEdit">
+            <span class="badge badge-primary" *ngIf="!data.customer"
+              >ลูกค้าใหม่</span
+            >
+            <span class="badge badge-secondary" *ngIf="data.customer"
+              >ลูกค้าเก่า</span
+            >
+          </div>
+          <div class="col-12">
+            <hr />
+          </div>
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.paymentType.touched && f.paymentType.errors
+              }"
+            >
+              <label for="name">วิธีการชำระเงิน *</label>
+              <div>
+                <div class="custom-control custom-radio custom-control-inline">
+                  <input
+                    [value]="'COD'"
+                    formControlName="paymentType"
+                    [(ngModel)]="data.paymentType"
+                    type="radio"
+                    id="customRadioInline1"
+                    class="custom-control-input"
+                  />
+                  <label class="custom-control-label" for="customRadioInline1"
+                    >เก็บเงินปลายทาง</label
+                  >
+                </div>
+
+                <div class="custom-control custom-radio custom-control-inline">
+                  <input
+                    [value]="'TRANSFER'"
+                    formControlName="paymentType"
+                    [(ngModel)]="data.paymentType"
+                    type="radio"
+                    id="customRadioInline2"
+                    class="custom-control-input"
+                  />
+                  <label class="custom-control-label" for="customRadioInline2"
+                    >โอนเงิน</label
+                  >
+                </div>
+                <small
+                  class="text-danger"
+                  *ngIf="
+                    f.paymentType.touched && f.paymentType.errors?.required
+                  "
+                  >{{ "error.required" | translate }}</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.name.touched && f.name.errors }"
+            >
+              <label for="name">ชื่อลูกค้า *</label>
+              <input
+                autocomplete="off"
+                id="name"
+                class="form-control form-control-sm"
+                formControlName="name"
+                [(ngModel)]="data.deliveryName"
+                [ngClass]="{
+                  'is-invalid': f.name.touched && f.name.errors,
+                  'is-valid': f.name.touched && !f.name.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.name.touched && f.name.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.address.touched && f.address.errors
+              }"
+            >
+              <label for="address">ที่อยู่จัดส่ง *</label>
+              <textarea
+                autocomplete="off"
+                id="address"
+                class="form-control form-control-sm"
+                formControlName="address"
+                [(ngModel)]="data.deliveryAddressInfo"
+                rows="3"
+                [ngClass]="{
+                  'is-invalid': f.address.touched && f.address.errors,
+                  'is-valid': f.address.touched && !f.address.errors
+                }"
+              >
+              </textarea>
+              <small
+                class="text-danger"
+                *ngIf="f.address.touched && f.address.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.province.touched && f.province.errors
+              }"
+            >
+              <label for="province">จังหวัด *</label>
+
+              <select
+                (change)="selectProvince()"
+                id="province"
+                class="form-control form-control-sm"
+                formControlName="province"
+                [(ngModel)]="data.deliveryProvince"
+                [ngClass]="{
+                  'is-invalid': f.province.touched && f.province.errors,
+                  'is-valid': f.province.touched && !f.province.errors
+                }"
+              >
+                <option [value]="undefined">โปรดเลือก</option>
+                <option *ngFor="let item of provinces" [value]="item.id">
+                  {{ item.nameInThai }}
+                </option>
+              </select>
+
+              <small
+                class="text-danger"
+                *ngIf="f.province.touched && f.province.errors?.required"
+                >กรุณากรอกข้อมูล</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.district.touched && f.district.errors
+              }"
+            >
+              <label for="district">เขต / อำเภอ*</label>
+
+              <select
+                (change)="selectDistrict()"
+                id="district"
+                class="form-control form-control-sm"
+                formControlName="district"
+                [(ngModel)]="data.deliveryDistrict"
+                [ngClass]="{
+                  'is-invalid': f.district.touched && f.district.errors,
+                  'is-valid': f.district.touched && !f.district.errors
+                }"
+              >
+                <option [value]="undefined">โปรดเลือก</option>
+                <option *ngFor="let item of districts" [value]="item.id">
+                  {{ item.nameInThai }}
+                </option>
+              </select>
+
+              <small
+                class="text-danger"
+                *ngIf="f.district.touched && f.district.errors?.required"
+                >กรุณากรอกข้อมูล</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.subdistrict.touched && f.subdistrict.errors
+              }"
+            >
+              <label for="subdistrict">แขวง / ตำบล *</label>
+
+              <select
+                (change)="selectSubDistrict()"
+                id="subdistrict"
+                class="form-control form-control-sm"
+                formControlName="subdistrict"
+                [(ngModel)]="data.deliverySubDistrict"
+                [ngClass]="{
+                  'is-invalid': f.subdistrict.touched && f.subdistrict.errors,
+                  'is-valid': f.subdistrict.touched && !f.subdistrict.errors
+                }"
+              >
+                <option [value]="undefined">โปรดเลือก</option>
+                <option *ngFor="let item of subdistricts" [value]="item.id">
+                  {{ item.nameInThai }}
+                </option>
+              </select>
+
+              <small
+                class="text-danger"
+                *ngIf="f.subdistrict.touched && f.subdistrict.errors?.required"
+                >กรุณากรอกข้อมูล</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.zipcode.touched && f.zipcode.errors
+              }"
+            >
+              <label for="zipcode">รหัสไปรษณีย์ *</label>
+              <input
+                autocomplete="off"
+                maxlength="5"
+                id="zipcode"
+                class="form-control form-control-sm"
+                formControlName="zipcode"
+                [(ngModel)]="data.deliveryZipcode"
+                [ngClass]="{
+                  'is-invalid': f.zipcode.touched && f.zipcode.errors,
+                  'is-valid': f.zipcode.touched && !f.zipcode.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.zipcode.touched && f.zipcode.errors?.required"
+                >กรุณากรอกข้อมูล</small
+              >
+              <small
+                class="text-danger"
+                *ngIf="f.zipcode.touched && f.zipcode.errors?.invalidZipcode"
+                >รหัสไปรษณีย์ไม่ถูกต้อง</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4" *ngIf="isReadOnly || isEdit">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.tel.touched && f.tel.errors }"
+            >
+              <label for="tel">เบอร์โทรศัพท์ *</label>
+              <input
+                autocomplete="off"
+                id="tel"
+                class="form-control form-control-sm"
+                formControlName="tel"
+                [(ngModel)]="data.deliveryContact"
+                (keyup.enter)="checkMobile()"
+                [ngClass]="{
+                  'is-invalid': f.tel.touched && f.tel.errors,
+                  'is-valid': f.tel.touched && !f.tel.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.tel.touched && f.tel.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <div class="form-group">
+              <label for="remark">หมายเหตุ</label>
+              <textarea
+                autocomplete="off"
+                id="remark"
+                class="form-control form-control-sm"
+                formControlName="remark"
+                [(ngModel)]="data.remark"
+                rows="3"
+              >
+              </textarea>
+            </div>
+          </div>
+
+          <div class="col-12" *ngIf="false">
+            <hr />
+          </div>
+
+          <div class="col-md-4" *ngIf="false">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.status.touched && f.status.errors?.required
+              }"
+            >
+              <label for="status">สถานะ *</label>
+              <select
+                class="form-control form-control-sm"
+                id="status"
+                formControlName="status"
+                [(ngModel)]="data.status"
+              >
+                <option [ngValue]="'O'">สั่งซื้อใหม่</option>
+                <!-- <option [ngValue]="'Verify'">ตรวจสอบยอดเรียบร้อย</option>
+                <option [ngValue]="'Pack'">แพคสินค้าแล้ว</option>
+                <option [ngValue]="'Send'">ส่งสินค้าแล้ว</option> -->
+                <!-- <option [ngValue]="'Return'">คืนสินค้า</option> -->
+                <option [ngValue]="'C'">ยกเลิกรายการ</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.status.touched && f.status.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <!-- <div
+            class="col-12"
+            *ngIf="
+              data.status == 'Verify' ||
+              data.status == 'New' ||
+              data.status == 'Pack' ||
+              data.status == 'Cancel'
+            "
+          >
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="sendSms"
+                formControlName="sendSms"
+                [(ngModel)]="data.sendSms"
+              />
+              <label class="custom-control-label" for="sendSms"
+                >ส่ง SMS ให้ลูกค้า (ใช้ 1 SMS Credit)</label
+              >
+            </div>
+            <small class="text-danger d-block"
+              >* ระบบจะส่งSMS หลังจากลูกค้าติ๊กถูก และ กดปุ่ม Save</small
+            >
+          </div> -->
+
+          <div class="col-md-4" *ngIf="data.status == 'Send'">
+            <div class="form-group">
+              <label for="vendor">ขนส่ง</label>
+              <select
+                class="form-control form-control-sm"
+                id="vendor"
+                formControlName="vendor"
+                [(ngModel)]="data.vendor"
+              >
+                <option [ngValue]="null">
+                  {{ "common.please-select" | translate }}
+                </option>
+
+                <option [ngValue]="'ไปรษณีย์ไทย'">ไปรษณีย์ไทย</option>
+                <option [ngValue]="'Alpha Fast'">Alpha Fast</option>
+                <option [ngValue]="'Best Express'">Best Express</option>
+                <option [ngValue]="'Deliveree'">Deliveree</option>
+                <option [ngValue]="'DHL Express'">DHL Express</option>
+                <option [ngValue]="'Flash Express'">Flash Express</option>
+                <option [ngValue]="'Giztix'">Giztix</option>
+                <option [ngValue]="'Grab Express'">Grab Express</option>
+                <option [ngValue]="'Inter Express Logistics'">
+                  Inter Express Logistics
+                </option>
+                <option [ngValue]="'I.T. TRANSPORT.CO.,LTD'">
+                  I.T. TRANSPORT.CO.,LTD
+                </option>
+                <option [ngValue]="'J&T Express'">J&T Express</option>
+                <option [ngValue]="'Kerry Express'">Kerry Express</option>
+                <option [ngValue]="'Lalamove'">Lalamove</option>
+                <option [ngValue]="'Lineman'">Lineman</option>
+                <option [ngValue]="'Niko’s Logistics'">Niko’s Logistics</option>
+                <option [ngValue]="'Nim Express'">Nim Express</option>
+                <option [ngValue]="'Ninja Van'">Ninja Van</option>
+                <option [ngValue]="'SCG Express'">SCG Express</option>
+                <option [ngValue]="'Skootar'">Skootar</option>
+                <option [ngValue]="'TNT'">TNT</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-4" *ngIf="data.status == 'Send'">
+            <div class="form-group">
+              <label for="trackingNo">Tracking No</label>
+              <input
+                autocomplete="off"
+                id="trackingNo"
+                class="form-control form-control-sm"
+                formControlName="trackingNo"
+                [(ngModel)]="data.trackingNo"
+              />
+            </div>
+          </div>
+
+          <!-- <div class="col-12" *ngIf="data.status == 'Send'">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="sendSms"
+                formControlName="sendSms"
+                [(ngModel)]="data.sendSms"
+              />
+              <label class="custom-control-label" for="sendSms"
+                >ส่ง SMS ให้ลูกค้า (ใช้ 1 SMS Credit)</label
+              >
+            </div>
+            <small class="text-danger d-block"
+              >* ระบบจะส่งSMS หลังจากลูกค้าติ๊กถูก และ กดปุ่ม Save</small
+            >
+          </div> -->
+
+          <div
+            class="col-12 m-b-20"
+            *ngIf="data.status == 'Send' && data.sendDttm"
+          >
+            <small>
+              <div class="text-success">
+                วันที่ส่งสินค้า :
+                {{ data.sendDttm | date: "dd/MM/yyyy" }}
+              </div>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
