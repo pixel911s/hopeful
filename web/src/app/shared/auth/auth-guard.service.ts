@@ -62,6 +62,13 @@ export class AuthGuard implements CanActivate {
       this.authService.logout();
     }
 
+    if (
+      "APPROVE_REQUEST" == route.routeConfig.data.id &&
+      !this.authService.getUser().function.SUPERVISOR
+    ) {
+      this.authService.logout();
+    }
+
     return true;
   }
 }

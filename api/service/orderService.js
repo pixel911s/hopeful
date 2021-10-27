@@ -24,6 +24,18 @@ async function get(req, res) {
     let criteria = req.body;
 
     let result = await orderDao.get(conn, criteria.id);
+    let canAccess = false;
+
+    for (let index = 0; index < criteria.userAgents.length; index++) {
+      const agent = criteria.userAgents[index];
+      if (agent.id == result.ownerId) {
+        canAccess = true;
+      }
+    }
+
+    if (!canAccess) {
+      return res.status(404).send("Can't access data");
+    }
 
     result.orderDetail = await orderDao.getDetail(conn, criteria.id);
 
@@ -75,16 +87,18 @@ async function create(req, res) {
     console.log("MODEL : ", model);
 
     let _date = new Date();
+    let month = _date.getMonth() + 1;
 
     model.orderNo = await runningDao.getNextRunning(
       conn,
       "SO",
       _date.getFullYear(),
-      _date.getMonth()
+      month
     );
 
     console.log("ORDER NO : ", model.orderNo);
 
+    //CHECK CUSTOMER
     let customer = await customerDao.getByMobileNo(conn, model.deliveryContact);
 
     if (customer != undefined) {

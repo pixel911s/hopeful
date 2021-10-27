@@ -1,0 +1,14 @@
+CREATE TABLE `request` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `requestType` varchar(45) DEFAULT NULL,
+  `data` text,
+  `createBy` varchar(45) DEFAULT NULL,
+  `createDate` datetime DEFAULT NULL,
+  `approveBy` varchar(45) DEFAULT NULL,
+  `approveDate` datetime DEFAULT NULL,
+  `status` varchar(45) DEFAULT NULL,
+  `reason` text,
+  `reqNo` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+

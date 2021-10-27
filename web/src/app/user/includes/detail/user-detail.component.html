@@ -154,6 +154,20 @@
               >
             </div>
           </div>
+
+          <div class="col-12">
+            <div class="form-group">
+              <label for="username">LINE Notify Token</label>
+              <input
+                autocomplete="off"
+                id="lineNotifyToken"
+                class="form-control form-control-sm"
+                formControlName="lineNotifyToken"
+                [(ngModel)]="data.lineNotifyToken"
+              />
+            </div>
+          </div>
+
           <div class="col-12">
             <hr />
           </div>
@@ -269,6 +283,24 @@
             </div>
           </div>
 
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ระดับการจัดการ</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="supervisor"
+                formControlName="supervisor"
+                [(ngModel)]="data.supervisor"
+              />
+              <label class="custom-control-label" for="supervisor"
+                >Supervisor</label
+              >
+            </div>
+          </div>
+
           <div class="col-12" *ngIf="data.businessType == 'H'">
             <hr />
           </div>
@@ -333,7 +365,7 @@
             </div>
           </div>
 
-          <div class="col-12" *ngIf="data.businessType == 'H'">
+          <div class="col-12">
             <hr />
             <h5>ตัวแทนจำหน่ายที่สามารถจัดการได้</h5>
             <dual-list
@@ -342,7 +374,16 @@
               [source]="master.agents"
               [(destination)]="data.userAgents"
               [height]="'150px'"
+              *ngIf="!isReadOnly"
             ></dual-list>
+            <div *ngIf="isReadOnly">
+              <span
+                *ngFor="let item of data.userAgents"
+                class="badge bg-light-danger"
+                style="margin-right: 4px"
+                >{{ item.name }}</span
+              >
+            </div>
           </div>
         </div>
       </div>

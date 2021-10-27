@@ -62,6 +62,10 @@ async function count(conn, criteria) {
       }
     }
 
+    if (criteria.exceptHQ) {
+      sql += " and b.businessType <> 'H'";
+    }
+
     if (criteria.orderNo) {
       sql += " and o.orderNo like ?";
       params.push("%" + criteria.code + "%");
@@ -109,6 +113,10 @@ async function search(conn, criteria) {
       } else {
         sql += " and b.businessType = 'H'";
       }
+    }
+
+    if (criteria.exceptHQ) {
+      sql += " and b.businessType <> 'H'";
     }
 
     if (criteria.orderNo) {
@@ -227,7 +235,7 @@ async function save(conn, model) {
       let _result = await conn.query(sql, [
         model.paymentType,
         model.orderNo,
-        new Date(),
+        model.orderDate ? new Date(model.orderDate) : new Date(),
         model.ownerId,
         model.customerId,
         model.totalQty,

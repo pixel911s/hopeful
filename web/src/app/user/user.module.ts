@@ -11,16 +11,10 @@ import { UpdateUserComponent } from "./update/update-user.component";
 import { AngularDualListBoxModule } from "angular-dual-listbox";
 
 @NgModule({
-  imports: [
-    CommonModule,
-    SharedModule,
-    UserRoutingModule,
-    AngularDualListBoxModule,
-  ],
+  imports: [CommonModule, SharedModule, UserRoutingModule],
   declarations: [
     SearchUserComponent,
     CreateUserComponent,
-    UserDetailComponent,
     ViewUserComponent,
     UpdateUserComponent,
   ],

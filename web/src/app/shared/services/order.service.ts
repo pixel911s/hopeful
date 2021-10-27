@@ -10,8 +10,13 @@ export class OrderService {
   get(id) {
     let criteria = {
       id: id,
-      shopId: this.authService.getUser().shopId,
+      userAgents: this.authService.getUser().userAgents,
     };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+
     return this.http
       .post(environment.apiUrl + "/order/get", criteria)
       .toPromise();

@@ -83,6 +83,7 @@ async function save(req, res) {
     let _productId = await productDao.save(conn, model);
 
     await productDao.deleteAgentPrice(conn, _productId);
+
     for (let index = 0; index < model.agentPrices.length; index++) {
       model.agentPrices[index].productId = _productId;
       model.agentPrices[index].createBy = model.updateUser;

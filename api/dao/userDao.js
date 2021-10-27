@@ -2,6 +2,7 @@
 
 module.exports = {
   get,
+  getHQUser,
   search,
   count,
   save,
@@ -19,6 +20,24 @@ module.exports = {
   getAgent,
   getAgentObj,
 };
+
+async function getHQUser(conn, criteria) {
+  try {
+    let params = [];
+    let sql =
+      "select u.*, b.businessType, b.name as agentName from user u left join business b on u.businessId = b.id where b.businessType = 'H'";
+
+    if (criteria.haveLineToken) {
+      sql += " and u.lineNotifyToken is not null";
+    }
+
+    const result = await conn.query(sql, params);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
 
 async function getBusinessById(conn, id) {
   try {
@@ -87,6 +106,10 @@ async function count(conn, criteria) {
       }
     }
 
+    if (criteria.exceptHQ) {
+      sql += " and b.businessType <> 'H'";
+    }
+
     if (criteria.username) {
       sql += " and u.username like ?";
       params.push("%" + criteria.username + "%");
@@ -134,6 +157,10 @@ async function search(conn, criteria) {
       } else {
         sql += " and b.businessType = 'H'";
       }
+    }
+
+    if (criteria.exceptHQ) {
+      sql += " and b.businessType <> 'H'";
     }
 
     if (criteria.username) {
@@ -199,6 +226,11 @@ async function save(conn, model) {
         params.push(model.businessId);
       }
 
+      if (model.lineNotifyToken) {
+        sql += ",lineNotifyToken = ? ";
+        params.push(model.lineNotifyToken);
+      }
+
       sql += " where username = ?";
       params.push(model.id);
 
@@ -206,8 +238,8 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `user` (`username`,`password`,`status`, `createBy`, `createDttm`, `updateBy`, `updateDttm`, `loginType`, businessId)";
-      sql += "  VALUES (?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO `user` (`username`,`password`,`status`, `createBy`, `createDttm`, `updateBy`, `updateDttm`, `loginType`, businessId, lineNotifyToken)";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?)";
 
       await conn.query(sql, [
         model.username.toLowerCase(),
@@ -219,6 +251,7 @@ async function save(conn, model) {
         new Date(),
         "SYSTEM",
         model.businessId,
+        model.lineNotifyToken,
       ]);
     }
 

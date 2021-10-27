@@ -10,7 +10,13 @@ export class UserService {
   get(username) {
     let criteria = {
       username: username,
+      userAgents: this.authService.getUser().userAgents,
     };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+
     return this.http
       .post(environment.apiUrl + "/user/get", criteria)
       .toPromise();
@@ -70,6 +76,10 @@ export class UserService {
 
     if (data.selectCRM) {
       data.functions.push("CRM");
+    }
+
+    if (data.supervisor) {
+      data.functions.push("SUPERVISOR");
     }
 
     return this.http.post(environment.apiUrl + "/user/save", data).toPromise();

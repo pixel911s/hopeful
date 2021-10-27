@@ -6,14 +6,19 @@
           <div class="col-12">
             <h5>รายละเอียดสินค้า</h5>
             <small>
-              <div>
-                วันที่สร้างใบสั่งซื้อ :
-                {{ data.createDate | date: "dd/MM/yyyy HH:mm:ss" }}
-              </div>
               <div class="row">
+                <div class="col-12" *ngIf="isEdit || isReadOnly">
+                  วันที่ทำรายการ :
+                  {{ data.orderDate | date: "dd/MM/yyyy" }}
+                </div>
+
                 <div class="col-6">ผู้ทำรายการ : {{ data.createBy }}</div>
                 <div class="col-6 text-right">
                   สาขา : {{ data.businessName }}
+                </div>
+                <div class="col-12">
+                  วันที่สร้างใบสั่งซื้อ :
+                  {{ data.createDate | date: "dd/MM/yyyy HH:mm:ss" }}
                 </div>
               </div>
             </small>
@@ -229,6 +234,33 @@
           <div class="col-12">
             <hr />
           </div>
+          <div class="col-12" *ngIf="!isReadOnly && !isEdit">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.orderDate.touched && f.orderDate.errors
+              }"
+            >
+              <label for="orderDate">วันที่ทำรายการ *</label>
+              <input
+                type="text"
+                class="form-control"
+                bsDatepicker
+                formControlName="orderDate"
+                [(ngModel)]="data.orderDate"
+                [ngClass]="{
+                  'is-invalid': f.orderDate.touched && f.orderDate.errors,
+                  'is-valid': f.orderDate.touched && !f.orderDate.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.orderDate.touched && f.orderDate.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12"></div>
           <div class="col-12">
             <div
               class="form-group"

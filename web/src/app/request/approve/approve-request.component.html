@@ -1,0 +1,123 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="row">
+  <div class="col-12 col-md-9">
+    <app-user-detail
+      *ngIf="data && data.data"
+      [data]="data.data"
+      [formGroup]="formGroup"
+      [isReadOnly]="true"
+      [header]="'ข้อมูลผู้ใช้งาน'"
+    ></app-user-detail>
+  </div>
+  <div class="col-12 col-md-3" [formGroup]="formGroup2" *ngIf="data">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+              <label for="createBy">ผู้ส่งคำขอ</label>
+              <input
+                class="form-control form-control-sm"
+                id="createBy"
+                formControlName="createBy"
+                [(ngModel)]="approveData.createBy"
+              />
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="form-group">
+              <label for="createDate">วันที่ส่งคำขอ</label>
+              <div
+                id="createDate"
+                class="form-control form-control-sm"
+                style="background-color: #f7f7f8"
+              >
+                {{ approveData.createDate | date: "dd/MM/yyyy HH:mm" }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.status.touched && f.status.errors?.required
+              }"
+            >
+              <label for="status">อนุมัติการทำรายการ *</label>
+              <select
+                class="form-control form-control-sm"
+                id="status"
+                formControlName="status"
+                [(ngModel)]="approveData.status"
+                [ngClass]="{
+                  'is-invalid': f.status.touched && f.status.errors,
+                  'is-valid': f.status.touched && !f.status.errors
+                }"
+                (change)="changeStatus()"
+              >
+                <option [ngValue]="undefined">
+                  {{ "common.please-select" | translate }}
+                </option>
+                <option [ngValue]="'APPROVE'">อนุมัติ</option>
+                <option [ngValue]="'REJECT'">ไม่อนุมัติ</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.status.touched && f.status.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-12" *ngIf="approveData.status == 'REJECT'">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.reason.touched && f.reason.errors?.required
+              }"
+            >
+              <label for="reason">เหตุผล *</label>
+              <textarea
+                autocomplete="off"
+                row="4"
+                id="reason"
+                class="form-control form-control-sm"
+                formControlName="reason"
+                [(ngModel)]="approveData.reason"
+                [ngClass]="{
+                  'is-invalid': f.reason.touched && f.reason.errors,
+                  'is-valid': f.reason.touched && !f.reason.errors
+                }"
+              >
+              </textarea>
+              <small
+                class="text-danger"
+                *ngIf="f.reason.touched && f.reason.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row m-b-20">
+  <div class="col-12 text-right">
+    <button
+      [routerLink]="['/request']"
+      routerLinkActive="router-link-active"
+      type="button"
+      class="btn btn-secondary"
+    >
+      Back
+    </button>
+    <button (click)="save()" type="button" class="btn btn-primary m-l-10">
+      Save
+    </button>
+  </div>
+</div>

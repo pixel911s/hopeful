@@ -112,6 +112,15 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
         submenu: [],
       });
     }
+
+    this.menuItems.push({
+      path: "/request",
+      title: "ข้อมูลคำขอ",
+      icon: "ft-pocket",
+      class: "",
+      isExternalLink: false,
+      submenu: [],
+    });
   }
 
   ngAfterViewInit() {

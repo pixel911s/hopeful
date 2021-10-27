@@ -8,13 +8,14 @@ import { NgxSpinnerService } from "ngx-spinner";
 import { OrderService } from "app/shared/services/order.service";
 import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 import { ToastrService } from "ngx-toastr";
+import { RequestService } from "app/shared/services/request.service";
 
 @Component({
-  selector: "app-search-order",
-  templateUrl: "./search-order.component.html",
-  styleUrls: ["./search-order.component.scss"],
+  selector: "app-search-request",
+  templateUrl: "./search-request.component.html",
+  styleUrls: ["./search-request.component.scss"],
 })
-export class SearchOrderComponent implements OnInit {
+export class SearchRequestComponent implements OnInit {
   public data: any = {};
   public criteria: any = {
     page: 1,
@@ -65,7 +66,7 @@ export class SearchOrderComponent implements OnInit {
   master: any = {};
 
   constructor(
-    private transactionService: OrderService,
+    private requestService: RequestService,
     private router: Router,
     private authService: AuthService,
     translate: TranslateService,
@@ -90,15 +91,8 @@ export class SearchOrderComponent implements OnInit {
       }
     }
 
-    this.master.agents = this.user.userAgents;
-
-    this.criteria.userAgents = this.user.userAgents;
-
-    console.log(this.user);
     if (this.user.business.businessType == "A") {
-      this.criteria.exceptHQ = true;
-    } else {
-      this.master.agents.unshift({ id: 1, name: "HQ" });
+      this.criteria.createBy = this.user.username;
     }
 
     await this.search();
@@ -107,38 +101,18 @@ export class SearchOrderComponent implements OnInit {
   async search() {
     this.spinner.show();
 
-    this.checkAll = false;
-
     sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
-    let res: any = await this.transactionService.search(this.criteria);
+    let res: any = await this.requestService.search(this.criteria);
 
     this.data = res;
     this.spinner.hide();
   }
 
   view(item) {
-    this.router.navigateByUrl("/order/view/" + item.id);
+    this.router.navigateByUrl("/request/view/" + item.id);
   }
 
   update(item) {
-    this.router.navigateByUrl("/order/update/" + item.id);
-  }
-
-  remove(item) {
-    const dialogRef = this.dialog.open(PopupConfirmComponent, {
-      maxWidth: "1000px",
-      minWidth: "300px",
-      data: {
-        message: "ยืนยันการยกเลิกรายการ",
-      },
-    });
-
-    dialogRef.afterClosed().subscribe(async (result) => {
-      if (result === true) {
-        await this.transactionService.delete(item.id);
-        await this.search();
-        this.toastr.show("ยกเลิกรายการสำเร็จ.");
-      }
-    });
+    this.router.navigateByUrl("/request/approve/" + item.id);
   }
 }

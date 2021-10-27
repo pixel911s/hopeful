@@ -40,6 +40,8 @@ import {
   BsDatepickerConfig,
   BsDatepickerModule,
 } from "ngx-bootstrap/datepicker";
+import { UserDetailComponent } from "app/user/includes/detail/user-detail.component";
+import { AngularDualListBoxModule } from "angular-dual-listbox";
 
 @NgModule({
   exports: [
@@ -62,6 +64,8 @@ import {
     Ng4FilesModule,
     MatDialogModule,
     BsDatepickerModule,
+    UserDetailComponent,
+    AngularDualListBoxModule,
   ],
   imports: [
     RouterModule,
@@ -86,6 +90,7 @@ import {
     Ng4FilesModule,
     MatDialogModule,
     BsDatepickerModule,
+    AngularDualListBoxModule,
   ],
   declarations: [
     FooterComponent,
@@ -105,6 +110,7 @@ import {
     TopMenuDirective,
     NavBarComponent,
     PopupConfirmComponent,
+    UserDetailComponent,
   ],
   entryComponents: [PopupConfirmComponent],
   providers: [

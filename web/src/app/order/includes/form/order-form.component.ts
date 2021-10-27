@@ -158,6 +158,16 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
       "remark",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
+
+    if (!this.isReadOnly && !this.isEdit) {
+      this.formGroup.addControl(
+        "orderDate",
+        new FormControl(
+          { value: "", disabled: this.isReadOnly || this.isEdit },
+          [Validators.required]
+        )
+      );
+    }
   }
 
   async selectProvince() {

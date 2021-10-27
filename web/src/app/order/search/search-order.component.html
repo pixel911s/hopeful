@@ -28,7 +28,7 @@
           />
         </div>
       </div>
-      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
+      <div class="col-md-3">
         <div class="form-group">
           <label for="agent">ตัวแทนจำหน่าย</label>
           <select
@@ -38,7 +38,6 @@
             id="agent"
           >
             <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="1">HQ</option>
             <option *ngFor="let item of master.agents" [ngValue]="item.id">
               {{ item.name }}
             </option>

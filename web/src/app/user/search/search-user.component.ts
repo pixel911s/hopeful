@@ -49,10 +49,11 @@ export class SearchUserComponent implements OnInit {
 
     this.criteria.userAgents = this.user.userAgents;
 
-    console.log(this.user);
+    // console.log(this.user);
     if (this.user.business.businessType == "A") {
-      this.criteria.businessType = this.user.business.businessType;
-      this.criteria.agent = this.user.business.id;
+      // this.criteria.businessType = this.user.business.businessType;
+      // this.criteria.agent = this.user.business.id;
+      this.criteria.exceptHQ = true;
     }
 
     await this.search();

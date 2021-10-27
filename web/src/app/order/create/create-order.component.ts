@@ -18,6 +18,7 @@ export class CreateOrderComponent extends BaseComponent implements OnInit {
     paymentType: "COD",
     status: "O",
     createDate: new Date(),
+    orderDate: new Date(),
   };
   public formGroup: FormGroup;
   public isReadOnly: any = true;

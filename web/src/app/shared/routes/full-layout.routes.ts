@@ -19,6 +19,11 @@ export const Full_ROUTES: Routes = [
       import("../../user/user.module").then((m) => m.UserModule),
   },
   {
+    path: "request",
+    loadChildren: () =>
+      import("../../request/request.module").then((m) => m.RequestModule),
+  },
+  {
     path: "product",
     loadChildren: () =>
       import("../../product/product.module").then((m) => m.ProductModule),

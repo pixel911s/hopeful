@@ -47,6 +47,13 @@ export class CreateUserComponent extends BaseComponent implements OnInit {
       await this.markFormGroupTouched(this.formGroup);
       return;
     }
+
+    if (!this.data.userAgents || this.data.userAgents.length == 0) {
+      this.toastr.show("❌ กรุณาเลือกตัวแทนจำหน่ายอย่างน้อย 1 ตัวแทน");
+      await this.markFormGroupTouched(this.formGroup);
+      return;
+    }
+
     this.spinner.show();
     await this.userService.save(this.data);
     this.spinner.hide();

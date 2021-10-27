@@ -3,6 +3,7 @@
 var util = require("../utils/responseUtils");
 var encypt = require("../utils/encypt");
 var userDao = require("../dao/userDao");
+var requestService = require("./requestServiceProcessor");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -15,6 +16,8 @@ module.exports = {
   save,
   changePassword,
   saveAgents,
+
+  saveUserData,
 };
 
 async function login(req, res) {
@@ -62,6 +65,19 @@ async function get(req, res) {
     let criteria = req.body;
 
     let result = await userDao.get(conn, criteria.username);
+
+    let canAccess = false;
+
+    for (let index = 0; index < criteria.userAgents.length; index++) {
+      const agent = criteria.userAgents[index];
+      if (agent.id == result.businessId) {
+        canAccess = true;
+      }
+    }
+
+    if (!canAccess) {
+      return res.status(404).send("Can't access data");
+    }
 
     result.business = await userDao.getBusinessById(conn, result.businessId);
 
@@ -115,6 +131,10 @@ async function get(req, res) {
       if ("CRM" == f.functionCode) {
         result.selectCRM = true;
       }
+
+      if ("SUPERVISOR" == f.functionCode) {
+        result.supervisor = true;
+      }
     });
 
     result.id = result.username;
@@ -160,46 +180,28 @@ async function save(req, res) {
   conn.beginTransaction();
   try {
     let model = req.body;
+    let successageMsg = "บันทึกข้อมูลผู้ใช้งานเสร็จสมบูรณ์";
 
-    if (!model.id) {
-      if (!model.password) {
-        model.password = "1111";
-      }
+    let updateUser = await userDao.get(conn, model.updateUser);
+    updateUser.business = await userDao.getBusinessById(
+      conn,
+      updateUser.businessId
+    );
 
-      model.password = encypt.encrypt(model.password);
-    }
-
-    if (model.businessType == "H") {
-      model.businessId = 1;
-    }
-
-    await userDao.save(conn, model);
-    await userDao.deleteUserFunction(conn, model.username);
-
-    for (let index = 0; index < model.functions.length; index++) {
-      await userDao.saveUserFunction(
+    if (updateUser.business.businessType != "H") {
+      await requestService.create(
         conn,
-        model.username,
-        model.functions[index]
+        model.id ? "UPDATE_USER" : "CREATE_USER",
+        model
       );
-    }
-
-    await userDao.deleteAgent(conn, model.username);
-
-    for (let index = 0; index < model.userAgents.length; index++) {
-      await userDao.saveAgent(
-        conn,
-        model.username,
-        model.createBy,
-        model.userAgents[index]
-      );
+      successageMsg = "ส่งคำขอบันทึกข้อมูลผู้ใช้งานสำเร็จ";
+    } else {
+      await saveUserData(conn, model);
     }
 
     conn.commit();
 
-    return res.send(
-      util.callbackSuccess("บันทึกข้อมูลผู้ใช้งานเสร็จสมบูรณ์", true)
-    );
+    return res.send(util.callbackSuccess(successageMsg, true));
   } catch (e) {
     conn.rollback();
     if (e.code == "ER_DUP_ENTRY") {
@@ -210,6 +212,44 @@ async function save(req, res) {
   } finally {
     conn.release();
   }
+}
+
+async function saveUserData(conn, model) {
+  if (!model.id) {
+    if (!model.password) {
+      model.password = "1111";
+    }
+
+    model.password = encypt.encrypt(model.password);
+  }
+
+  if (model.businessType == "H") {
+    model.businessId = 1;
+  }
+
+  await userDao.save(conn, model);
+  await userDao.deleteUserFunction(conn, model.username);
+
+  for (let index = 0; index < model.functions.length; index++) {
+    await userDao.saveUserFunction(
+      conn,
+      model.username,
+      model.functions[index]
+    );
+  }
+
+  await userDao.deleteAgent(conn, model.username);
+
+  for (let index = 0; index < model.userAgents.length; index++) {
+    await userDao.saveAgent(
+      conn,
+      model.username,
+      model.createBy,
+      model.userAgents[index]
+    );
+  }
+
+  return true;
 }
 
 async function changePassword(req, res) {

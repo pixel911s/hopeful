@@ -59,6 +59,15 @@ export class UserDetailComponent implements OnInit {
     let res: any = await this.agentService.gets();
 
     this.master.agents = res.data;
+
+    if (
+      this.data.userAgents.length == 0 &&
+      this.user.business.businessType == "A"
+    ) {
+      this.data.userAgents = this.master.agents.filter(
+        (agent) => agent.id == this.user.business.id
+      );
+    }
   }
 
   prepareFormGroup() {
@@ -130,6 +139,15 @@ export class UserDetailComponent implements OnInit {
     );
     this.formGroup.addControl(
       "selectCRM",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+    this.formGroup.addControl(
+      "supervisor",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "lineNotifyToken",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
 

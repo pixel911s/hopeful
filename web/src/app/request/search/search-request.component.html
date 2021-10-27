@@ -4,51 +4,28 @@
   <div class="card-body">
     <div class="row">
       <div class="col-12">
-        <h5 class="d-inline">จัดการข้อมูลผู้ใช้งาน</h5>
+        <h5 class="d-inline">รายการคำขอ</h5>
+
         <hr />
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="dates">วันที่สร้างรายการ</label>
           <input
-            (keyup.enter)="criteria.page = 1; search()"
+            readonly
             autocomplete="off"
-            [(ngModel)]="criteria.username"
+            [(ngModel)]="criteria.dates"
+            [bsValue]="criteria.dates"
             class="form-control form-control-sm"
-            id="username"
+            id="dates"
+            bsDaterangepicker
+            [bsConfig]="{
+              rangeInputFormat: 'DD/MM/YYYY',
+              dateInputFormat: 'DD/MM/YYYY',
+              showWeekNumbers: false,
+              ranges: ranges
+            }"
           />
-        </div>
-      </div>
-
-      <div class="col-md-3" *ngIf="user.business.businessType == 'H'">
-        <div class="form-group">
-          <label for="businessType">กลุ่มผู้ใช้งาน</label>
-          <select
-            (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.businessType"
-            class="form-control form-control-sm"
-            id="businessType"
-          >
-            <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="'H'">สำนักงานใหญ่</option>
-            <option [ngValue]="'A'">ตัวแทนจำหน่าย</option>
-          </select>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="agent">ตัวแทนจำหน่าย</label>
-          <select
-            (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.agent"
-            class="form-control form-control-sm"
-            id="agent"
-          >
-            <option [ngValue]="undefined">ทั้งหมด</option>
-            <option *ngFor="let item of master.agents" [ngValue]="item.id">
-              {{ item.name }}
-            </option>
-          </select>
         </div>
       </div>
 
@@ -62,8 +39,9 @@
             id="status"
           >
             <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="1">ใช้งาน</option>
-            <option [ngValue]="0">ไม่ใช้งาน</option>
+            <option [ngValue]="'REQUEST'">รอดำเนินการ</option>
+            <option [ngValue]="'APPROVE'">อนุมัติ</option>
+            <option [ngValue]="'REJECT'">ไม่อนุมัติ</option>
           </select>
         </div>
       </div>
@@ -72,20 +50,10 @@
         <button
           id="btnSearch"
           type="button"
-          class="btn btn-sm btn-secondary"
+          class="btn btn-secondary"
           (click)="criteria.page = 1; search()"
         >
           ค้นหา
-        </button>
-        <button
-          id="btnSearch"
-          type="button"
-          class="btn btn-sm btn-primary m-l-10"
-          [routerLink]="['/user/create']"
-          routerLinkActive="router-link-active"
-          *ngIf="user.function.CREATE_USER"
-        >
-          เพิ่มผู้ใช้งาน
         </button>
       </div>
     </div>
@@ -102,33 +70,49 @@
           <table class="table table-hover custom-table" id="tblData">
             <thead>
               <tr>
-                <th class="text-left">Username</th>
-                <th class="text-center" style="width: 120px">กลุ่มผู้ใช้งาน</th>
-                <th class="text-center" style="width: 120px">ตัวแทนจำหน่าย</th>
+                <th class="text-center" style="width: 150px">วันที่สร้าง</th>
+                <th class="text-center" style="width: 150px">ประเภทข้อมูล</th>
+                <th class="text-center" style="width: 150px">ผู้สร้างรายการ</th>
                 <th class="text-center" style="width: 70px">สถานะ</th>
+                <th class="text-left">หมายเหตุ</th>
                 <th style="width: 70px"></th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of data.data">
-                <td class="text-left">{{ item.username }}</td>
+              <tr *ngFor="let item of data.data; let i = index">
                 <td class="text-center">
-                  <span *ngIf="item.businessType == 'H'">สำนักงานใหญ่</span>
-                  <span *ngIf="item.businessType == 'A'">ตัวแทนจำหน่าย</span>
+                  {{ item.createDate | date: "dd/MM/yyyy HH:mm:ss" }}
                 </td>
                 <td class="text-center">
-                  <span *ngIf="item.businessType == 'H'">-</span>
-                  <span *ngIf="item.businessType == 'A'">{{
-                    item.agentName
-                  }}</span>
+                  <span *ngIf="item.requestType == 'UPDATE_USER'"
+                    >แก้ไขข้อมูลผู้ใช้งาน</span
+                  >
+                  <span *ngIf="item.requestType == 'CREATE_USER'"
+                    >สร้างข้อมูลผู้ใช้งาน</span
+                  >
                 </td>
                 <td class="text-center">
-                  <span *ngIf="item.status == 0" class="badge bg-light-danger"
-                    >ไม่ใช้งาน</span
+                  <span>{{ item.createBy }}</span>
+                </td>
+                <td class="text-center">
+                  <span
+                    *ngIf="item.status == 'REQUEST'"
+                    class="badge badge-warning"
+                    >รอดำเนินการ</span
                   >
-                  <span *ngIf="item.status == 1" class="badge bg-light-success"
-                    >ใช้งาน</span
+                  <span
+                    *ngIf="item.status == 'APPROVE'"
+                    class="badge badge-success"
+                    >อนุมัติ</span
                   >
+                  <span
+                    *ngIf="item.status == 'REJECT'"
+                    class="badge badge-danger"
+                    >ไม่อนุมัติ</span
+                  >
+                </td>
+                <td class="text-left">
+                  <span>{{ item.reason }}</span>
                 </td>
                 <td class="text-center" style="width: 120px">
                   <div ngbDropdown container="body">
@@ -140,15 +124,19 @@
                         class="w-100"
                         (click)="update(item)"
                         ngbDropdownItem
-                        *ngIf="user.function.CREATE_USER"
+                        *ngIf="
+                          user.business.businessType == 'H' &&
+                          user.function.SUPERVISOR &&
+                          item.status == 'REQUEST'
+                        "
                       >
-                        ดู / แก้ไขข้อมูล
+                        จัดการรายการ
                       </button>
+
                       <button
                         class="w-100"
                         (click)="view(item)"
                         ngbDropdownItem
-                        *ngIf="!user.function.CREATE_USER"
                       >
                         ดูข้อมูล
                       </button>

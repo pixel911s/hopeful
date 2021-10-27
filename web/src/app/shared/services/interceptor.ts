@@ -11,12 +11,14 @@ import { Observable, throwError } from "rxjs";
 import { map, catchError } from "rxjs/operators";
 import { ToastrService } from "ngx-toastr";
 import { NgxSpinnerService } from "ngx-spinner";
+import { Router } from "@angular/router";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private toastr: ToastrService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    private router: Router
   ) {}
 
   intercept(
@@ -45,6 +47,9 @@ export class AuthInterceptor implements HttpInterceptor {
         } else if (error.status === 401) {
           console.log(error);
           this.toastr.show(error.error);
+        } else if (error.status === 404) {
+          this.toastr.show("❌❌ Page Not Found. ❌❌");
+          this.router.navigateByUrl("/pages/error");
         }
 
         this.spinner.hide();
