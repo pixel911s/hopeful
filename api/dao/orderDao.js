@@ -276,11 +276,14 @@ async function save(conn, model) {
 async function saveDetail(conn, model) {
   try {
     //insert
+
+    let _id = 0;
+
     let sql =
       "insert into orderItem (`orderId`,`productId`,`qty`,`price`,`discount`,`itemAmount`)";
     sql += "  VALUES (?,?,?,?,?,?)";
 
-    await conn.query(sql, [
+    let _result = await conn.query(sql, [
       model.orderId,
       model.id,
       model.qty,
@@ -289,7 +292,9 @@ async function saveDetail(conn, model) {
       model.itemAmount,
     ]);
 
-    return true;
+    _id = _result.insertId;
+
+    return _id;
   } catch (e) {
     console.log("ERROR : ", e);
     throw e;

@@ -11,7 +11,9 @@ module.exports = {
   getOnDueList,
   getOverDueList,
   getIncomingList,
-  getCustomIncomingList
+  getCustomIncomingList,
+  getOwnerCustomer,
+  cancelActivityByOrderId
 };
 
 async function get(conn, id) {
@@ -49,10 +51,10 @@ async function save(conn, model) {
       let params = [];
 
       let sql =
-        "UPDATE `activity` SET `description` = ?, `refProductId` = ?, `remainingDay` = ?, `dueDate` = ?, `agentId` = ?, `customerId` = ?, `ownerUser` = ?, `activityStatusId` = ?, `updateBy` = ?, `updateDate` = ? WHERE `id` = ?";
+        "UPDATE `activity` SET `description` = ?, `productId` = ?, `remainingDay` = ?, `dueDate` = ?, `agentId` = ?, `customerId` = ?, `ownerUser` = ?, `activityStatusId` = ?, `updateBy` = ?, `updateDate` = ? WHERE `id` = ?";
 
       params.push(model.description.trim());
-      params.push(model.refProductId);
+      params.push(model.productId);
       params.push(model.reminingDay);
       params.push(model.dueDate);
       params.push(model.agentId);
@@ -67,23 +69,23 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `activity` (`code`,`description`,`refProductId`,`reminingDay`,`dueDate`,`agentId`,`customerId`,`ownerUser`,`activityStatusId`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
+        "INSERT INTO `activity` (`code`,`description`,`productId`,`remainingDay`,`dueDate`,`agentId`,`customerId`,`ownerUser`,`activityStatusId`,`refOrderId`,`refOrderItemId`, `createBy`, `createDate`) ";
       sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
       let _result = await conn.query(sql, [
         model.code,
         model.description.trim(),
         model.productId,
-        model.reminingDay,
+        model.remainingDay,
         model.dueDate,
         model.agentId,
         model.customerId,
         model.ownerUser,
         model.activityStatusId,
+        model.refOrderId,
+        model.refOrderItemId,
         model.username,
-        new Date(),
-        model.username,
-        new Date(),
+        new Date()
       ]);
 
       console.log("INSERT RESULT : ", _result);
@@ -259,5 +261,33 @@ async function getCustomIncomingList(conn, ownerUser, incomingDay) {
     return result[0];
   } catch (err) {
     throw err;
+  }
+}
+
+async function getOwnerCustomer(conn, customerId) {
+  try {
+    let sql =
+      "select username from userCustomer where customerId=?";
+    const result = await conn.query(sql, [customerId]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function cancelActivityByOrderId(conn, orderId, username) {
+  try {
+    //Update Activity Status
+    let sql = "update activity set `activityStatusId`=4, `updateBy`=?, `updateDate`=? where refOrderId = ?";
+
+    await conn.query(sql, [
+      username,
+      new Date(),
+      orderId]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }

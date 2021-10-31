@@ -4,7 +4,8 @@ module.exports = {
     get,
     save,
     closeTask,
-    recallTask
+    recallTask,
+    getTaskList
 };
 
 async function get(conn, id) {
@@ -112,5 +113,36 @@ async function recallTask(conn, id, username) {
     } catch (e) {
         console.log("ERROR : ", e);
         throw e;
+    }
+}
+
+async function getTaskList(conn, ownerUser, taskStatus) {
+    //== taskStatus
+    //== O : Open
+    //== C : Close
+    try {
+        let params = [];
+
+        let sql =
+            "select * from task where  1=1 ";
+            if (ownerUser && ownerUser!="")
+            {
+                sql+=" and createBy=?"
+                params.push(ownerUser)
+            } 
+            if (taskStatus=="C")
+            {
+                sql+=" and isClose=true"
+            }else{
+                sql+=" and isClose=false"
+            }
+            sql+=" order by scheduleDate desc,scheduleTime desc"
+           
+
+        const result = await conn.query(sql, params);
+
+        return result;
+    } catch (err) {
+        throw err;
     }
 }
