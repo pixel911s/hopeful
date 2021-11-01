@@ -5,6 +5,7 @@ var encypt = require("../utils/encypt");
 var orderDao = require("../dao/orderDao");
 var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
+var activityDao = require("../dao/activityDao");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -178,10 +179,60 @@ async function create(req, res) {
 
     console.log("RET ORDER ID : ", _orderId);
 
+    //=== Get Owner Customer to Create Activity =======
+
+    let _ownerCustomer = "";
+    let _ownerCustomers = await activityDao.getOwnerCustomer(conn, model.customerId);
+    console.log("OWNER CUSTOMER : ", _ownerCustomer);
+    if (_ownerCustomers.length > 0) {
+      _ownerCustomer = _ownerCustomers[0].username;
+    }
+
+
+    //=================================================
+
     for (let index = 0; index < model.orderDetail.length; index++) {
-      let product = model.orderDetail[index];
-      product.orderId = _orderId;
-      await orderDao.saveDetail(conn, model.orderDetail[index]);
+      let orderItem = model.orderDetail[index];
+      orderItem.orderId = _orderId;
+      let _orderItemId = await orderDao.saveDetail(conn, orderItem);
+
+      //=== Add Activity ==========================================
+
+
+      let _activityDesc = orderItem.code + "-" + orderItem.name + " : " + orderItem.qty + " " + orderItem.unit;
+      let _activityCode = await runningDao.getNextRunning(
+        conn,
+        "A",
+        _date.getFullYear(),
+        month
+      );
+      //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
+      let _remainingDay = +orderItem.remainingDay * +orderItem.qty
+
+      let _dueDate = new Date();
+      _dueDate.setDate(_dueDate.getDate() + _remainingDay);
+
+      let _activity = {
+        code: _activityCode,
+        description: _activityDesc,
+        productId: orderItem.id,
+        remainingDay: _remainingDay,
+        dueDate: _dueDate,
+        agentId: model.ownerId,
+        customerId: model.customerId,
+        ownerUser: _ownerCustomer,
+        activityStatusId: 0,
+        refOrderId : _orderId,
+        refOrderItemId: _orderItemId,
+        username: model.username
+      }
+
+      console.log("ACTIVITY : ", _activity);
+
+      await activityDao.save(conn, _activity);
+
+      //===========================================================
+
     }
 
     conn.commit();
@@ -239,6 +290,10 @@ async function deleteOrder(req, res) {
     order.status = "C";
 
     await orderDao.save(conn, order);
+
+    //=== Cancel Activity ==================
+    await activityDao.cancelActivityByOrderId(conn, model.id);
+    //======================================
 
     conn.commit();
 
