@@ -3,6 +3,7 @@
 var util = require("../utils/responseUtils");
 const fileUtil = require("../utils/fileUtil");
 var activityDao = require("../dao/activityDao");
+var userDao = require("../dao/userDao");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -12,11 +13,8 @@ module.exports = {
   get,
   save,
   updateActivityStatus,
-  getActivityCountByOwner,
-  getOnDueList,
-  getOverDueList,
-  getIncomingList,
-  getCustomIncomingList
+  getSummaryActivityCount,
+  searchList,
 };
 
 async function get(req, res) {
@@ -94,33 +92,72 @@ async function updateActivityStatus(req, res) {
   }
 }
 
-async function getActivityCountByOwner(req, res) {
-  //=== ใช้สรุปจำนวน ของ Activiity ตามสถานะ : OnDue, OverDue, Incomming, CustomIncoming ตามผู้ใช้งาน
+async function getSummaryActivityCount(req, res) {
+  //=== ใช้ดึงข้อมูลจำนวน ของ Activity
   //=== Parameter
   //==== username : username ของผู้ใช้งาน
+  //==== customerId : Option
 
   const conn = await pool.getConnection();
   try {
-    let activityCount = { onDueQty: 0, overDueQty: 0, incomingQty: 0, customIncomingQty: 0 };
 
-    let resultOnDue = await activityDao.getOnDueCount(conn, criteria.username);
-    if (resultOnDue) {
-      activityCount.onDueQty = resultOnDue.qty;
-    }
-    let resultOverDue = await activityDao.getOverDueCount(conn, criteria.username);
-    if (resultOverDue) {
-      activityCount.overDueQty = resultOverDue.qty;
-    }
-    let resultIncoming = await activityDao.getIncomingCount(conn, criteria.username);
-    if (resultIncoming) {
-      activityCount.incomingQty = resultIncoming.qty;
-    }
-    let resultCustomIncoming = await activityDao.getCustomIncomingCount(conn, criteria.username);
-    if (resultCustomIncoming) {
-      activityCount.customIncomingQty = resultCustomIncoming.qty;
+    let criteria = req.body;
+
+    let buttons = [];
+
+    let userAgents = [];
+    let userAgentObj = await userDao.getAgentObj(conn, criteria.username);
+    for (let index = 0; index < userAgentObj.length; index++) {
+      userAgents.push(userAgentObj[index].id);
     }
 
-    return res.send(util.callbackSuccess(null, result));
+    let isSupervisor = false;
+    let userFunctions = await userDao.getUserFunction(conn, criteria.username);
+    console.log("user Functions : ", userFunctions);
+
+    for (let index = 0; index < userFunctions.length; index++) {
+      if (userFunctions[index].functionCode == "SUPERVISOR") {
+        isSupervisor = true;
+      }
+    }
+
+    let button1 = { fillterType: 1, dayCondition: 0, display: "วันนี้", qty: 0 };
+    let resultOnDue = await activityDao.inquiry(conn, criteria.username, 1, 0, userAgents, isSupervisor, criteria.customerId, true);
+
+    if (resultOnDue.length > 0) {
+      button1.qty = resultOnDue[0].qty;
+    }
+    buttons.push(button1);
+
+    let button2 = { fillterType: 2, dayCondition: 0, display: "เกินกำหนด", qty: 0 };
+    let resultOverDue = await activityDao.inquiry(conn, criteria.username, 2, 0, userAgents, isSupervisor, criteria.customerId, true);
+    if (resultOverDue.length > 0) {
+      button2.qty = resultOverDue[0].qty;
+    }
+    buttons.push(button2);
+
+    let button3 = { fillterType: 3, dayCondition: 0, display: "ยังไม่ถึงกำหนด", qty: 0 };
+    let resultIncoming = await activityDao.inquiry(conn, criteria.username, 3, 0, userAgents, isSupervisor, criteria.customerId, true);
+    if (resultIncoming.length > 0) {
+      button3.qty = resultIncoming[0].qty;
+    }
+    buttons.push(button3);
+
+    let activitDateConfigs = await activityDao.getActivityDateConfig(conn, criteria.username);
+    if (activitDateConfigs.length > 0) {
+      for (let index = 0; index < activitDateConfigs.length; index++) {
+        let data = { fillterType: 4, dayCondition: activitDateConfigs[index].condition, display: activitDateConfigs[index].display, qty: 0 };
+
+        let resultCustom = await activityDao.inquiry(conn, criteria.username, 4, activitDateConfigs[index].condition, userAgents, isSupervisor, criteria.customerId, true);
+        if (resultCustom.length > 0) {
+          data.qty = resultCustom[0].qty;
+        }
+        buttons.push(data);
+      }
+
+    }
+
+    return res.send(util.callbackSuccess(null, buttons));
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
@@ -129,75 +166,59 @@ async function getActivityCountByOwner(req, res) {
   }
 }
 
-async function getOnDueList(req, res) {
-  //=== ใช้ดึงรายการ Activiity ตามสถานะ : OnDue ตามผู้ใช้งาน
+async function searchList(req, res) {
+  //=== ใช้ดึงรายการ Activiity ตามเงื่อนไข
   //=== Parameter
   //==== username : username ของผู้ใช้งาน
+  //==== fillterType : 1 = วันนี้ , 2 = เกินกำหนด , 3 = ล่วงหน้า , 4 : กำหนดเอง ต้องระบุจำนวนวันที่ Parameter dayCondition 
+  //==== dayCondition : จำนวนวัน ใส่ค่า +- ใช้คู่กับ FillterType = 4
+  //==== customerId : Option
+  //==== page : หน้าที่
+  //==== size : จำนวนหน้าที่แสดง
+
   const conn = await pool.getConnection();
   try {
     let criteria = req.body;
 
-    let result = await activityDao.getOnDueList(conn, criteria.username);
+    let result = null;
 
-    return res.send(util.callbackSuccess(null, result));
-  } catch (e) {
-    console.error(e);
-    return res.status(500).send(e.message);
-  } finally {
-    conn.release();
-  }
-}
 
-async function getOverDueList(req, res) {
-  //=== ใช้ดึงรายการ Activiity ตามสถานะ : OverDue ตามผู้ใช้งาน
-  //=== Parameter
-  //==== username : username ของผู้ใช้งาน
-  const conn = await pool.getConnection();
-  try {
-    let criteria = req.body;
 
-    let result = await activityDao.getOverDueList(conn, criteria.username);
+    let userAgents = [];
+    let userAgentObj = await userDao.getAgentObj(conn, criteria.username);
+    for (let index = 0; index < userAgentObj.length; index++) {
+      userAgents.push(userAgentObj[index].id);
+    }
 
-    return res.send(util.callbackSuccess(null, result));
-  } catch (e) {
-    console.error(e);
-    return res.status(500).send(e.message);
-  } finally {
-    conn.release();
-  }
-}
+    let isSupervisor = false;
+    let userFunctions = await userDao.getUserFunction(conn, criteria.username);
+    console.log("user Functions : ", userFunctions);
 
-async function getIncomingList(req, res) {
-  //=== ใช้ดึงรายการ Activiity ตามสถานะ : Incoming ตามผู้ใช้งาน
-  //=== Parameter
-  //==== username : username ของผู้ใช้งาน
-  const conn = await pool.getConnection();
-  try {
-    let criteria = req.body;
+    for (let index = 0; index < userFunctions.length; index++) {
+      if (userFunctions[index].functionCode == "SUPERVISOR") {
+        isSupervisor = true;
+      }
+    }
 
-    let result = await activityDao.getIncomingList(conn, criteria.username);
+    let totalRecord = 0;
+    let totalRecordObj = await activityDao.inquiry(conn, criteria.username, criteria.fillterType, criteria.dayCondition, userAgents, isSupervisor, null, true, criteria.page, criteria.size);
+    if (totalRecordObj.length > 0) {
+      totalRecord = totalRecordObj[0].qty;
+    }
 
-    return res.send(util.callbackSuccess(null, result));
-  } catch (e) {
-    console.error(e);
-    return res.status(500).send(e.message);
-  } finally {
-    conn.release();
-  }
-}
+    console.log("TOTAL REC: ", totalRecordObj);
 
-async function getCustomIncomingList(req, res) {
-  //=== ใช้ดึงรายการ Activiity ตามสถานะ : customIncoming ตามผู้ใช้งาน
-  //=== Parameter
-  //==== username : username ของผู้ใช้งาน
-  //==== incomingDay : จำนวนวันที่ใกล้จะถึง  -> Current Date + incomingDay
-  const conn = await pool.getConnection();
-  try {
-    let criteria = req.body;
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
+    }
 
-    let result = await activityDao.getCustomIncomingList(conn, criteria.username, criteria.incomingDay);
+    if (totalRecord > 0) {
+      result = await activityDao.inquiry(conn, criteria.username, criteria.fillterType, criteria.dayCondition, userAgents, isSupervisor, null, false, criteria.page, criteria.size);
+    }
 
-    return res.send(util.callbackSuccess(null, result));
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
