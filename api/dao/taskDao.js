@@ -97,7 +97,7 @@ async function recallTask(conn, id, username) {
     // undo การปิด Task
 
     let sql =
-      "update task set `isClose`=false, `closeDate`=? `updateBy`=?, `updateDate`=? where id = ?";
+      "update task set `isClose`=false, `closeDate`=?, `updateBy`=?, `updateDate`=? where id = ?";
 
     await conn.query(sql, [null, username, new Date(), id]);
 
