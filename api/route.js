@@ -14,6 +14,7 @@ router.use("/customer", require("./routes/customer-route"));
 router.use("/activity", require("./routes/activity-route"));
 router.use("/task", require("./routes/task-route"));
 router.use("/note", require("./routes/note-route"));
+router.use("/config", require("./routes/config-route"));
 
 router.use(function (req, res, next) {
   next();

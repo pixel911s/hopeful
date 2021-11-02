@@ -1,0 +1,302 @@
+<div class="row m-t-20">
+  <div class="col-12 col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">Activity</h5>
+            <a
+              class="text-info poiter float-right"
+              (click)="isASCollapsed = !isASCollapsed"
+              [attr.aria-expanded]="!isASCollapsed"
+              ><span *ngIf="isASCollapsed">+</span
+              ><span *ngIf="!isASCollapsed">-</span>advance search</a
+            >
+            <hr />
+          </div>
+          <div
+            class="col-12"
+            id="isASCollapsed"
+            [collapse]="isASCollapsed"
+            [isAnimated]="true"
+          >
+            <div class="row">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="id">ActivityID</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; search()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.id"
+                    class="form-control form-control-sm"
+                    id="id"
+                  />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="name">ชื่อลูกค้า</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; search()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.name"
+                    class="form-control form-control-sm"
+                    id="name"
+                  />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="owner">ผู้ดูแล</label>
+                  <select
+                    (change)="criteria.page = 1; search()"
+                    [(ngModel)]="criteria.owner"
+                    class="form-control form-control-sm"
+                    id="owner"
+                  >
+                    <option [ngValue]="undefined">ทั้งหมด</option>
+                    <option [ngValue]="1">ใช้งาน</option>
+                    <option [ngValue]="0">ไม่ใช้งาน</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="status">สถานะ</label>
+                  <select
+                    (change)="criteria.page = 1; search()"
+                    [(ngModel)]="criteria.status"
+                    class="form-control form-control-sm"
+                    id="status"
+                  >
+                    <option [ngValue]="undefined">ทั้งหมด</option>
+                    <option [ngValue]="1">ใช้งาน</option>
+                    <option [ngValue]="0">ไม่ใช้งาน</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12 m-b-20">
+                <button
+                  id="btnSearch"
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  (click)="criteria.page = 1; search()"
+                >
+                  ค้นหา
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <drag-scroll [scrollbar-hidden]="true">
+              <button
+                drag-scroll-item
+                type="button"
+                class="btn btn-sm btn-primary"
+              >
+                <small>วันนี้</small>
+              </button>
+              <button
+                drag-scroll-item
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+              >
+                <small>เกินกำหนด</small>
+              </button>
+              <button
+                drag-scroll-item
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+              >
+                <small>ยังไม่ถึงกำหนด</small>
+              </button>
+              <button
+                drag-scroll-item
+                *ngFor="let item of master.activityDate"
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+              >
+                <small>{{ item.display }}</small>
+              </button>
+            </drag-scroll>
+          </div>
+
+          <div class="col-12">
+            <table class="table table-hover custom-table" id="tblData">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 100px"></th>
+                  <th class="text-left">ชื่อลูกค้า</th>
+                  <th class="text-left">สินค้า</th>
+                  <th class="text-center">ผู้ดูแล</th>
+                  <th class="text-center">สถานะ</th>
+                  <th class="text-center">วันที่ต้องติดตาม</th>
+                  <th style="width: 70px"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of [1, 2, 3, 4, 5]">
+                  <td class="text-left">A000001</td>
+                  <td class="text-left">วัชรพงศ์ สัลลกะชาต</td>
+                  <td class="text-left">เบต้า X</td>
+                  <td class="text-center">-</td>
+                  <td class="text-center">รอดำเนินการ</td>
+                  <td class="text-center">
+                    {{ date | date: "dd/MM/yyyy" }}
+                  </td>
+                  <td class="text-left">
+                    <div ngbDropdown container="body">
+                      <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                        ><b><small>ตัวจัดการ</small></b></a
+                      >
+                      <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                        <button
+                          class="w-100"
+                          (click)="update(item)"
+                          ngbDropdownItem
+                        >
+                          เปลี่ยนผู้รับผิดชอบ
+                        </button>
+                        <button
+                          class="w-100"
+                          (click)="view(item)"
+                          ngbDropdownItem
+                        >
+                          ดูข้อมูล
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">To do list</h5>
+            <div class="custom-control custom-checkbox d-inline float-right">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewOrder"
+                [(ngModel)]="data.selectViewOrder"
+              />
+              <label class="custom-control-label" for="selectViewOrder"
+                >ดูเฉพาะของตัวเอง</label
+              >
+            </div>
+            <hr />
+          </div>
+          <div class="col-12 text-right">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="isTodoCollapsed1 = !isTodoCollapsed1"
+              [attr.aria-expanded]="!isTodoCollapsed1"
+              aria-controls="collapseBasic"
+            >
+              รายการที่ต้องทำ
+              <i class="ft-chevron-down" *ngIf="isTodoCollapsed1"></i
+              ><i class="ft-minus" *ngIf="!isTodoCollapsed1"></i>
+            </button>
+          </div>
+          <div
+            id="collapseBasic"
+            [collapse]="isTodoCollapsed1"
+            [isAnimated]="true"
+            class="m-b-20"
+          >
+            <div class="col-12 m-b-5" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
+              <div class="task-box">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="custom-control custom-checkbox">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="selectViewOrder"
+                        [(ngModel)]="data.selectViewOrder"
+                      />
+                      <label
+                        class="custom-control-label poiter"
+                        for="selectViewOrder"
+                        style="word-break: break-all"
+                        >อย่างลืมฉัน</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-4 text-right">canonmix</div>
+                  <div class="col-6">
+                    <a class="text-info"><small>A000001</small></a>
+                  </div>
+                  <div class="col-6 text-right">
+                    <small>01/11/2021</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 text-right">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="isTodoCollapsed2 = !isTodoCollapsed2"
+              [attr.aria-expanded]="!isTodoCollapsed2"
+              aria-controls="collapseBasic"
+            >
+              รายการที่ทำเสร็จแล้ว
+              <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
+              ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
+            </button>
+          </div>
+          <div
+            id="collapseBasic"
+            [collapse]="isTodoCollapsed2"
+            [isAnimated]="true"
+          >
+            <div class="col-12 m-b-5" *ngFor="let item of [1, 2, 3, 4, 5, 6]">
+              <div class="task-box">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="custom-control custom-checkbox">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="selectViewOrder"
+                        [(ngModel)]="data.selectViewOrder"
+                      />
+                      <label
+                        class="custom-control-label poiter"
+                        for="selectViewOrder"
+                        style="
+                          word-break: break-all;
+                          text-decoration-line: line-through;
+                        "
+                        >อย่างลืมฉัน</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-4 text-right">canonmix</div>
+                  <div class="col-6">
+                    <a class="text-info"><small>A000001</small></a>
+                  </div>
+                  <div class="col-6 text-right">
+                    <small>01/11/2021</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

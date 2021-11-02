@@ -9,6 +9,10 @@ export const Full_ROUTES: Routes = [
       import("../../page/page.module").then((m) => m.PageModule),
   },
   {
+    path: "CRM",
+    loadChildren: () => import("../../crm/crm.module").then((m) => m.CRMModule),
+  },
+  {
     path: "agent",
     loadChildren: () =>
       import("../../agent/agent.module").then((m) => m.AgentModule),
@@ -32,6 +36,11 @@ export const Full_ROUTES: Routes = [
     path: "order",
     loadChildren: () =>
       import("../../order/order.module").then((m) => m.OrderModule),
+  },
+  {
+    path: "setting",
+    loadChildren: () =>
+      import("../../setting/setting.module").then((m) => m.SettingModule),
   },
   {
     path: "change-password",

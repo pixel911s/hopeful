@@ -1,0 +1,71 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <h5 class="d-inline">จัดการแทปวันที่ใน CRM</h5>
+        <hr />
+      </div>
+
+      <div class="col-12 m-b-20">
+        <button
+          id="btnSearch"
+          type="button"
+          class="btn btn-sm btn-primary"
+          [routerLink]="['/setting/activity-date/create']"
+          routerLinkActive="router-link-active"
+        >
+          เพิ่มแทปใหม่
+        </button>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="data.length > 0">
+      <div class="col-12 col-lg-4">
+        <div class="table-responsive">
+          <table class="table table-hover custom-table" id="tblData">
+            <thead>
+              <tr>
+                <th class="text-left">ชื่อที่แสดงผล</th>
+                <th class="text-center">ข้อมูล</th>
+                <th style="width: 70px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data">
+                <td class="text-left">{{ item.display }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.condition > 0">+</span>{{ item.condition }}
+                </td>
+                <td class="text-center" style="width: 120px">
+                  <div ngbDropdown container="body">
+                    <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                      ><b><small>ตัวจัดการ</small></b></a
+                    >
+                    <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                      <button
+                        class="w-100"
+                        (click)="update(item)"
+                        ngbDropdownItem
+                      >
+                        ดู / แก้ไขข้อมูล
+                      </button>
+                      <button
+                        class="w-100"
+                        (click)="remove(item)"
+                        ngbDropdownItem
+                      >
+                        ลบข้อมูล
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

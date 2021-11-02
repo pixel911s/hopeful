@@ -1,0 +1,72 @@
+<div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">{{ header }}</h5>
+            <hr />
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.display.touched && f.display.errors
+              }"
+            >
+              <label for="display">ชื่อที่แสดงผล *</label>
+              <input
+                autocomplete="off"
+                maxlength="50"
+                id="display"
+                class="form-control form-control-sm"
+                formControlName="display"
+                [(ngModel)]="data.display"
+                [ngClass]="{
+                  'is-invalid': f.display.touched && f.display.errors,
+                  'is-valid': f.display.touched && !f.display.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.display.touched && f.display.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.condition.touched && f.condition.errors
+              }"
+            >
+              <label for="condition">ข้อมูล *</label>
+              <input
+                autocomplete="off"
+                maxlength="2"
+                type="number"
+                id="condition"
+                class="form-control form-control-sm"
+                formControlName="condition"
+                [(ngModel)]="data.condition"
+                [ngClass]="{
+                  'is-invalid': f.condition.touched && f.condition.errors,
+                  'is-valid': f.condition.touched && !f.condition.errors
+                }"
+              />
+              <small class="text-info d-block"
+                >* ข้อมูลวันที่ล่วงหน้า หรือ ย้อนหลัง เป็นจำนวนวัน</small
+              >
+              <small
+                class="text-danger"
+                *ngIf="f.condition.touched && f.condition.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

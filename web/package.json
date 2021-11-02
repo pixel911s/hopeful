@@ -48,6 +48,7 @@
     "ngx-cookie-service": "^12.0.3",
     "ngx-custom-validators": "8.0.0",
     "ngx-device-detector": "2.0.4",
+    "ngx-drag-scroll": "^12.0.0-beta.2",
     "ngx-perfect-scrollbar": "10.0.1",
     "ngx-spinner": "^10.0.1",
     "ngx-take-until-destroy": "5.4.0",

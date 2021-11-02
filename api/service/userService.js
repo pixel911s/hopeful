@@ -72,6 +72,7 @@ async function get(req, res) {
       const agent = criteria.userAgents[index];
       if (agent.id == result.businessId) {
         canAccess = true;
+        break;
       }
     }
 

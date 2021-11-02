@@ -222,3 +222,13 @@ hr {
 .m-t-20 {
   margin-top: 20px;
 }
+
+.task-box {
+  padding: 6px 10px 6px 10px;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+
+  &:hover {
+    border: 1px solid #ed1c24;
+  }
+}

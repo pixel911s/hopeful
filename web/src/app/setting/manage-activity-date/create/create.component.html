@@ -1,0 +1,24 @@
+<app-nav-bar></app-nav-bar>
+
+<app-activity-date-config-detail
+  *ngIf="data"
+  [data]="data"
+  [formGroup]="formGroup"
+  [header]="'เพิ่มข้อมูลแทปวันที่ใน CRM'"
+></app-activity-date-config-detail>
+
+<div class="row m-b-20">
+  <div class="col-12 text-right">
+    <button
+      [routerLink]="['/setting/activity-date']"
+      routerLinkActive="router-link-active"
+      type="button"
+      class="btn btn-secondary"
+    >
+      Back
+    </button>
+    <button (click)="save()" type="button" class="btn btn-primary m-l-10">
+      Save
+    </button>
+  </div>
+</div>

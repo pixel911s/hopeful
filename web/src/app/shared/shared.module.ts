@@ -42,6 +42,8 @@ import {
 } from "ngx-bootstrap/datepicker";
 import { UserDetailComponent } from "app/user/includes/detail/user-detail.component";
 import { AngularDualListBoxModule } from "angular-dual-listbox";
+import { CollapseModule } from "ngx-bootstrap/collapse";
+import { DragScrollModule } from "ngx-drag-scroll";
 
 @NgModule({
   exports: [
@@ -66,6 +68,8 @@ import { AngularDualListBoxModule } from "angular-dual-listbox";
     BsDatepickerModule,
     UserDetailComponent,
     AngularDualListBoxModule,
+    CollapseModule,
+    DragScrollModule,
   ],
   imports: [
     RouterModule,
@@ -91,6 +95,8 @@ import { AngularDualListBoxModule } from "angular-dual-listbox";
     MatDialogModule,
     BsDatepickerModule,
     AngularDualListBoxModule,
+    CollapseModule,
+    DragScrollModule,
   ],
   declarations: [
     FooterComponent,

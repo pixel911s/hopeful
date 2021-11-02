@@ -69,6 +69,15 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     ];
 
+    this.menuItems.push({
+      path: "/CRM",
+      title: "CRM",
+      icon: "ft-calendar",
+      class: "",
+      isExternalLink: false,
+      submenu: [],
+    });
+
     if (this.user.function.CREATE_ORDER || this.user.function.VIEW_ORDER) {
       this.menuItems.push({
         path: "/order",
@@ -120,6 +129,26 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       class: "",
       isExternalLink: false,
       submenu: [],
+    });
+
+    this.menuItems.push({
+      path: "",
+      title: "ตั้งค่าเพิ่มเติม",
+      icon: "ft-settings",
+      class: "has-sub",
+      isExternalLink: false,
+      submenu: [
+        {
+          path: "/setting/activity-date",
+          title: "จัดการตัวเลือกวันที่ใน CRM",
+          icon: "ft-arrow-right submenu-icon",
+          class: "",
+          badge: "",
+          badgeClass: "",
+          isExternalLink: false,
+          submenu: [],
+        },
+      ],
     });
   }
 
