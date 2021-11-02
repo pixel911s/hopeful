@@ -181,14 +181,11 @@ async function create(req, res) {
 
     //=== Get Owner Customer to Create Activity =======
 
-    let _ownerCustomer = "";
-    let _ownerCustomers = await activityDao.getOwnerCustomer(conn, model.customerId);
-    console.log("OWNER CUSTOMER : ", _ownerCustomer);
-    if (_ownerCustomers.length > 0) {
-      _ownerCustomer = _ownerCustomers[0].username;
-    }
+    let _activityOwnerObj = await activityDao.getOwnerCustomer(conn, model.customerId);
+    console.log("OWNER CUSTOMER : ", _activityOwnerObj);
 
-
+    let _activityOwner = _activityOwnerObj.activityOwner;
+   
     //=================================================
 
     for (let index = 0; index < model.orderDetail.length; index++) {
@@ -220,7 +217,7 @@ async function create(req, res) {
         dueDate: _dueDate,
         agentId: model.ownerId,
         customerId: model.customerId,
-        ownerUser: _ownerCustomer,
+        ownerUser: _activityOwner,
         activityStatusId: 0,
         refOrderId : _orderId,
         refOrderItemId: _orderItemId,

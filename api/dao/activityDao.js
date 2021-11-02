@@ -265,11 +265,11 @@ async function getCustomIncomingList(conn, ownerUser, incomingDay) {
 }
 
 async function getOwnerCustomer(conn, customerId) {
-  try {
+  try {    
     let sql =
-      "select username from userCustomer where customerId=?";
+      "select activityOwner from business where id=?";
     const result = await conn.query(sql, [customerId]);
-    return result;
+    return result[0];
   } catch (err) {
     throw err;
   }
