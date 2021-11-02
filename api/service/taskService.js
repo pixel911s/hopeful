@@ -14,7 +14,7 @@ module.exports = {
   closeTask,
   recallTask,
   getOpenTask,
-  getCloseTask
+  getCloseTask,
 };
 
 async function get(req, res) {
@@ -69,7 +69,7 @@ async function closeTask(req, res) {
   try {
     let model = req.body;
 
-    await taskDao.closeTask(conn, model.id, model.username)
+    await taskDao.closeTask(conn, model.id, model.username);
 
     conn.commit();
 
@@ -94,7 +94,7 @@ async function recallTask(req, res) {
   try {
     let model = req.body;
 
-    await taskDao.recallTask(conn, model.id, model.username)
+    await taskDao.recallTask(conn, model.id, model.username);
 
     conn.commit();
 
@@ -114,7 +114,7 @@ async function getOpenTask(req, res) {
   try {
     let criteria = req.body;
 
-     //==== Criteria
+    //==== Criteria
     //username = ใส่ค่าว่างหรือไม่ส่ง หากต้องการดูทั้งหมด , หากต้องการดูเฉพาะของตัวเอง ให้ส่ง username มา
     //taskStatus = O - Task ที่ยังไม่ปิด
 
