@@ -208,7 +208,7 @@ async function create(req, res) {
 
       let _dueDate = new Date();
       _dueDate.setDate(_dueDate.getDate() + _remainingDay);
-      _dueDate.setHours(0,0,0,0);
+      _dueDate = _dueDate.setHours(0,0,0,0);
 
       let _activity = {
         code: _activityCode,
