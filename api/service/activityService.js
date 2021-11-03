@@ -77,7 +77,12 @@ async function updateActivityStatus(req, res) {
   try {
     let model = req.body;
 
-    await activityDao.updateActivityStatus(conn, model.id, model.activityStatusId, model.username)
+    await activityDao.updateActivityStatus(
+      conn,
+      model.id,
+      model.activityStatusId,
+      model.username
+    );
 
     conn.commit();
 
@@ -100,7 +105,6 @@ async function getSummaryActivityCount(req, res) {
 
   const conn = await pool.getConnection();
   try {
-
     let criteria = req.body;
 
     let buttons = [];
@@ -109,6 +113,10 @@ async function getSummaryActivityCount(req, res) {
     let userAgentObj = await userDao.getAgentObj(conn, criteria.username);
     for (let index = 0; index < userAgentObj.length; index++) {
       userAgents.push(userAgentObj[index].id);
+    }
+
+    if (criteria.businessId != null) {
+      userAgents.push(criteria.businessId);
     }
 
     let isSupervisor = false;
@@ -121,40 +129,79 @@ async function getSummaryActivityCount(req, res) {
       }
     }
 
-    let button1 = { fillterType: 1, dayCondition: 0, display: "วันนี้", qty: 0 };
-    let resultOnDue = await activityDao.inquiry(conn, criteria.username, 1, 0, userAgents, isSupervisor, criteria.customerId, true);
+    let button1 = {
+      fillterType: 1,
+      dayCondition: 0,
+      display: "วันนี้",
+      qty: 0,
+    };
+
+    criteria.fillterType = 1;
+    criteria.dayCondition = 0;
+    criteria.userAgents = userAgents;
+    criteria.isSupervisor = isSupervisor;
+    criteria.customerId = criteria.customerId;
+    criteria.isCount = true;
+
+    let resultOnDue = await activityDao.inquiry(conn, criteria);
 
     if (resultOnDue.length > 0) {
       button1.qty = resultOnDue[0].qty;
     }
     buttons.push(button1);
 
-    let button2 = { fillterType: 2, dayCondition: 0, display: "เกินกำหนด", qty: 0 };
-    let resultOverDue = await activityDao.inquiry(conn, criteria.username, 2, 0, userAgents, isSupervisor, criteria.customerId, true);
+    let button2 = {
+      fillterType: 2,
+      dayCondition: 0,
+      display: "เกินกำหนด",
+      qty: 0,
+    };
+
+    criteria.fillterType = 2;
+
+    let resultOverDue = await activityDao.inquiry(conn, criteria);
     if (resultOverDue.length > 0) {
       button2.qty = resultOverDue[0].qty;
     }
     buttons.push(button2);
 
-    let button3 = { fillterType: 3, dayCondition: 0, display: "ยังไม่ถึงกำหนด", qty: 0 };
-    let resultIncoming = await activityDao.inquiry(conn, criteria.username, 3, 0, userAgents, isSupervisor, criteria.customerId, true);
+    let button3 = {
+      fillterType: 3,
+      dayCondition: 0,
+      display: "ยังไม่ถึงกำหนด",
+      qty: 0,
+    };
+
+    criteria.fillterType = 3;
+
+    let resultIncoming = await activityDao.inquiry(conn, criteria);
     if (resultIncoming.length > 0) {
       button3.qty = resultIncoming[0].qty;
     }
     buttons.push(button3);
 
-    let activitDateConfigs = await activityDao.getActivityDateConfig(conn, criteria.username);
+    let activitDateConfigs = await activityDao.getActivityDateConfig(
+      conn,
+      criteria.username
+    );
     if (activitDateConfigs.length > 0) {
       for (let index = 0; index < activitDateConfigs.length; index++) {
-        let data = { fillterType: 4, dayCondition: activitDateConfigs[index].condition, display: activitDateConfigs[index].display, qty: 0 };
+        let data = {
+          fillterType: 4,
+          dayCondition: activitDateConfigs[index].condition,
+          display: activitDateConfigs[index].display,
+          qty: 0,
+        };
 
-        let resultCustom = await activityDao.inquiry(conn, criteria.username, 4, activitDateConfigs[index].condition, userAgents, isSupervisor, criteria.customerId, true);
+        criteria.fillterType = 4;
+        criteria.dayCondition = activitDateConfigs[index].condition;
+
+        let resultCustom = await activityDao.inquiry(conn, criteria);
         if (resultCustom.length > 0) {
           data.qty = resultCustom[0].qty;
         }
         buttons.push(data);
       }
-
     }
 
     return res.send(util.callbackSuccess(null, buttons));
@@ -170,7 +217,7 @@ async function searchList(req, res) {
   //=== ใช้ดึงรายการ Activiity ตามเงื่อนไข
   //=== Parameter
   //==== username : username ของผู้ใช้งาน
-  //==== fillterType : 1 = วันนี้ , 2 = เกินกำหนด , 3 = ล่วงหน้า , 4 : กำหนดเอง ต้องระบุจำนวนวันที่ Parameter dayCondition 
+  //==== fillterType : 1 = วันนี้ , 2 = เกินกำหนด , 3 = ล่วงหน้า , 4 : กำหนดเอง ต้องระบุจำนวนวันที่ Parameter dayCondition
   //==== dayCondition : จำนวนวัน ใส่ค่า +- ใช้คู่กับ FillterType = 4
   //==== customerId : Option
   //==== page : หน้าที่
@@ -182,17 +229,18 @@ async function searchList(req, res) {
 
     let result = null;
 
-
-
     let userAgents = [];
     let userAgentObj = await userDao.getAgentObj(conn, criteria.username);
     for (let index = 0; index < userAgentObj.length; index++) {
       userAgents.push(userAgentObj[index].id);
     }
 
+    if (criteria.businessId != null) {
+      userAgents.push(criteria.businessId);
+    }
+
     let isSupervisor = false;
     let userFunctions = await userDao.getUserFunction(conn, criteria.username);
-    console.log("user Functions : ", userFunctions);
 
     for (let index = 0; index < userFunctions.length; index++) {
       if (userFunctions[index].functionCode == "SUPERVISOR") {
@@ -201,7 +249,12 @@ async function searchList(req, res) {
     }
 
     let totalRecord = 0;
-    let totalRecordObj = await activityDao.inquiry(conn, criteria.username, criteria.fillterType, criteria.dayCondition, userAgents, isSupervisor, null, true, criteria.page, criteria.size);
+
+    criteria.userAgents = userAgents;
+    criteria.isSupervisor = isSupervisor;
+    criteria.isCount = true;
+
+    let totalRecordObj = await activityDao.inquiry(conn, criteria);
     if (totalRecordObj.length > 0) {
       totalRecord = totalRecordObj[0].qty;
     }
@@ -213,10 +266,11 @@ async function searchList(req, res) {
       totalPage = 1;
     }
 
-    if (totalRecord > 0) {
-      result = await activityDao.inquiry(conn, criteria.username, criteria.fillterType, criteria.dayCondition, userAgents, isSupervisor, null, false, criteria.page, criteria.size);
-    }
+    criteria.isCount = false;
 
+    if (totalRecord > 0) {
+      result = await activityDao.inquiry(conn, criteria);
+    }
 
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {

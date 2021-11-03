@@ -232,3 +232,18 @@ hr {
     border: 1px solid #ed1c24;
   }
 }
+
+.dropdown-btn {
+  border: 1px solid #e0e0e0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0px !important;
+
+  .selected-item {
+    font-size: 12px !important;
+    max-width: 200px !important;
+  }
+}
+
+.dropdown-multiselect--active .dropdown-multiselect__caret {
+  transform: rotateZ(0deg) !important;
+}

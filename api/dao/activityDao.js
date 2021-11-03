@@ -1,19 +1,20 @@
 "use strict";
 
+var DateUtil = require("../utils/dateUtil");
+
 module.exports = {
   get,
   save,
-  updateActivityStatus, 
+  updateActivityStatus,
   getOwnerCustomer,
   cancelActivityByOrderId,
   inquiry,
-  getActivityDateConfig
+  getActivityDateConfig,
 };
 
 async function get(conn, id) {
   try {
-    let sql =
-      "select a.* ";
+    let sql = "select a.* ";
     sql += ",b.code as productCode, b.name as productName";
     sql += ",c.code as agentCode, c.name as agentName";
     sql += ",d.code as customerCode, d.name as customerName";
@@ -31,7 +32,6 @@ async function get(conn, id) {
     throw err;
   }
 }
-
 
 async function save(conn, model) {
   try {
@@ -71,7 +71,7 @@ async function save(conn, model) {
         model.description.trim(),
         model.productId,
         model.remainingDay,
-        model.dueDate,
+        model.dueDate ? new Date(model.dueDate) : null,
         model.agentId,
         model.customerId,
         model.ownerUser,
@@ -79,7 +79,7 @@ async function save(conn, model) {
         model.refOrderId,
         model.refOrderItemId,
         model.username,
-        new Date()
+        new Date(),
       ]);
 
       console.log("INSERT RESULT : ", _result);
@@ -99,13 +99,10 @@ async function save(conn, model) {
 async function updateActivityStatus(conn, id, activityStatusId, username) {
   try {
     //Update Activity Status
-    let sql = "update activity set `activityStatusId`=?, `updateBy`=?, `updateDate`=? where id = ?";
+    let sql =
+      "update activity set `activityStatusId`=?, `updateBy`=?, `updateDate`=? where id = ?";
 
-    await conn.query(sql, [
-      activityStatusId,
-      username,
-      new Date(),
-      id]);
+    await conn.query(sql, [activityStatusId, username, new Date(), id]);
 
     return true;
   } catch (e) {
@@ -116,8 +113,7 @@ async function updateActivityStatus(conn, id, activityStatusId, username) {
 
 async function getOwnerCustomer(conn, customerId) {
   try {
-    let sql =
-      "select activityOwner from business where id=?";
+    let sql = "select activityOwner from business where id=?";
     const result = await conn.query(sql, [customerId]);
     return result[0];
   } catch (err) {
@@ -128,12 +124,10 @@ async function getOwnerCustomer(conn, customerId) {
 async function cancelActivityByOrderId(conn, orderId, username) {
   try {
     //Update Activity Status
-    let sql = "update activity set `activityStatusId`=4, `updateBy`=?, `updateDate`=? where refOrderId = ?";
+    let sql =
+      "update activity set `activityStatusId`=4, `updateBy`=?, `updateDate`=? where refOrderId = ?";
 
-    await conn.query(sql, [
-      username,
-      new Date(),
-      orderId]);
+    await conn.query(sql, [username, new Date(), orderId]);
 
     return true;
   } catch (e) {
@@ -142,89 +136,118 @@ async function cancelActivityByOrderId(conn, orderId, username) {
   }
 }
 
-async function inquiry(conn, username, fillterType, dayCondition, userAgents, isSupervisor, customerId, isCount, page, size) {
+async function inquiry(conn, criteria) {
   try {
+    let fromDate = new Date();
+    let toDate = new Date();
 
-    let startRecord = (page - 1) * size;
-
-    console.log("Params : ", username, fillterType, dayCondition, userAgents, isSupervisor, customerId, isCount);
+    let startRecord = (criteria.page - 1) * criteria.size;
 
     let params = [];
 
-    let sql = "select count(id) as qty from activity a ";
-    if (isCount == false) {
+    let sql = "select count(a.id) as qty from activity a ";
+    if (criteria.isCount == false) {
       sql = "select a.* ";
       sql += ",b.code as productCode, b.name as productName";
       sql += ",c.code as agentCode, c.name as agentName";
       sql += ",d.code as customerCode, d.name as customerName";
       sql += ",e.status";
       sql += " from activity a ";
+
       sql += " left join product b on a.productId=b.id";
-      sql += " left join business c on a.agentId=c.id";
-      sql += " left join business d on a.customerId=d.id";
       sql += " left join activityStatus e on a.activityStatusId=e.id";
     }
 
+    sql += " left join business c on a.agentId=c.id";
+    sql += " left join business d on a.customerId=d.id";
+
     sql += " where 1=1 ";
-    if (fillterType == 1) {
+
+    if (criteria.fillterType == 1) {
       //=== วันนี้
-      sql += " and dueDate=current_date";
+      sql += " and dueDate between ? and ?";
+
+      params.push(DateUtil.convertForSqlFromDate(fromDate));
+      params.push(DateUtil.convertForSqlToDate(toDate));
     } else {
-      if (fillterType == 2) {
+      if (criteria.fillterType == 2) {
         //=== เกินกำหนด
         sql += " and dueDate<current_date";
       } else {
-        if (fillterType == 3) {
+        if (criteria.fillterType == 3) {
           //=== ยังไม่ถึงกำหนด
           sql += " and dueDate>current_date";
         } else {
           //=== User Define
-          if (dayCondition > 0) {
+
+          sql += " and dueDate between ? and ?";
+
+          if (criteria.dayCondition > 0) {
             //=== ก่อนถึงกำหนดกี่วัน
-            sql += " and dueDate>current_date and dueDate<=addDate(current_date," + dayCondition + ")";
+            toDate.setDate(toDate.getDate() + criteria.dayCondition);
+            params.push(DateUtil.convertForSqlFromDate(fromDate));
+            params.push(DateUtil.convertForSqlToDate(toDate));
           } else {
             //==== เลยกำหนดกี่วัน
-            sql += " and dueDate<current_date and dueDate>=addDate(current_date," + dayCondition + ")";
+            fromDate.setDate(toDate.getDate() + criteria.dayCondition);
+            params.push(DateUtil.convertForSqlFromDate(fromDate));
+            params.push(DateUtil.convertForSqlToDate(toDate));
           }
         }
       }
     }
 
-    if (isSupervisor == false) {
+    if (criteria.isSupervisor == false) {
       sql += " and (a.ownerUser=? or a.ownerUser is null)";
-      params.push(username)
+      params.push(criteria.username);
     }
 
-    if (customerId != null) {
-      sql += " and a.customerId=?"
-      params.push(customerId);
+    if (criteria.customerId != null) {
+      sql += " and a.customerId=?";
+      params.push(criteria.customerId);
     }
 
-    sql += " and activityStatusId not in (3,4)";
+    if (criteria.owner != null && criteria.owner != "") {
+      sql += " and a.ownerUser like ?";
+      params.push("%" + criteria.owner + "%");
+    }
 
-    // sql += " and a.agentId in (?)";
-    // params.push(userAgents);
+    if (criteria.code != null && criteria.code != "") {
+      sql += " and a.code like ?";
+      params.push("%" + criteria.code + "%");
+    }
 
-    sql += " and a.agentId in (";
-    for (let index = 0; index < userAgents.length; index++) {
-      sql += userAgents[index];
-      if (index != userAgents.length - 1) {
-        sql += ",";
+    if (criteria.customerName != null && criteria.customerName != "") {
+      sql += " and d.name like ?";
+      params.push("%" + criteria.customerName + "%");
+    }
+
+    if (criteria.status && criteria.status.length > 0) {
+      let status = [];
+
+      for (let index = 0; index < criteria.status.length; index++) {
+        const item = criteria.status[index];
+        status.push(item.id);
       }
+      sql += " and a.activityStatusId in (?)";
+      params.push(status);
     }
-    sql += ")"
 
-    if (isCount == false) {
+    if (criteria.agent) {
+      sql += " and a.agentId = ?";
+      params.push(criteria.agent);
+    } else {
+      sql += " and a.agentId in (?)";
+      params.push(criteria.userAgents);
+    }
+
+    if (!criteria.isCount) {
       sql += " order by a.dueDate,a.customerId";
 
-      sql += " limit " + startRecord + "," + size;
+      sql += " limit " + startRecord + "," + criteria.size;
     }
 
-    console.log(sql);
-
-    console.log(params);
-
-    const result = await conn.query(sql, [params]);
+    const result = await conn.query(sql, params);
 
     return result;
   } catch (err) {
@@ -234,8 +257,7 @@ async function inquiry(conn, username, fillterType, dayCondition, userAgents, is
 
 async function getActivityDateConfig(conn, username) {
   try {
-    let sql =
-      "select * from activityDateConfig where username=?";
+    let sql = "select * from activityDateConfig where username=?";
     const result = await conn.query(sql, [username]);
     return result;
   } catch (err) {

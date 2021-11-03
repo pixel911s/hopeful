@@ -5,7 +5,21 @@ module.exports = {
   getProvinces,
   getDistricts,
   getSubDistricts,
+
+  getActivityStatus,
 };
+
+async function getActivityStatus(conn) {
+  try {
+    let sql = "select * from activitystatus where 1=1 order by id asc";
+
+    const result = await conn.query(sql, []);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
 
 async function getProvinces(conn) {
   try {

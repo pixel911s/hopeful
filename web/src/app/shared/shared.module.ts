@@ -44,6 +44,7 @@ import { UserDetailComponent } from "app/user/includes/detail/user-detail.compon
 import { AngularDualListBoxModule } from "angular-dual-listbox";
 import { CollapseModule } from "ngx-bootstrap/collapse";
 import { DragScrollModule } from "ngx-drag-scroll";
+import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
 
 @NgModule({
   exports: [
@@ -70,6 +71,7 @@ import { DragScrollModule } from "ngx-drag-scroll";
     AngularDualListBoxModule,
     CollapseModule,
     DragScrollModule,
+    NgMultiSelectDropDownModule,
   ],
   imports: [
     RouterModule,
@@ -97,6 +99,7 @@ import { DragScrollModule } from "ngx-drag-scroll";
     AngularDualListBoxModule,
     CollapseModule,
     DragScrollModule,
+    NgMultiSelectDropDownModule,
   ],
   declarations: [
     FooterComponent,

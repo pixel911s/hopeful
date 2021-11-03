@@ -30,4 +30,10 @@ export class MasterService {
     let response = await this.http.post(url, null).toPromise();
     return response;
   }
+
+  async getActivityStatus() {
+    let url = environment.apiUrl + "/master/getActivityStatus";
+    let response = await this.http.post(url, null).toPromise();
+    return response;
+  }
 }
