@@ -17,6 +17,7 @@ module.exports = {
   create,
   update,
   deleteOrder,
+  upload
 };
 
 async function get(req, res) {
@@ -83,155 +84,7 @@ async function create(req, res) {
   try {
     let model = req.body;
 
-    model = await orderDao.calculateOrder(model);
-
-    console.log("MODEL : ", model);
-
-    let _date = new Date();
-    let month = _date.getMonth() + 1;
-
-    model.orderNo = await runningDao.getNextRunning(
-      conn,
-      "SO",
-      _date.getFullYear(),
-      month
-    );
-
-    console.log("ORDER NO : ", model.orderNo);
-
-    //CHECK CUSTOMER
-    let customer = await customerDao.getByMobileNo(conn, model.deliveryContact);
-
-    if (customer != undefined) {
-      //OLD CUSTOMER
-      model.customerId = customer.id;
-
-      let addresses = await customerDao.getAddress(conn, customer.id);
-
-      let duplicatedAddress = await addresses.filter(
-        (addr) =>
-          addr.name == model.deliveryName &&
-          addr.info == model.deliveryAddressInfo &&
-          addr.district == model.deliveryDistrict &&
-          addr.subDistrict == model.deliverySubDistrict &&
-          addr.province == model.deliveryProvince &&
-          addr.zipcode == model.deliveryZipcode
-      );
-
-      let address;
-
-      if (duplicatedAddress.length == 0) {
-        console.log("NEW");
-        address = {
-          businessId: customer.id,
-          name: model.deliveryName,
-          info: model.deliveryAddressInfo,
-          district: model.deliveryDistrict,
-          subDistrict: model.deliverySubDistrict,
-          province: model.deliveryProvince,
-          zipcode: model.deliveryZipcode,
-          contact: model.deliveryContact,
-          username: model.username,
-          addressType: "D",
-        };
-      } else {
-        console.log("DUPLICATED");
-        address = duplicatedAddress[0];
-        console.log(address);
-
-        await customerDao.deleteAddress(conn, address.id);
-
-        address.username = model.username;
-        address.id = undefined;
-      }
-
-      await customerDao.addAddress(conn, address);
-    } else {
-      //NEW CUSTOMER
-      customer = {
-        ownerId: model.ownerId,
-        name: model.deliveryName,
-        mobile: model.deliveryContact,
-        username: model.username,
-      };
-
-      let customerId = await customerDao.save(conn, customer);
-
-      let address = {
-        businessId: customerId,
-        name: model.deliveryName,
-        info: model.deliveryAddressInfo,
-        district: model.deliveryDistrict,
-        subDistrict: model.deliverySubDistrict,
-        province: model.deliveryProvince,
-        zipcode: model.deliveryZipcode,
-        contact: model.deliveryContact,
-        username: model.username,
-        addressType: "D",
-      };
-
-      await customerDao.addAddress(conn, address);
-
-      model.customerId = customerId;
-    }
-
-    let _orderId = await orderDao.save(conn, model);
-
-    console.log("RET ORDER ID : ", _orderId);
-
-    //=== Get Owner Customer to Create Activity =======
-
-    let _activityOwnerObj = await activityDao.getOwnerCustomer(conn, model.customerId);
-    console.log("OWNER CUSTOMER : ", _activityOwnerObj);
-
-    let _activityOwner = _activityOwnerObj.activityOwner;
-   
-    //=================================================
-
-    for (let index = 0; index < model.orderDetail.length; index++) {
-      let orderItem = model.orderDetail[index];
-      orderItem.orderId = _orderId;
-      let _orderItemId = await orderDao.saveDetail(conn, orderItem);
-
-      //=== Add Activity ==========================================
-
-
-      let _activityDesc = orderItem.code + "-" + orderItem.name + " : " + orderItem.qty + " " + orderItem.unit;
-      let _activityCode = await runningDao.getNextRunning(
-        conn,
-        "A",
-        _date.getFullYear(),
-        month
-      );
-      //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-      let _remainingDay = +orderItem.remainingDay * +orderItem.qty
-
-      let _dueDate = new Date();
-      _dueDate.setDate(_dueDate.getDate() + _remainingDay);
-      _dueDate = _dueDate.setHours(0,0,0,0);
-
-      let _activity = {
-        code: _activityCode,
-        description: _activityDesc,
-        productId: orderItem.id,
-        remainingDay: _remainingDay,
-        dueDate: _dueDate,
-        agentId: model.ownerId,
-        customerId: model.customerId,
-        ownerUser: _activityOwner,
-        activityStatusId: 0,
-        refOrderId : _orderId,
-        refOrderItemId: _orderItemId,
-        username: model.username
-      }
-
-      console.log("ACTIVITY : ", _activity);
-
-      await activityDao.save(conn, _activity);
-
-      //===========================================================
-
-    }
+    addOrder(model, conn);
 
     conn.commit();
 
@@ -245,6 +98,189 @@ async function create(req, res) {
   } finally {
     conn.release();
   }
+}
+
+async function upload(req, res) {
+  console.log("UPLOAD ORDER");
+
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let orders = req.body;
+
+    for (let index = 0; index < orders.length; index++) {
+      const model = orders[index];
+      addOrder(model, conn);
+    }
+ 
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("อัพโหลดข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function addOrder(model, conn) {
+
+  model = await orderDao.calculateOrder(model);
+
+  console.log("MODEL : ", model);
+
+  let _date = new Date();
+  let month = _date.getMonth() + 1;
+
+  model.orderNo = await runningDao.getNextRunning(
+    conn,
+    "SO",
+    _date.getFullYear(),
+    month
+  );
+
+  console.log("ORDER NO : ", model.orderNo);
+
+  //CHECK CUSTOMER
+  let customer = await customerDao.getByMobileNo(conn, model.deliveryContact);
+
+  if (customer != undefined) {
+    //OLD CUSTOMER
+    model.customerId = customer.id;
+
+    let addresses = await customerDao.getAddress(conn, customer.id);
+
+    let duplicatedAddress = await addresses.filter(
+      (addr) =>
+        addr.name == model.deliveryName &&
+        addr.info == model.deliveryAddressInfo &&
+        addr.district == model.deliveryDistrict &&
+        addr.subDistrict == model.deliverySubDistrict &&
+        addr.province == model.deliveryProvince &&
+        addr.zipcode == model.deliveryZipcode
+    );
+
+    let address;
+
+    if (duplicatedAddress.length == 0) {
+      console.log("NEW");
+      address = {
+        businessId: customer.id,
+        name: model.deliveryName,
+        info: model.deliveryAddressInfo,
+        district: model.deliveryDistrict,
+        subDistrict: model.deliverySubDistrict,
+        province: model.deliveryProvince,
+        zipcode: model.deliveryZipcode,
+        contact: model.deliveryContact,
+        username: model.username,
+        addressType: "D",
+      };
+    } else {
+      console.log("DUPLICATED");
+      address = duplicatedAddress[0];
+      console.log(address);
+
+      await customerDao.deleteAddress(conn, address.id);
+
+      address.username = model.username;
+      address.id = undefined;
+    }
+
+    await customerDao.addAddress(conn, address);
+  } else {
+    //NEW CUSTOMER
+    customer = {
+      ownerId: model.ownerId,
+      name: model.deliveryName,
+      mobile: model.deliveryContact,
+      username: model.username,
+    };
+
+    let customerId = await customerDao.save(conn, customer);
+
+    let address = {
+      businessId: customerId,
+      name: model.deliveryName,
+      info: model.deliveryAddressInfo,
+      district: model.deliveryDistrict,
+      subDistrict: model.deliverySubDistrict,
+      province: model.deliveryProvince,
+      zipcode: model.deliveryZipcode,
+      contact: model.deliveryContact,
+      username: model.username,
+      addressType: "D",
+    };
+
+    await customerDao.addAddress(conn, address);
+
+    model.customerId = customerId;
+  }
+
+  let _orderId = await orderDao.save(conn, model);
+
+  console.log("RET ORDER ID : ", _orderId);
+
+  //=== Get Owner Customer to Create Activity =======
+
+  let _activityOwnerObj = await activityDao.getOwnerCustomer(conn, model.customerId);
+  console.log("OWNER CUSTOMER : ", _activityOwnerObj);
+
+  let _activityOwner = _activityOwnerObj.activityOwner;
+
+  //=================================================
+
+  for (let index = 0; index < model.orderDetail.length; index++) {
+    let orderItem = model.orderDetail[index];
+    orderItem.orderId = _orderId;
+    let _orderItemId = await orderDao.saveDetail(conn, orderItem);
+
+    //=== Add Activity ==========================================
+
+
+    let _activityDesc = orderItem.code + "-" + orderItem.name + " : " + orderItem.qty + " " + orderItem.unit;
+    let _activityCode = await runningDao.getNextRunning(
+      conn,
+      "A",
+      _date.getFullYear(),
+      month
+    );
+    //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
+    let _remainingDay = +orderItem.remainingDay * +orderItem.qty
+
+    let _dueDate = new Date();
+    _dueDate.setDate(_dueDate.getDate() + _remainingDay);
+    _dueDate = _dueDate.setHours(0, 0, 0, 0);
+
+    let _activity = {
+      code: _activityCode,
+      description: _activityDesc,
+      productId: orderItem.id,
+      remainingDay: _remainingDay,
+      dueDate: _dueDate,
+      agentId: model.ownerId,
+      customerId: model.customerId,
+      ownerUser: _activityOwner,
+      activityStatusId: 0,
+      refOrderId: _orderId,
+      refOrderItemId: _orderItemId,
+      username: model.username
+    }
+
+    console.log("ACTIVITY : ", _activity);
+
+    await activityDao.save(conn, _activity);
+
+    //===========================================================
+
+  }
+
+  return true;
+
 }
 
 async function update(req, res) {
