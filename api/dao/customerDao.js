@@ -3,11 +3,8 @@
 module.exports = {
   get,
   getByMobileNo,
-
   save,
-
   deleteCustomer,
-
   addAddress,
   deleteAddress,
   getAddress,
@@ -27,7 +24,7 @@ async function getByMobileNo(conn, mobileNo) {
 async function get(conn, id) {
   try {
     let sql =
-      "select * from business where businessType = 'C' and where id = ?";
+      "select * from business where businessType = 'C' and id = ?";
     const result = await conn.query(sql, [id]);
 
     return result[0];

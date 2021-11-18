@@ -8,6 +8,8 @@ router.use(function (req, res, next) {
   next();
 });
 
+router.route("/get").post(customerService.get);
 router.route("/getByMobile").post(customerService.getByMobile);
+router.route("/getAddress").post(customerService.getAddress);
 
 module.exports = router;
