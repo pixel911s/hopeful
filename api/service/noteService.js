@@ -11,7 +11,7 @@ const pool = mysql.createPool(config.mysql);
 module.exports = {
   get,
   save,
-  getNoteList
+  search
 };
 
 async function get(req, res) {
@@ -56,17 +56,38 @@ async function save(req, res) {
   }
 }
 
-async function getNoteList(req, res) {
+async function search(req, res) {
   const conn = await pool.getConnection();
   try {
     let criteria = req.body;
 
-     //==== Criteria
-    //customerId = รหัส Id ของลูกค้า
+    //=== Criteria
+    //=== customerId = รหัส Id ของลูกค้า
+    //=== page : หน้าที่
+    //=== size : จำนวนหน้าที่แสดง
 
-    let result = await noteDao.getNoteList(conn, criteria.customerId);
+    let result = null;
+    
+    let totalRecord = 0;
+    criteria.isCount = true;
 
-    return res.send(util.callbackSuccess(null, result));
+    let totalRecordObj = await noteDao.search(conn, criteria);
+    if (totalRecordObj.length > 0) {
+      totalRecord = totalRecordObj[0].qty;
+    }
+
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
+    }
+
+    criteria.isCount = false;
+
+    if (totalRecord > 0) {
+      result = await noteDao.search(conn, criteria);
+    }
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);

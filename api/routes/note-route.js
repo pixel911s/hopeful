@@ -12,6 +12,6 @@ router.use(function (req, res, next) {
 
 router.route("/get").post(noteService.get);
 router.route("/save").post(noteService.save);
-router.route("/getNoteList").post(noteService.getNoteList);
+router.route("/search").post(noteService.search);
 
 module.exports = router;

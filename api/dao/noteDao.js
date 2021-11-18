@@ -3,7 +3,7 @@
 module.exports = {
     get,
     save,
-    getNoteList
+    search
 };
 
 async function get(conn, id) {
@@ -31,8 +31,8 @@ async function save(conn, model) {
 
             let sql =
                 "UPDATE `note` SET `description` = ?, `updateBy` = ?, `updateDate` = ? WHERE `id` = ?";
-           
-            params.push(model.description.trim());           
+
+            params.push(model.description.trim());
             params.push(model.username);
             params.push(new Date());
             params.push(model.id);
@@ -44,9 +44,9 @@ async function save(conn, model) {
                 "INSERT INTO `note` (`customerId`, `description`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
             sql += "  VALUES (?,?,?,?,?,?)";
 
-            let _result = await conn.query(sql, [      
-                model.customerId,       
-                model.description.trim(),              
+            let _result = await conn.query(sql, [
+                model.customerId,
+                model.description.trim(),
                 model.username,
                 new Date(),
                 null,
@@ -67,16 +67,23 @@ async function save(conn, model) {
     }
 }
 
-async function getNoteList(conn, customerId) {   
+async function search(conn, criteria) {
     try {
         let params = [];
 
-        let sql =
-            "select * from note where customerId=?";
-            params.push(customerId)
-           
-            sql+=" order by createDate desc"
-           
+        let startRecord = (criteria.page - 1) * criteria.size;
+
+        let sql = "select count(id) as qty from note where customerId=?";
+
+        if (!criteria.isCount)
+        {
+            sql = "select * from note where customerId=?";       
+            sql += " order by createDate desc";
+            sql += " limit " + startRecord + "," + criteria.size;
+        }
+        
+        params.push(criteria.customerId)
+
 
         const result = await conn.query(sql, params);
 

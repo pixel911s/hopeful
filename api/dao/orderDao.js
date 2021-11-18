@@ -81,6 +81,11 @@ async function count(conn, criteria) {
       params.push(criteria.status);
     }
 
+    if (criteria.customerId){
+      sql += " and o.customerId = ?";
+      params.push(criteria.customerId);
+    }
+
     let result = await conn.query(sql, params);
 
     return result[0].totalRecord;
@@ -132,6 +137,11 @@ async function search(conn, criteria) {
     if (criteria.status) {
       sql += " and o.status = ?";
       params.push(criteria.status);
+    }
+
+    if (criteria.customerId){
+      sql += " and o.customerId = ?";
+      params.push(criteria.customerId);
     }
 
     sql += " order by o.createDate desc";
