@@ -22,6 +22,7 @@ export class InqCRMComponent implements OnInit {
   public criteria: any = {
     page: 1,
     size: 20,
+    selectBtnIndex: 0,
   };
 
   public master: any = {
@@ -78,6 +79,7 @@ export class InqCRMComponent implements OnInit {
     await this.loadActivityDate();
     await this.search();
     await this.loadTasks();
+    await this.searchDate(this.criteria.selectBtnIndex);
   }
 
   async loadAgents() {
@@ -130,8 +132,6 @@ export class InqCRMComponent implements OnInit {
     // let res: any = await this.configService.getActivityDateConfigByUsername();
     this.master.activityDate = res2.data;
 
-    await this.searchDate(0);
-
     this.spinner.hide();
   }
 
@@ -144,6 +144,7 @@ export class InqCRMComponent implements OnInit {
     this.criteria.fillterType = this.master.activityDate[index].fillterType;
     this.criteria.dayCondition = this.master.activityDate[index].dayCondition;
     this.criteria.selectBtnIndex = index;
+
     await this.search();
   }
 
@@ -157,8 +158,10 @@ export class InqCRMComponent implements OnInit {
   }
 
   view(item) {
+    this.criteria.selectedActivityId = item.code;
+    console.log(this.criteria);
     sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
-    this.router.navigateByUrl("/CRM/main/" + item.code);
+    this.router.navigateByUrl("/CRM/main/" + item.customerId);
   }
 
   update(item) {

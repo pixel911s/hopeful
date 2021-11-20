@@ -15,4 +15,18 @@ export class CustomerService {
       .post(environment.apiUrl + "/customer/getByMobile", criteria)
       .toPromise();
   }
+
+  getById(id) {
+    let criteria = {
+      id: id,
+      userAgents: this.authService.getUser().userAgents,
+    };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+    return this.http
+      .post(environment.apiUrl + "/customer/get", criteria)
+      .toPromise();
+  }
 }

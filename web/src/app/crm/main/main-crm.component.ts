@@ -1,10 +1,12 @@
 import { OnInit, Component } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
 import { ActivityService } from "app/shared/services/activity.service";
 import { AgentService } from "app/shared/services/agent.service";
+import { CustomerService } from "app/shared/services/customer.service";
 import { MasterService } from "app/shared/services/master.service";
+import { OrderService } from "app/shared/services/order.service";
 import { TaskService } from "app/shared/services/task.service";
 import { UserConfigService } from "app/shared/services/user-config.service";
 import { UserService } from "app/shared/services/user.service";
@@ -21,7 +23,13 @@ export class MainCRMComponent implements OnInit {
   public data: any = {};
   public criteria: any = {
     page: 1,
-    size: 4,
+    size: 10,
+    selectBtnIndex: 0,
+  };
+
+  public orderCriteria: any = {
+    page: 1,
+    size: 10,
   };
 
   public master: any = {
@@ -30,28 +38,21 @@ export class MainCRMComponent implements OnInit {
   };
 
   user;
+  customer;
   date = new Date();
 
   openTasks: any = [];
   closeTasks: any = [];
 
-  isTrue = true;
   isTodoCollapsed1 = false;
   isTodoCollapsed2 = false;
-
   isASCollapsed = false;
   isNoteCollapsed = false;
   isTransactionCollapsed = false;
 
-  dropdownSettings: IDropdownSettings = {
-    singleSelection: false,
-    idField: "id",
-    textField: "status",
-    selectAllText: "เลือกทั้งหมด",
-    unSelectAllText: "นำออกทั้งหมด",
-    itemsShowLimit: 2,
-    allowSearchFilter: false,
-  };
+  loadingCustomer = false;
+  loadingActivitiesList = false;
+  loadingOrder = false;
 
   constructor(
     private activityService: ActivityService,
@@ -60,7 +61,10 @@ export class MainCRMComponent implements OnInit {
     private authService: AuthService,
     translate: TranslateService,
     private spinner: NgxSpinnerService,
-    private masterService: MasterService
+    private masterService: MasterService,
+    private customerService: CustomerService,
+    private orderService: OrderService,
+    private activeRoute: ActivatedRoute
   ) {
     translate.use(this.authService.getUser().lang);
   }
@@ -74,15 +78,37 @@ export class MainCRMComponent implements OnInit {
 
     if (session) {
       this.criteria = session;
+      this.criteria.customerId = this.activeRoute.snapshot.params.id;
     }
 
     this.criteria.size = 10;
+    this.orderCriteria.customerId = this.activeRoute.snapshot.params.id;
+    this.orderCriteria.userAgents = this.criteria.userAgents;
+
+    await this.loadCustomer(this.criteria.customerId);
+    await this.loadOrderHistories();
 
     // await this.loadAgents();
     // await this.loadStatus();
     await this.loadActivityDate();
     // await this.search();
     await this.loadTasks();
+    await this.searchDate(this.criteria.selectBtnIndex);
+  }
+
+  async loadCustomer(id) {
+    this.loadingCustomer = true;
+    let res: any = await this.customerService.getById(id);
+    this.customer = res.data;
+    this.loadingCustomer = false;
+  }
+
+  async loadOrderHistories() {
+    this.loadingOrder = true;
+
+    let res: any = await this.orderService.search(this.orderCriteria);
+    this.customer.orders = res.data;
+    this.loadingOrder = false;
   }
 
   // async loadAgents() {
@@ -135,7 +161,7 @@ export class MainCRMComponent implements OnInit {
     // let res: any = await this.configService.getActivityDateConfigByUsername();
     this.master.activityDate = res2.data;
 
-    await this.searchDate(0);
+    // await this.searchDate(0);
 
     this.spinner.hide();
   }
@@ -153,12 +179,12 @@ export class MainCRMComponent implements OnInit {
   }
 
   async search() {
-    this.spinner.show();
+    this.loadingActivitiesList = true;
 
     let res: any = await this.activityService.search(this.criteria);
     this.data = res;
 
-    this.spinner.hide();
+    this.loadingActivitiesList = false;
   }
 
   // view(item) {

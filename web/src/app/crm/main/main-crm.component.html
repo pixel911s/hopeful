@@ -1,4 +1,5 @@
-<div class="row" style="padding-top: 20px; zoom: 90%">
+<app-nav-bar></app-nav-bar>
+<div class="row" style="zoom: 90%">
   <div class="col-12 col-md-4">
     <div class="card m-b-20">
       <div class="card-body">
@@ -10,16 +11,36 @@
             >
             <hr />
           </div>
-          <div class="col-12">
+          <div class="col-12 text-center" *ngIf="loadingCustomer">
+            <div class="loader"></div>
+          </div>
+          <div class="col-12" *ngIf="customer">
             <h6 class="d-inline">
-              <i class="fab fa-line" style="color: #00b900; width: 20px"></i>
-              วัชรพงศ์ สัลลกะชาต
+              <i
+                class="fab fa-line"
+                style="color: #00b900; width: 20px"
+                *ngIf="customer.channel == 'LINE'"
+              ></i>
+              <i
+                class="fab fa-facebook"
+                style="color: #1778f2; width: 20px"
+                *ngIf="customer.channel == 'FACEBOOK'"
+              ></i>
+              <i
+                class="far fa-address-card"
+                style="width: 20px"
+                *ngIf="customer.channel == 'SYSTEM'"
+              ></i>
+              {{ customer.name }}
             </h6>
 
             <!-- <i class="fab fa-facebook" style="color: #1778f2; width: 20px"></i> -->
           </div>
-          <div class="col-12">
-            <i class="fas fa-mobile-alt" style="width: 20px"></i> 0863532040
+          <div class="col-12" *ngIf="customer">
+            <h6 class="d-inline">
+              <i class="fas fa-phone-square-alt" style="width: 20px"></i>
+              {{ customer.mobile }}
+            </h6>
           </div>
         </div>
       </div>
@@ -49,13 +70,22 @@
               </button>
             </drag-scroll>
           </div>
-          <div class="col-12 m-b-20">
+          <div class="col-12 text-center" *ngIf="loadingActivitiesList">
+            <div class="loader"></div>
+          </div>
+          <div class="col-12 m-b-20" *ngIf="!loadingActivitiesList">
             <div
               class="row"
-              style="max-height: calc(100vh - 392px); overflow: auto"
+              style="max-height: calc(100vh - 433px); overflow: auto"
             >
               <div class="col-12" *ngFor="let item of data.data">
-                <div style="border: 1px solid #e3e3e3; padding: 5px">
+                <div
+                  style="border: 1px solid #e3e3e3; padding: 5px"
+                  [ngClass]="{
+                    'selected-activity':
+                      criteria.selectedActivityId == item.code
+                  }"
+                >
                   <div class="row" style="font-size: 0.8rem">
                     <div class="col-7">{{ item.code }}</div>
                     <div class="col-5 text-right">
@@ -79,7 +109,7 @@
               </div>
             </div>
           </div>
-          <div class="col-12" *ngIf="data.data">
+          <div class="col-12" *ngIf="!loadingActivitiesList && data.data">
             <ngb-pagination
               class="float-right"
               [(page)]="criteria.page"
@@ -334,13 +364,21 @@
             </a>
             <hr />
           </div>
+
           <div
             class="col-12"
             id="isTransactionCollapsed"
             [collapse]="isTransactionCollapsed"
             [isAnimated]="true"
+            *ngIf="customer && customer.orders"
           >
-            <div class="transactionHistory" *ngFor="let item of [1, 2, 3]">
+            <div class="text-center" *ngIf="loadingOrder">
+              <div class="loader"></div>
+            </div>
+            <div
+              class="transactionHistory"
+              *ngFor="let item of customer.orders.data"
+            >
               <div class="row">
                 <div class="col-12 text-right">
                   <a class="text-info poiter">SO202111-000033</a>

@@ -90,7 +90,7 @@ async function count(conn, criteria) {
     }
 
     if (criteria.customerId) {
-      sql += " and o.customerId = ?";
+      sql += " and o.customerId = ? and o.status <> 'C'";
       params.push(criteria.customerId);
     }
 
@@ -147,6 +147,11 @@ async function search(conn, criteria) {
       params.push(criteria.status);
     }
 
+    if (criteria.customerId) {
+      sql += " and o.customerId = ? and o.status <> 'C'";
+      params.push(criteria.customerId);
+    }
+
     if (criteria.dates != undefined) {
       sql += " and o.orderDate between ? AND ?";
       params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
@@ -154,12 +159,6 @@ async function search(conn, criteria) {
     }
 
     sql += " order by o.orderDate desc , o.orderNo desc";
-    if (criteria.customerId) {
-      sql += " and o.customerId = ?";
-      params.push(criteria.customerId);
-    }
-
-    sql += " order by o.createDate desc";
 
     sql += " limit " + startRecord + "," + criteria.size;
 

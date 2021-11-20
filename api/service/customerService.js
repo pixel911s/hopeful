@@ -11,7 +11,7 @@ const pool = mysql.createPool(config.mysql);
 module.exports = {
   get,
   getByMobile,
-  getAddress
+  getAddress,
 };
 
 async function get(req, res) {
@@ -23,6 +23,19 @@ async function get(req, res) {
     let criteria = req.body;
 
     let result = await customerDao.get(conn, criteria.id);
+
+    let canAccess = false;
+
+    for (let index = 0; index < criteria.userAgents.length; index++) {
+      const agent = criteria.userAgents[index];
+      if (agent.id == result.ownerId) {
+        canAccess = true;
+      }
+    }
+
+    if (!canAccess) {
+      return res.status(404).send("Can't access data");
+    }
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
