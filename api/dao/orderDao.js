@@ -1,5 +1,7 @@
 "use strict";
 
+var dateUtil = require("../utils/dateUtil");
+
 module.exports = {
   get,
   getDetail,
@@ -81,6 +83,12 @@ async function count(conn, criteria) {
       params.push(criteria.status);
     }
 
+    if (criteria.dates != undefined) {
+      sql += " and o.orderDate between ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
     let result = await conn.query(sql, params);
 
     return result[0].totalRecord;
@@ -134,7 +142,13 @@ async function search(conn, criteria) {
       params.push(criteria.status);
     }
 
-    sql += " order by o.createDate desc";
+    if (criteria.dates != undefined) {
+      sql += " and o.orderDate between ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    sql += " order by o.orderDate desc , o.orderNo desc";
 
     sql += " limit " + startRecord + "," + criteria.size;
 
