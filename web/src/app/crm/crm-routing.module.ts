@@ -1,5 +1,6 @@
 import { Routes, RouterModule } from "@angular/router";
 import { AuthGuard } from "app/shared/auth/auth-guard.service";
+import { MainCRMComponent } from "./main/main-crm.component";
 import { InqCRMComponent } from "./search/inq-crm.component";
 
 const routes: Routes = [
@@ -10,6 +11,12 @@ const routes: Routes = [
         path: "",
         component: InqCRMComponent,
         data: { name: "จัดการข้อมูลCRM", id: "MANAGE_CRM" },
+        canActivate: [AuthGuard],
+      },
+      {
+        path: "main/:id",
+        component: MainCRMComponent,
+        data: { name: "ข้อมูลลูกค้า", id: "MANAGE_CRM" },
         canActivate: [AuthGuard],
       },
       // {

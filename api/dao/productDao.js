@@ -9,6 +9,7 @@ module.exports = {
   addAgentPrice,
   deleteAgentPrice,
   getAgentPrice,
+  getByBarcode,
 };
 
 async function get(conn, id) {
@@ -254,6 +255,19 @@ async function getAgentPrice(conn, productId) {
     let result = await conn.query(sql, [productId]);
 
     return result;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function getByBarcode(conn, barcode) {
+  try {
+    let sql = "select * from product where code=?";
+
+    let result = await conn.query(sql, [barcode]);
+
+    return result[0];
   } catch (e) {
     console.log("ERROR : ", e);
     throw e;

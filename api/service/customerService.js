@@ -9,8 +9,29 @@ const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
 
 module.exports = {
+  get,
   getByMobile,
+  getAddress
 };
+
+async function get(req, res) {
+  //=== Parameter
+  //=== {id: 0}
+
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await customerDao.get(conn, criteria.id);
+
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function getByMobile(req, res) {
   const conn = await pool.getConnection();
@@ -22,6 +43,25 @@ async function getByMobile(req, res) {
     if (result) {
       result.addresses = await customerDao.getAddress(conn, result.id);
     }
+
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getAddress(req, res) {
+  //=== Parameter
+  //=== {customerId: 0}
+
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await customerDao.getAddress(conn, criteria.customerId);
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {

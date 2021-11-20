@@ -89,6 +89,11 @@ async function count(conn, criteria) {
       params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
     }
 
+    if (criteria.customerId) {
+      sql += " and o.customerId = ?";
+      params.push(criteria.customerId);
+    }
+
     let result = await conn.query(sql, params);
 
     return result[0].totalRecord;
@@ -149,6 +154,12 @@ async function search(conn, criteria) {
     }
 
     sql += " order by o.orderDate desc , o.orderNo desc";
+    if (criteria.customerId) {
+      sql += " and o.customerId = ?";
+      params.push(criteria.customerId);
+    }
+
+    sql += " order by o.createDate desc";
 
     sql += " limit " + startRecord + "," + criteria.size;
 

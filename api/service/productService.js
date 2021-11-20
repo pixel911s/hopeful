@@ -13,7 +13,24 @@ module.exports = {
   search,
   save,
   deleteProduct,
+  getByBarcode,
 };
+
+async function getByBarcode(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await productDao.getByBarcode(conn, criteria.barcode);
+
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function get(req, res) {
   const conn = await pool.getConnection();

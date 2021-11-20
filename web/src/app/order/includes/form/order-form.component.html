@@ -365,31 +365,26 @@
             <div
               class="form-group"
               [ngClass]="{
-                'is-invalid': f.province.touched && f.province.errors
+                'is-invalid': f.subdistrict.touched && f.subdistrict.errors
               }"
             >
-              <label for="province">จังหวัด *</label>
+              <label for="subdistrict">แขวง / ตำบล *</label>
 
-              <select
-                (change)="selectProvince()"
-                id="province"
+              <input
+                id="subdistrict"
+                autocomplete="off"
                 class="form-control form-control-sm"
-                formControlName="province"
-                [(ngModel)]="data.deliveryProvince"
+                formControlName="subdistrict"
+                [(ngModel)]="data.deliverySubDistrict"
                 [ngClass]="{
-                  'is-invalid': f.province.touched && f.province.errors,
-                  'is-valid': f.province.touched && !f.province.errors
+                  'is-invalid': f.subdistrict.touched && f.subdistrict.errors,
+                  'is-valid': f.subdistrict.touched && !f.subdistrict.errors
                 }"
-              >
-                <option [value]="undefined">โปรดเลือก</option>
-                <option *ngFor="let item of provinces" [value]="item.id">
-                  {{ item.nameInThai }}
-                </option>
-              </select>
+              />
 
               <small
                 class="text-danger"
-                *ngIf="f.province.touched && f.province.errors?.required"
+                *ngIf="f.subdistrict.touched && f.subdistrict.errors?.required"
                 >กรุณากรอกข้อมูล</small
               >
             </div>
@@ -403,9 +398,8 @@
             >
               <label for="district">เขต / อำเภอ*</label>
 
-              <select
-                (change)="selectDistrict()"
-                id="district"
+              <input
+                autocomplete="off"
                 class="form-control form-control-sm"
                 formControlName="district"
                 [(ngModel)]="data.deliveryDistrict"
@@ -413,12 +407,7 @@
                   'is-invalid': f.district.touched && f.district.errors,
                   'is-valid': f.district.touched && !f.district.errors
                 }"
-              >
-                <option [value]="undefined">โปรดเลือก</option>
-                <option *ngFor="let item of districts" [value]="item.id">
-                  {{ item.nameInThai }}
-                </option>
-              </select>
+              />
 
               <small
                 class="text-danger"
@@ -431,35 +420,30 @@
             <div
               class="form-group"
               [ngClass]="{
-                'is-invalid': f.subdistrict.touched && f.subdistrict.errors
+                'is-invalid': f.province.touched && f.province.errors
               }"
             >
-              <label for="subdistrict">แขวง / ตำบล *</label>
+              <label for="province">จังหวัด *</label>
 
-              <select
-                (change)="selectSubDistrict()"
-                id="subdistrict"
+              <input
+                autocomplete="off"
                 class="form-control form-control-sm"
-                formControlName="subdistrict"
-                [(ngModel)]="data.deliverySubDistrict"
+                formControlName="province"
+                [(ngModel)]="data.deliveryProvince"
                 [ngClass]="{
-                  'is-invalid': f.subdistrict.touched && f.subdistrict.errors,
-                  'is-valid': f.subdistrict.touched && !f.subdistrict.errors
+                  'is-invalid': f.province.touched && f.province.errors,
+                  'is-valid': f.province.touched && !f.province.errors
                 }"
-              >
-                <option [value]="undefined">โปรดเลือก</option>
-                <option *ngFor="let item of subdistricts" [value]="item.id">
-                  {{ item.nameInThai }}
-                </option>
-              </select>
+              />
 
               <small
                 class="text-danger"
-                *ngIf="f.subdistrict.touched && f.subdistrict.errors?.required"
+                *ngIf="f.province.touched && f.province.errors?.required"
                 >กรุณากรอกข้อมูล</small
               >
             </div>
           </div>
+
           <div class="col-12 col-md-4">
             <div
               class="form-group"
@@ -471,7 +455,6 @@
               <input
                 autocomplete="off"
                 maxlength="5"
-                id="zipcode"
                 class="form-control form-control-sm"
                 formControlName="zipcode"
                 [(ngModel)]="data.deliveryZipcode"

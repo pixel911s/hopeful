@@ -1,0 +1,154 @@
+<div mat-dialog-content class="m-b-20">
+  <div class="row">
+    <div class="col-12 m-b-20">
+      <h5 class="d-inline">นำเข้าออเดอร์</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+    <div class="col-12 m-b-20" *ngIf="data.items.length == 0">
+      <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
+        <ng4-files-click class="upload" (filesSelect)="filesSelect($event)">
+          <div class="upload-box">
+            <div class="upload-icon">
+              <i class="far fa-file-excel"></i>
+            </div>
+            <p>คลิก หรือ ลากวาง เพื่ออัพโหลด CSV</p>
+          </div>
+        </ng4-files-click>
+      </ng4-files-drop>
+    </div>
+    <div class="col-12" *ngIf="data.items.length > 0">
+      <button
+        type="button"
+        class="btn"
+        (click)="calDisplay(0)"
+        [ngClass]="{
+          'btn-primary': displayType == 0,
+          'btn-outline-primary': displayType == 1
+        }"
+      >
+        ทั้งหมด
+      </button>
+      <button
+        type="button"
+        class="btn"
+        (click)="calDisplay(1)"
+        [ngClass]="{
+          'btn-primary': displayType == 1,
+          'btn-outline-primary': displayType == 0
+        }"
+      >
+        เฉพาะรายการที่ผิด
+      </button>
+    </div>
+    <div class="col-12" *ngIf="data.items.length > 0">
+      <div class="table-responsive">
+        <table class="table table-hover custom-table" id="tblData">
+          <thead>
+            <tr>
+              <th class="text-center">#</th>
+              <th class="text-center">วันที่ทำรายการ</th>
+              <th class="text-center">วิธีการชำระเงิน</th>
+              <th class="text-center">เบอร์โทรศัพท์</th>
+              <th class="text-left">ที่อยู่จัดส่ง</th>
+              <th class="text-right">จำนวนสินค้า</th>
+              <th class="text-right">ส่วนลด</th>
+              <th class="text-right">ค่าส่ง</th>
+              <th class="text-left">หมายเหตุ</th>
+              <th class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody
+            *ngFor="let item of displayData; let i = index"
+            [ngClass]="{ 'b-error': item.error.length > 0 }"
+          >
+            <tr (click)="item.expended = !item.expended" class="poiter">
+              <td class="text-center">{{ item.orderNo }}</td>
+              <td class="text-center">
+                {{ item.orderDate | date: "yyyy-MM-dd" }}
+              </td>
+              <td class="text-center">{{ item.paymentType }}</td>
+              <td class="text-center">{{ item.deliveryContact }}</td>
+              <td class="text-left">
+                {{ item.deliveryName }} {{ item.deliveryAddressInfo }}
+                {{ item.deliverySubDistrict }} {{ item.deliveryDistrict }}
+                {{ item.deliveryProvince }} {{ item.deliveryZipcode }}
+              </td>
+              <td class="text-right">{{ item.totalItems }}</td>
+              <td class="text-right">{{ item.billDiscountAmount }}</td>
+              <td class="text-right">{{ item.deliveryPrice }}</td>
+              <td class="text-left">{{ item.remark }}</td>
+
+              <td class="text-center">
+                <i
+                  class="fas fa-chevron-down"
+                  *ngIf="!item.expended"
+                  data-toggle="collapse"
+                  data-target="#collapseExample{{ i }}"
+                  aria-expanded="false"
+                  aria-controls="collapseExample{{ i }}"
+                ></i>
+                <i
+                  class="fas fa-minus"
+                  *ngIf="item.expended"
+                  data-toggle="collapse"
+                  data-target="#collapseExample{{ i }}"
+                  aria-expanded="false"
+                  aria-controls="collapseExample{{ i }}"
+                ></i>
+              </td>
+            </tr>
+            <tr *ngIf="item.expended">
+              <td style="border-top: none"></td>
+              <td colspan="10" style="border-top: none">
+                <li *ngFor="let detail of item.orderDetail">
+                  <b>สินค้า : </b> {{ detail.barcode }}
+                  <b style="margin-left: 20px">จำนวน : </b> {{ detail.qty }}
+                  <b style="margin-left: 20px">ส่วนลด : </b>
+                  {{ detail.discount }}
+                </li>
+              </td>
+            </tr>
+            <tr *ngIf="item.error.length > 0">
+              <td style="border-top: none"></td>
+              <td colspan="10" style="border-top: none">
+                <span class="text-danger" *ngFor="let error of item.error">
+                  {{ error }} ,
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-12 text-right" *ngIf="data.items.length > 0">
+      <ngb-pagination
+        class="float-right"
+        [(page)]="criteria.page"
+        [pageSize]="criteria.size"
+        [maxSize]="10"
+        [collectionSize]="data.items.length"
+        (pageChange)="calDisplay()"
+      ></ngb-pagination>
+    </div>
+    <div class="col-12 text-right" *ngIf="data.items.length > 0">
+      <button
+        id="btnClear"
+        type="button"
+        class="btn btn-info"
+        (click)="clear()"
+      >
+        อัพโหลดใหม่อีกครั้ง
+      </button>
+
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary m-l-10"
+        (click)="submit()"
+      >
+        บันทึกข้อมูล
+      </button>
+    </div>
+  </div>
+</div>

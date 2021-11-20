@@ -134,6 +134,34 @@
           สร้างคำสั่งซื้อใหม่
         </button>
       </div>
+      <div class="col-12">
+        <hr />
+        <div ngbDropdown container="body">
+          <button
+            type="button"
+            class="btn btn-outline-success"
+            *ngIf="user.function.CREATE_ORDER"
+            id="exportMenu"
+            ngbDropdownToggle
+          >
+            นำเข้าไฟล์ Excel
+          </button>
+
+          <div ngbDropdownMenu aria-labelledby="exportMenu">
+            <button class="w-100" ngbDropdownItem (click)="upload()">
+              อัพโหลด
+            </button>
+            <a
+              type="button"
+              class="w-100"
+              href="assets/download/template_order.xlsx"
+              ngbDropdownItem
+            >
+              ดาวน์โหลด
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row">
@@ -176,7 +204,7 @@
                 <td class="text-left">
                   {{ item.orderNo }}
                   <small class="d-block">{{
-                    item.createDate | date: "dd/MM/yyyy HH:mm:ss"
+                    item.orderDate | date: "dd/MM/yyyy HH:mm:ss"
                   }}</small>
                 </td>
                 <td class="text-left">

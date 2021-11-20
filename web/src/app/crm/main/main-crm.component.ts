@@ -13,15 +13,15 @@ import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 
 @Component({
-  selector: "app-inq-crm",
-  templateUrl: "./inq-crm.component.html",
-  styleUrls: ["./inq-crm.component.scss"],
+  selector: "app-main-crm",
+  templateUrl: "./main-crm.component.html",
+  styleUrls: ["./main-crm.component.scss"],
 })
-export class InqCRMComponent implements OnInit {
+export class MainCRMComponent implements OnInit {
   public data: any = {};
   public criteria: any = {
     page: 1,
-    size: 20,
+    size: 4,
   };
 
   public master: any = {
@@ -38,7 +38,10 @@ export class InqCRMComponent implements OnInit {
   isTrue = true;
   isTodoCollapsed1 = false;
   isTodoCollapsed2 = false;
-  isASCollapsed = true;
+
+  isASCollapsed = false;
+  isNoteCollapsed = false;
+  isTransactionCollapsed = false;
 
   dropdownSettings: IDropdownSettings = {
     singleSelection: false,
@@ -73,40 +76,42 @@ export class InqCRMComponent implements OnInit {
       this.criteria = session;
     }
 
-    await this.loadAgents();
-    await this.loadStatus();
+    this.criteria.size = 10;
+
+    // await this.loadAgents();
+    // await this.loadStatus();
     await this.loadActivityDate();
-    await this.search();
+    // await this.search();
     await this.loadTasks();
   }
 
-  async loadAgents() {
-    this.spinner.show();
-    this.master.agents = this.user.userAgents;
+  // async loadAgents() {
+  //   this.spinner.show();
+  //   this.master.agents = this.user.userAgents;
 
-    this.criteria.userAgents = this.user.userAgents;
+  //   this.criteria.userAgents = this.user.userAgents;
 
-    console.log(this.user);
-    if (this.user.business.businessType == "A") {
-      this.criteria.exceptHQ = true;
-    } else {
-      this.master.agents.unshift({ id: 1, name: "HQ" });
-    }
-    this.spinner.hide();
-  }
+  //   console.log(this.user);
+  //   if (this.user.business.businessType == "A") {
+  //     this.criteria.exceptHQ = true;
+  //   } else {
+  //     this.master.agents.unshift({ id: 1, name: "HQ" });
+  //   }
+  //   this.spinner.hide();
+  // }
 
-  async loadStatus() {
-    this.spinner.show();
-    let res: any = await this.masterService.getActivityStatus();
-    this.master.status = res.data;
+  // async loadStatus() {
+  //   this.spinner.show();
+  //   let res: any = await this.masterService.getActivityStatus();
+  //   this.master.status = res.data;
 
-    this.criteria.status = [
-      this.master.status[0],
-      this.master.status[1],
-      this.master.status[2],
-    ];
-    this.spinner.hide();
-  }
+  //   this.criteria.status = [
+  //     this.master.status[0],
+  //     this.master.status[1],
+  //     this.master.status[2],
+  //   ];
+  //   this.spinner.hide();
+  // }
 
   async loadTasks() {
     this.spinner.show();
@@ -135,10 +140,10 @@ export class InqCRMComponent implements OnInit {
     this.spinner.hide();
   }
 
-  async advanceSearch() {
-    await this.loadActivityDate();
-    await this.search();
-  }
+  // async advanceSearch() {
+  //   await this.loadActivityDate();
+  //   await this.search();
+  // }
 
   async searchDate(index) {
     this.criteria.fillterType = this.master.activityDate[index].fillterType;
@@ -156,15 +161,15 @@ export class InqCRMComponent implements OnInit {
     this.spinner.hide();
   }
 
-  view(item) {
-    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
-    this.router.navigateByUrl("/CRM/main/" + item.code);
-  }
+  // view(item) {
+  //   sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
+  //   this.router.navigateByUrl("/agent/view/" + item.code);
+  // }
 
-  update(item) {
-    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
-    this.router.navigateByUrl("/agent/update/" + item.code);
-  }
+  // update(item) {
+  //   sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
+  //   this.router.navigateByUrl("/agent/update/" + item.code);
+  // }
 
   async close(item) {
     await this.taskService.closeTask(item.id);

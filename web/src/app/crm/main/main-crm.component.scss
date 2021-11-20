@@ -1,0 +1,128 @@
+.table thead th {
+  background-color: #ffffff;
+}
+
+.nodata {
+  border: 1px solid #e3e3e3;
+  padding: 20px;
+  text-align: center;
+}
+
+.note {
+  background-color: #dbf2ff;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.transactionHistory {
+  background-color: #f7f7f7;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#breadcrumbs-two {
+  zoom: 80%;
+  overflow: hidden;
+  width: 100%;
+
+  &:hover {
+    &::before {
+      border-color: #28a745 #28a745 #28a745 transparent;
+    }
+
+    &::after {
+      border-left-color: #28a745;
+    }
+  }
+
+  .pass {
+    color: white;
+    background: #28a745;
+
+    &::before {
+      border-color: #28a745 #28a745 #28a745 transparent;
+    }
+
+    &::after {
+      border-left-color: #28a745;
+    }
+  }
+
+  .cancel {
+    color: white;
+    background: #f32e2e;
+
+    &::before {
+      border-color: #f32e2e #f32e2e #f32e2e transparent;
+    }
+
+    &::after {
+      border-left-color: #f32e2e;
+    }
+  }
+}
+
+#breadcrumbs-two li {
+  float: left;
+  margin: 0 0.5em 0 1em;
+}
+
+#breadcrumbs-two a {
+  background: #ddd;
+  padding: 0.7em 0.4em;
+  float: left;
+  text-decoration: none;
+  color: #444;
+  position: relative;
+}
+
+#breadcrumbs-two a:hover {
+  color: white;
+  background: #28a745;
+}
+
+#breadcrumbs-two a::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  margin-top: -1.5em;
+  border-width: 1.5em 0 1.5em 1em;
+  border-style: solid;
+  border-color: #ddd #ddd #ddd transparent;
+  left: -1em;
+}
+
+#breadcrumbs-two a:hover::before {
+  border-color: #28a745 #28a745 #28a745 transparent;
+}
+
+#breadcrumbs-two a::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  margin-top: -1.5em;
+  border-top: 1.5em solid transparent;
+  border-bottom: 1.5em solid transparent;
+  border-left: 1em solid #ddd;
+  right: -1em;
+}
+
+#breadcrumbs-two a:hover::after {
+  border-left-color: #28a745;
+}
+
+.section1 {
+  height: calc(100vh - 221px);
+  overflow: auto;
+}
+
+.section3 {
+  height: calc(100vh - 62px);
+  overflow: auto;
+}

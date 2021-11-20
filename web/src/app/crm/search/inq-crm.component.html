@@ -1,10 +1,10 @@
-<div class="row m-t-20">
+<div class="row" style="padding-top: 20px">
   <div class="col-12 col-md-8">
     <div class="card">
       <div class="card-body">
         <div class="row">
           <div class="col-12">
-            <h5 class="d-inline">Activity</h5>
+            <h5 class="d-inline">Activities</h5>
             <a
               class="text-info poiter float-right"
               (click)="isASCollapsed = !isASCollapsed"
@@ -104,27 +104,6 @@
           </div>
           <div class="col-12">
             <drag-scroll [scrollbar-hidden]="true" style="height: 27px">
-              <!-- <button
-                drag-scroll-item
-                type="button"
-                class="btn btn-sm btn-primary"
-              >
-                <small>วันนี้ (7)</small>
-              </button>
-              <button
-                drag-scroll-item
-                type="button"
-                class="btn btn-sm btn-outline-primary"
-              >
-                <small>เกินกำหนด (7)</small>
-              </button>
-              <button
-                drag-scroll-item
-                type="button"
-                class="btn btn-sm btn-outline-primary"
-              >
-                <small>ยังไม่ถึงกำหนด (1000)</small>
-              </button> -->
               <button
                 drag-scroll-item
                 *ngFor="let item of master.activityDate; let index = index"
@@ -141,7 +120,11 @@
             </drag-scroll>
           </div>
 
-          <div class="col-12">
+          <div
+            class="col-12"
+            style="max-height: calc(100vh - 320px); overflow: auto"
+            *ngIf="data.data"
+          >
             <table class="table table-hover custom-table" id="tblData">
               <thead>
                 <tr>
@@ -160,7 +143,7 @@
                   </td>
                   <td class="text-left">
                     <div>{{ item.description }}</div>
-                    <small>ตัวแทนที่ขายสินค้า : {{ item.agentName }}</small>
+                    <small>ตัวแทนจำหน่าย : {{ item.agentName }}</small>
                   </td>
                   <td class="text-center">
                     <span *ngIf="item.ownerUser">{{ item.ownerUser }}</span>
@@ -196,6 +179,34 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div class="col-6" *ngIf="data.data">
+            <div class="form-group">
+              <select
+                (change)="criteria.page = 1; search()"
+                [(ngModel)]="criteria.size"
+                class="form-control form-control-sm"
+                id="status"
+                style="width: auto"
+              >
+                <option [ngValue]="5">แสดงผล 5 รายการ</option>
+                <option [ngValue]="20">แสดงผล 20 รายการ</option>
+                <option [ngValue]="100">แสดงผล 100 รายการ</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6" *ngIf="data.data">
+            <ngb-pagination
+              class="float-right"
+              [(page)]="criteria.page"
+              [pageSize]="criteria.size"
+              [maxSize]="10"
+              [collectionSize]="data.totalRecord"
+              (pageChange)="search()"
+            ></ngb-pagination>
+          </div>
+          <div class="col-12" *ngIf="!data.data">
+            <div class="nodata">ไม่พบรายการที่ค้นหา</div>
           </div>
         </div>
       </div>

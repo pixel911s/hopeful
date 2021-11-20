@@ -3,6 +3,7 @@
 var util = require("../utils/responseUtils");
 var encypt = require("../utils/encypt");
 var orderDao = require("../dao/orderDao");
+var productDao = require("../dao/productDao");
 var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
 var activityDao = require("../dao/activityDao");
@@ -17,7 +18,7 @@ module.exports = {
   create,
   update,
   deleteOrder,
-  upload
+  upload,
 };
 
 async function get(req, res) {
@@ -103,32 +104,33 @@ async function create(req, res) {
 async function upload(req, res) {
   console.log("UPLOAD ORDER");
 
-  const conn = await pool.getConnection();
-  conn.beginTransaction();
-  try {
-    let orders = req.body;
+  let body = req.body;
 
-    for (let index = 0; index < orders.length; index++) {
-      const model = orders[index];
-      addOrder(model, conn);
+  for (let index = 0; index < body.items.length; index++) {
+    const conn = await pool.getConnection();
+    try {
+      conn.beginTransaction();
+      const model = body.items[index];
+      model.ownerId = body.ownerId;
+      model.username = body.username;
+      model.status = "O";
+      await addOrder(model, conn);
+      conn.commit();
+    } catch (e) {
+      console.log(e);
+      conn.rollback();
+      return res.status(500).send(e.message);
+    } finally {
+      conn.release();
     }
- 
-    conn.commit();
-
-    return res.send(
-      util.callbackSuccess("อัพโหลดข้อมูลออเดอร์เสร็จสมบูรณ์", true)
-    );
-  } catch (e) {
-    console.log(e);
-    conn.rollback();
-    return res.status(500).send(e.message);
-  } finally {
-    conn.release();
   }
+
+  return res.send(
+    util.callbackSuccess("อัพโหลดข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+  );
 }
 
 async function addOrder(model, conn) {
-
   model = await orderDao.calculateOrder(model);
 
   console.log("MODEL : ", model);
@@ -227,7 +229,10 @@ async function addOrder(model, conn) {
 
   //=== Get Owner Customer to Create Activity =======
 
-  let _activityOwnerObj = await activityDao.getOwnerCustomer(conn, model.customerId);
+  let _activityOwnerObj = await activityDao.getOwnerCustomer(
+    conn,
+    model.customerId
+  );
   console.log("OWNER CUSTOMER : ", _activityOwnerObj);
 
   let _activityOwner = _activityOwnerObj.activityOwner;
@@ -241,8 +246,14 @@ async function addOrder(model, conn) {
 
     //=== Add Activity ==========================================
 
-
-    let _activityDesc = orderItem.code + "-" + orderItem.name + " : " + orderItem.qty + " " + orderItem.unit;
+    let _activityDesc =
+      orderItem.code +
+      "-" +
+      orderItem.name +
+      " : " +
+      orderItem.qty +
+      " " +
+      orderItem.unit;
     let _activityCode = await runningDao.getNextRunning(
       conn,
       "A",
@@ -250,7 +261,7 @@ async function addOrder(model, conn) {
       month
     );
     //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-    let _remainingDay = +orderItem.remainingDay * +orderItem.qty
+    let _remainingDay = +orderItem.remainingDay * +orderItem.qty;
 
     let _dueDate = new Date();
     _dueDate.setDate(_dueDate.getDate() + _remainingDay);
@@ -268,19 +279,17 @@ async function addOrder(model, conn) {
       activityStatusId: 0,
       refOrderId: _orderId,
       refOrderItemId: _orderItemId,
-      username: model.username
-    }
+      username: model.username,
+    };
 
     console.log("ACTIVITY : ", _activity);
 
     await activityDao.save(conn, _activity);
 
     //===========================================================
-
   }
 
   return true;
-
 }
 
 async function update(req, res) {

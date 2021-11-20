@@ -8,6 +8,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 import { OrderService } from "app/shared/services/order.service";
 import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 import { ToastrService } from "ngx-toastr";
+import { ImportOrderComponent } from "../includes/import-order/import-order.component";
 
 @Component({
   selector: "app-search-order",
@@ -138,6 +139,24 @@ export class SearchOrderComponent implements OnInit {
         await this.transactionService.delete(item.id);
         await this.search();
         this.toastr.show("ยกเลิกรายการสำเร็จ.");
+      }
+    });
+  }
+
+  upload() {
+    const dialogRef = this.dialog.open(ImportOrderComponent, {
+      maxWidth: "1000px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการยกเลิกรายการ",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        await this.transactionService.upload(result);
+        await this.search();
+        this.toastr.show("อัพโหลดรายการสำเร็จ.");
       }
     });
   }

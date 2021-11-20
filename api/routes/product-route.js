@@ -11,6 +11,8 @@ router.use(function (req, res, next) {
 });
 
 router.route("/get").post(productService.get);
+router.route("/getByBarcode").post(productService.getByBarcode);
+
 router.route("/save").post(productService.save);
 router.route("/search").post(productService.search);
 router.route("/deleteProduct").post(productService.deleteProduct);

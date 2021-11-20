@@ -1,0 +1,371 @@
+<div class="row" style="padding-top: 20px; zoom: 90%">
+  <div class="col-12 col-md-4">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">รายละเอียดลูกค้า</h5>
+            <a class="float-right text-info poiter d-inline"
+              ><small>แก้ไขข้อมูล</small></a
+            >
+            <hr />
+          </div>
+          <div class="col-12">
+            <h6 class="d-inline">
+              <i class="fab fa-line" style="color: #00b900; width: 20px"></i>
+              วัชรพงศ์ สัลลกะชาต
+            </h6>
+
+            <!-- <i class="fab fa-facebook" style="color: #1778f2; width: 20px"></i> -->
+          </div>
+          <div class="col-12">
+            <i class="fas fa-mobile-alt" style="width: 20px"></i> 0863532040
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section1">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">Activities</h5>
+            <hr />
+          </div>
+          <div class="col-12">
+            <drag-scroll [scrollbar-hidden]="true" style="height: 27px">
+              <button
+                drag-scroll-item
+                *ngFor="let item of master.activityDate; let index = index"
+                type="button"
+                class="btn btn-sm"
+                (click)="criteria.page = 1; searchDate(index)"
+                [ngClass]="{
+                  'btn-primary': index == criteria.selectBtnIndex,
+                  'btn-outline-primary': index != criteria.selectBtnIndex
+                }"
+              >
+                <small>{{ item.display }} ({{ item.qty }})</small>
+              </button>
+            </drag-scroll>
+          </div>
+          <div class="col-12 m-b-20">
+            <div
+              class="row"
+              style="max-height: calc(100vh - 392px); overflow: auto"
+            >
+              <div class="col-12" *ngFor="let item of data.data">
+                <div style="border: 1px solid #e3e3e3; padding: 5px">
+                  <div class="row" style="font-size: 0.8rem">
+                    <div class="col-7">{{ item.code }}</div>
+                    <div class="col-5 text-right">
+                      {{ item.dueDate | date: "dd/MM/yyyy" }}
+                    </div>
+                    <div class="col-12">{{ item.description }}</div>
+                    <div class="col-6">{{ item.agentName }}</div>
+                    <div class="col-6 text-right">
+                      <span class="badge bg-warning">{{ item.status }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" *ngIf="!data.data">
+                <div
+                  style="border: 1px solid #e3e3e3; padding: 20px"
+                  class="text-center"
+                >
+                  ไม่พบรายการที่ค้นหา
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12" *ngIf="data.data">
+            <ngb-pagination
+              class="float-right"
+              [(page)]="criteria.page"
+              [pageSize]="criteria.size"
+              [maxSize]="5"
+              [collectionSize]="data.totalRecord"
+              (pageChange)="search()"
+            ></ngb-pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-5" [ngClass]="{ 'col-md-8': isASCollapsed }">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">Activity ที่เลือก</h5>
+            <a
+              class="float-right"
+              type="button"
+              (click)="isASCollapsed = !isASCollapsed"
+              [attr.aria-expanded]="!isASCollapsed"
+              aria-controls="isASCollapsed"
+            >
+              <i class="fas fa-chevron-left" *ngIf="isASCollapsed"></i>
+              <i class="fas fa-chevron-right" *ngIf="!isASCollapsed"></i>
+            </a>
+            <hr />
+          </div>
+          <div class="col-12 m-b-20">
+            <h6 class="d-inline">A202111-000001</h6>
+            <span class="float-right">04/12/2021</span>
+          </div>
+          <div class="col-12 m-b-20 text-center">
+            <ul id="breadcrumbs-two">
+              <li><a href="" class="pass">รอดำเนินการ</a></li>
+              <li><a href="" class="">ดำเนินการ</a></li>
+              <li><a href="" class="">ส่งใบเสนอราคา</a></li>
+              <li><a href="" class="">ปิดการขาย</a></li>
+              <li><a href="" class="">ยกเลิก</a></li>
+            </ul>
+          </div>
+          <div class="col-12">B002-ทดสอบ 002 : 1 กระปุก</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">To do list</h5>
+            <hr />
+          </div>
+          <div
+            class="col-12 text-right"
+            *ngIf="openTasks && openTasks.length > 0"
+          >
+            <div
+              class="text-info text-right poiter"
+              (click)="isTodoCollapsed1 = !isTodoCollapsed1"
+              [attr.aria-expanded]="!isTodoCollapsed1"
+              aria-controls="collapseBasic"
+            >
+              รายการที่ต้องทำ
+              <i class="ft-chevron-down" *ngIf="isTodoCollapsed1"></i
+              ><i class="ft-minus" *ngIf="!isTodoCollapsed1"></i>
+            </div>
+          </div>
+          <div
+            id="collapseBasic"
+            [collapse]="isTodoCollapsed1"
+            [isAnimated]="true"
+            class="m-b-20"
+          >
+            <div
+              class="col-12 m-b-5"
+              *ngFor="let item of openTasks; let index = index"
+            >
+              <div class="task-box">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="custom-control custom-checkbox">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="selectViewOrder{{ index }}"
+                        [(ngModel)]="item.isClose"
+                        (change)="close(item)"
+                      />
+                      <label
+                        class="custom-control-label poiter"
+                        for="selectViewOrder{{ index }}"
+                        style="word-break: break-all"
+                        >{{ item.description }}</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-4 text-right">
+                    {{ item.createBy }}
+                  </div>
+                  <div class="col-6">
+                    <a class="text-info"
+                      ><small>{{ item.activityCode }}</small></a
+                    >
+                  </div>
+                  <div class="col-6 text-right">
+                    <small
+                      >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
+                      {{ item.scheduleTime }}</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="col-12 text-right"
+            *ngIf="closeTasks && closeTasks.length > 0"
+          >
+            <!-- <button
+              type="button"
+              class="btn btn-primary"
+              (click)="isTodoCollapsed2 = !isTodoCollapsed2"
+              [attr.aria-expanded]="!isTodoCollapsed2"
+              aria-controls="collapseBasic"
+            >
+              รายการที่ทำเสร็จแล้ว
+              <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
+              ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
+            </button> -->
+            <div
+              class="text-info text-right poiter"
+              (click)="isTodoCollapsed2 = !isTodoCollapsed2"
+              [attr.aria-expanded]="!isTodoCollapsed2"
+              aria-controls="collapseBasic"
+            >
+              รายการที่ทำเสร็จแล้ว
+              <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
+              ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
+            </div>
+          </div>
+          <div
+            id="collapseBasic"
+            [collapse]="isTodoCollapsed2"
+            [isAnimated]="true"
+          >
+            <div class="col-12 m-b-5" *ngFor="let item of closeTasks">
+              <div class="task-box">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="custom-control custom-checkbox">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="selectViewOrder{{ index }}"
+                        [(ngModel)]="item.isClose"
+                        (change)="reopen(item)"
+                      />
+                      <label
+                        class="custom-control-label poiter"
+                        for="selectViewOrder{{ index }}"
+                        style="
+                          word-break: break-all;
+                          text-decoration-line: line-through;
+                        "
+                        >{{ item.description }}</label
+                      >
+                    </div>
+                  </div>
+                  <div class="col-4 text-right">
+                    {{ item.createBy }}
+                  </div>
+                  <div class="col-6">
+                    <a class="text-info"
+                      ><small>{{ item.activityCode }}</small></a
+                    >
+                  </div>
+                  <div class="col-6 text-right">
+                    <small
+                      >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
+                      {{ item.scheduleTime }}</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-3" id="isASCollapsed" [collapse]="isASCollapsed">
+    <div class="card section3">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">Note</h5>
+            <a
+              class="float-right"
+              type="button"
+              (click)="isNoteCollapsed = !isNoteCollapsed"
+              [attr.aria-expanded]="!isNoteCollapsed"
+              aria-controls="collapsenote"
+            >
+              <i class="fas fa-plus" *ngIf="isNoteCollapsed"></i>
+              <i class="fas fa-minus" *ngIf="!isNoteCollapsed"></i>
+            </a>
+
+            <hr />
+          </div>
+          <div
+            class="col-12"
+            id="collapsenote"
+            [collapse]="isNoteCollapsed"
+            [isAnimated]="true"
+          >
+            <div class="text-right m-b-10">
+              <a class="poiter text-info">เพิ่มNote+</a>
+            </div>
+
+            <div class="note" *ngFor="let item of [1, 2, 3]">
+              <div class="row">
+                <div class="col-9">
+                  <small>19/11/2021 23:59:59</small>
+                </div>
+                <div class="col-3 text-right text-danger">
+                  <i class="fas fa-times"></i>
+                </div>
+                <div class="col-12">xxxxxxxxxxxxx</div>
+                <div class="col-12">
+                  <small>canonmix</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 m-t-20">
+            <h5 class="d-inline">ประวัติการสั่งซื้อ</h5>
+            <a
+              class="float-right"
+              type="button"
+              (click)="isTransactionCollapsed = !isTransactionCollapsed"
+              [attr.aria-expanded]="!isTransactionCollapsed"
+              aria-controls="isTransactionCollapsed"
+            >
+              <i class="fas fa-plus" *ngIf="isTransactionCollapsed"></i>
+              <i class="fas fa-minus" *ngIf="!isTransactionCollapsed"></i>
+            </a>
+            <hr />
+          </div>
+          <div
+            class="col-12"
+            id="isTransactionCollapsed"
+            [collapse]="isTransactionCollapsed"
+            [isAnimated]="true"
+          >
+            <div class="transactionHistory" *ngFor="let item of [1, 2, 3]">
+              <div class="row">
+                <div class="col-12 text-right">
+                  <a class="text-info poiter">SO202111-000033</a>
+                </div>
+
+                <div class="col-12 text-right">
+                  <small>19/11/2021</small>
+                </div>
+
+                <div class="col-12 text-right">
+                  <small>HQ : canonmix</small>
+                </div>
+                <div class="col-12 text-right">
+                  <h5>ยอด 5,990.00</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="col-12">
+            <h5 class="d-inline">ที่อยู่จัดส่ง</h5>
+            <hr />
+          </div> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

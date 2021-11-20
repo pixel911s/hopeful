@@ -54,4 +54,12 @@ export class OrderService {
       .post(environment.apiUrl + "/order/create", data)
       .toPromise();
   }
+
+  upload(data) {
+    data.ownerId = this.authService.getUser().businessId;
+    data.username = this.authService.getUser().username;
+    return this.http
+      .post(environment.apiUrl + "/order/upload", data)
+      .toPromise();
+  }
 }

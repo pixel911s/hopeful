@@ -4,10 +4,11 @@ import { CommonModule } from "@angular/common";
 import { SharedModule } from "../shared/shared.module";
 import { CRMRoutingModule } from "./crm-routing.module";
 import { InqCRMComponent } from "./search/inq-crm.component";
+import { MainCRMComponent } from "./main/main-crm.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, CRMRoutingModule],
-  declarations: [InqCRMComponent],
+  declarations: [InqCRMComponent, MainCRMComponent],
   entryComponents: [],
 })
 export class CRMModule {}

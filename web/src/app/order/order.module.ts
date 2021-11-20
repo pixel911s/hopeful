@@ -9,6 +9,7 @@ import { CreateOrderComponent } from "./create/create-order.component";
 import { OrderFormComponent } from "./includes/form/order-form.component";
 import { UpdateOrderComponent } from "./update/update-order.component";
 import { ViewOrderComponent } from "./view/view-order.component";
+import { ImportOrderComponent } from "./includes/import-order/import-order.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, OrderRoutingModule],
@@ -19,7 +20,8 @@ import { ViewOrderComponent } from "./view/view-order.component";
     SelectProductComponent,
     UpdateOrderComponent,
     ViewOrderComponent,
+    ImportOrderComponent,
   ],
-  entryComponents: [SelectProductComponent],
+  entryComponents: [SelectProductComponent, ImportOrderComponent],
 })
 export class OrderModule {}

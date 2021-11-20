@@ -43,6 +43,15 @@ export class ProductService {
       .toPromise();
   }
 
+  getByBarcode(code) {
+    let criteria = {
+      barcode: code,
+    };
+    return this.http
+      .post(environment.apiUrl + "/product/getByBarcode", criteria)
+      .toPromise();
+  }
+
   remove(code) {
     let criteria = {
       id: code,

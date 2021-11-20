@@ -51,6 +51,7 @@
     "ngx-custom-validators": "8.0.0",
     "ngx-device-detector": "2.0.4",
     "ngx-drag-scroll": "^12.0.0-beta.2",
+    "ngx-horizontal-timeline": "0.0.6",
     "ngx-perfect-scrollbar": "10.0.1",
     "ngx-spinner": "^10.0.1",
     "ngx-take-until-destroy": "5.4.0",
@@ -63,6 +64,7 @@
     "screenfull": "5.0.2",
     "tslib": "2.2.0",
     "web-animations-js": "2.3.2",
+    "xlsx": "^0.17.4",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
