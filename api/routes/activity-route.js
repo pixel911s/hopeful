@@ -15,5 +15,6 @@ router.route("/save").post(activityService.save);
 router.route("/updateActivityStatus").post(activityService.updateActivityStatus);
 router.route("/getSummaryActivityCount").post(activityService.getSummaryActivityCount);
 router.route("/searchList").post(activityService.searchList);
+router.route("/assignActivityOwner").post(activityService.assignActivityOwner);
 
 module.exports = router;

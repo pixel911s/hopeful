@@ -10,6 +10,7 @@ module.exports = {
   cancelActivityByOrderId,
   inquiry,
   getActivityDateConfig,
+  updateOwner
 };
 
 async function get(conn, id) {
@@ -24,7 +25,7 @@ async function get(conn, id) {
     sql += " left join business c on a.agentId=c.id";
     sql += " left join business d on a.customerId=d.id";
     sql += " left join activityStatus e on a.activityStatusId=e.id";
-    sql += " where id = ?";
+    sql += " where a.id = ?";
     const result = await conn.query(sql, [id]);
 
     return result[0];
@@ -262,5 +263,20 @@ async function getActivityDateConfig(conn, username) {
     return result;
   } catch (err) {
     throw err;
+  }
+}
+
+async function updateOwner(conn, activityId, ownerUser, username) {
+  try {
+    //Update Activity Status
+    let sql =
+      "update activity set `ownerUser`=?, `updateBy`=?, `updateDate`=? where id = ?";
+
+    await conn.query(sql, [ownerUser, username, new Date(), activityId]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }

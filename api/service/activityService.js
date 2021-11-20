@@ -4,6 +4,7 @@ var util = require("../utils/responseUtils");
 const fileUtil = require("../utils/fileUtil");
 var activityDao = require("../dao/activityDao");
 var userDao = require("../dao/userDao");
+var auditLogDao = require("../dao/auditLogDao");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -15,6 +16,7 @@ module.exports = {
   updateActivityStatus,
   getSummaryActivityCount,
   searchList,
+  assignActivityOwner
 };
 
 async function get(req, res) {
@@ -275,6 +277,52 @@ async function searchList(req, res) {
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {
     console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function assignActivityOwner(req, res) {
+  //=== Assign Owner ของ Activity
+  //==== Parameter
+  //==== activityId   : เลขที่ Activity
+  //==== ownerUser    : Owner to Assigned
+  //==== username     : ผู้ทำรายการ
+
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+
+    let model = req.body;
+    console.log("AssignActivityOwnerModel: ", model);
+
+    let _activity = await activityDao.get(conn, model.activityId);
+    let _logDesc = "Assign Activity Owner : Activity Code-->" + _activity.code + " : Assigned to New Owner-->" + model.ownerUser;
+    if (_activity.ownerUser && _activity!="") {
+      _logDesc += " : Replace to Old Owner-->" + _activity.ownerUser;
+    }
+
+    let _auditLog ={
+      logType: "ASSIGN_ACTIVITY_OWNER",
+      logDesc: _logDesc,
+      logBy: model.username,
+      refTable: "activity",
+      refId: _activity.id
+    }   
+
+    await activityDao.updateOwner(conn,model.activityId, model.ownerUser, model.username);
+
+    await auditLogDao.save(conn, _auditLog);
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูล Owner Activity เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
     return res.status(500).send(e.message);
   } finally {
     conn.release();
