@@ -79,12 +79,66 @@ async function updateActivityStatus(req, res) {
   try {
     let model = req.body;
 
+    let _activity = await activityDao.get(conn, model.id);
+
+    let _date0 = _activity.statusDate0;
+    let _date1 = _activity.statusDate1;
+    let _date2 = _activity.statusDate2;
+    let _date3 = _activity.statusDate3;
+    let _date4 = _activity.statusDate4;
+
+    if (model.activityStatusId == 0) {
+      _date0 = new Date();
+      _date1 = null;
+      _date2 = null;
+      _date3 = null;
+      _date4 = null;
+    } else {
+      if (model.activityStatusId == 1) {
+        _date1 = new Date();
+        _date2 = null;
+        _date3 = null;
+        _date4 = null;
+      } else {
+        if (model.activityStatusId == 2) {
+          _date2 = new Date();
+          _date3 = null;
+          _date4 = null;
+        } else {
+          if (model.activityStatusId == 3) {
+            _date3 = new Date();
+            _date4 = null;
+          } else {
+            _date4 = new Date();
+          }
+        }
+
+      }
+    }
+
     await activityDao.updateActivityStatus(
       conn,
       model.id,
       model.activityStatusId,
-      model.username
+      model.username,
+      _date0,
+      _date1,
+      _date2,
+      _date3,
+      _date4
     );
+
+    let _logDesc = "Update Activity Status : Activity Code-->" + _activity.code + " : New Status-->" + model.activityStatusId+" : Old Status-->" + _activity.activityStatusId??0;
+
+    let _auditLog = {
+      logType: "activity",
+      logDesc: _logDesc,
+      logBy: model.username,
+      refTable: "activity",
+      refId: model.id
+    }
+
+    await auditLogDao.save(conn, _auditLog);
 
     conn.commit();
 
@@ -299,19 +353,19 @@ async function assignActivityOwner(req, res) {
 
     let _activity = await activityDao.get(conn, model.activityId);
     let _logDesc = "Assign Activity Owner : Activity Code-->" + _activity.code + " : Assigned to New Owner-->" + model.ownerUser;
-    if (_activity.ownerUser && _activity!="") {
+    if (_activity.ownerUser && _activity != "") {
       _logDesc += " : Replace to Old Owner-->" + _activity.ownerUser;
     }
 
-    let _auditLog ={
-      logType: "ASSIGN_ACTIVITY_OWNER",
+    let _auditLog = {
+      logType: "activity",
       logDesc: _logDesc,
       logBy: model.username,
       refTable: "activity",
       refId: _activity.id
-    }   
+    }
 
-    await activityDao.updateOwner(conn,model.activityId, model.ownerUser, model.username);
+    await activityDao.updateOwner(conn, model.activityId, model.ownerUser, model.username);
 
     await auditLogDao.save(conn, _auditLog);
 

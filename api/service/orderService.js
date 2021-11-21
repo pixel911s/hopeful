@@ -284,9 +284,23 @@ async function addOrder(model, conn) {
 
     console.log("ACTIVITY : ", _activity);
 
-    await activityDao.save(conn, _activity);
+    let _activityId = await activityDao.save(conn, _activity);
 
     //===========================================================
+
+    //==== Add Audit Log ========================================
+
+    let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
+
+    let _auditLog = {
+      logType: "activity",
+      logDesc: _logDesc,
+      logBy: model.username,
+      refTable: "activity",
+      refId: _activityId
+    }
+
+    await auditLogDao.save(conn, _auditLog);
   }
 
   return true;

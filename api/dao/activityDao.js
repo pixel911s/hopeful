@@ -64,8 +64,8 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `activity` (`code`,`description`,`productId`,`remainingDay`,`dueDate`,`agentId`,`customerId`,`ownerUser`,`activityStatusId`,`refOrderId`,`refOrderItemId`, `createBy`, `createDate`) ";
-      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO `activity` (`code`,`description`,`productId`,`remainingDay`,`dueDate`,`agentId`,`customerId`,`ownerUser`,`activityStatusId`,`refOrderId`,`refOrderItemId`, `createBy`, `createDate`,`statusDate0`) ";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
       let _result = await conn.query(sql, [
         model.code,
@@ -81,6 +81,7 @@ async function save(conn, model) {
         model.refOrderItemId,
         model.username,
         new Date(),
+        new Date()
       ]);
 
       console.log("INSERT RESULT : ", _result);
@@ -97,13 +98,16 @@ async function save(conn, model) {
   }
 }
 
-async function updateActivityStatus(conn, id, activityStatusId, username) {
+async function updateActivityStatus(conn, id, activityStatusId, username, date0, date1, date2, date3, date4) {
   try {
     //Update Activity Status
+   
     let sql =
-      "update activity set `activityStatusId`=?, `updateBy`=?, `updateDate`=? where id = ?";
+      "update activity set `activityStatusId`=?, `updateBy`=?, `statusDate0`=?, `statusDate1`=?, `statusDate2`=?, `statusDate3`=?, `statusDate4`=?, `updateDate`=? where id = ?";
 
-    await conn.query(sql, [activityStatusId, username, new Date(), id]);
+    await conn.query(sql, [activityStatusId, username, date0, date1, date2, date3, date4, new Date(), id]);
+
+    
 
     return true;
   } catch (e) {
