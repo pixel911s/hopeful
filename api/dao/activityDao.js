@@ -24,7 +24,7 @@ async function get(conn, id) {
     sql += " left join business c on a.agentId=c.id";
     sql += " left join business d on a.customerId=d.id";
     sql += " left join activityStatus e on a.activityStatusId=e.id";
-    sql += " where id = ?";
+    sql += " where a.id = ?";
     const result = await conn.query(sql, [id]);
 
     return result[0];
