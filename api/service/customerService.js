@@ -12,7 +12,30 @@ module.exports = {
   get,
   getByMobile,
   getAddress,
+  updateProfile,
 };
+
+async function updateProfile(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let model = req.body;
+
+    let customer = await customerDao.get(conn, model.customerId);
+    customer.email = model.email;
+    customer.name = model.name;
+    customer.mobile = model.mobile;
+
+    await customerDao.save(conn, model);
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูล Note เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function get(req, res) {
   //=== Parameter

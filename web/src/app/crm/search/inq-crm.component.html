@@ -152,7 +152,27 @@
                   </td>
                   <td class="text-center">
                     <div>{{ item.dueDate | date: "dd/MM/yyyy" }}</div>
-                    <small>{{ item.status }}</small>
+                    <small>
+                      <span
+                        class="badge bg-warning"
+                        *ngIf="item.activityStatusId == 0"
+                        >{{ item.status }}</span
+                      >
+                      <span
+                        class="badge bg-success"
+                        *ngIf="
+                          item.activityStatusId == 1 ||
+                          item.activityStatusId == 2 ||
+                          item.activityStatusId == 3
+                        "
+                        >{{ item.status }}</span
+                      >
+                      <span
+                        class="badge bg-danger"
+                        *ngIf="item.activityStatusId == 4"
+                        >{{ item.status }}</span
+                      >
+                    </small>
                   </td>
                   <td class="text-left">
                     <div ngbDropdown container="body">
@@ -162,8 +182,9 @@
                       <div ngbDropdownMenu aria-labelledby="ddMenu1">
                         <button
                           class="w-100"
-                          (click)="update(item)"
+                          (click)="assignActivityOwner(item)"
                           ngbDropdownItem
+                          *ngIf="user.function.SUPERVISOR"
                         >
                           เปลี่ยนผู้รับผิดชอบ
                         </button>
@@ -218,8 +239,15 @@
       <div class="card-body">
         <div class="row">
           <div class="col-12">
-            <h5 class="d-inline">To do list</h5>
+            <h5 class="d-inline">Tasks</h5>
             <hr />
+          </div>
+          <div
+            *ngIf="openTasks.length == 0 && closeTasks.length == 0"
+            style="border: 1px solid #e3e3e3; padding: 20px"
+            class="text-center col-12"
+          >
+            ไม่มีข้อมูล Task
           </div>
           <div
             class="col-12 text-right"
@@ -267,7 +295,7 @@
                   </div>
                   <div class="col-4 text-right">{{ item.createBy }}</div>
                   <div class="col-6">
-                    <a class="text-info"
+                    <a class="text-info" (click)="viewByTodo(item)"
                       ><small>{{ item.activityCode }}</small></a
                     >
                   </div>
@@ -338,7 +366,7 @@
                   </div>
                   <div class="col-4 text-right">{{ item.createBy }}</div>
                   <div class="col-6">
-                    <a class="text-info"
+                    <a class="text-info" (click)="viewByTodo(item)"
                       ><small>{{ item.activityCode }}</small></a
                     >
                   </div>

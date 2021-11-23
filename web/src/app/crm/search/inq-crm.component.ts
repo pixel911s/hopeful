@@ -1,4 +1,5 @@
 import { OnInit, Component } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
@@ -11,6 +12,7 @@ import { UserService } from "app/shared/services/user.service";
 import { IDropdownSettings } from "ng-multiselect-dropdown";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
+import { ChangeOwnerComponent } from "../includes/change-owner/change-owner.component";
 
 @Component({
   selector: "app-inq-crm",
@@ -56,9 +58,11 @@ export class InqCRMComponent implements OnInit {
     private taskService: TaskService,
     private router: Router,
     private authService: AuthService,
-    translate: TranslateService,
+    private translate: TranslateService,
     private spinner: NgxSpinnerService,
-    private masterService: MasterService
+    private masterService: MasterService,
+    protected dialog: MatDialog,
+    private toastr: ToastrService
   ) {
     translate.use(this.authService.getUser().lang);
   }
@@ -157,9 +161,15 @@ export class InqCRMComponent implements OnInit {
     this.spinner.hide();
   }
 
+  viewByTodo(item) {
+    this.criteria.selectedActivityId = item.activityId;
+    console.log(item);
+    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
+    this.router.navigateByUrl("/CRM/main/" + item.customerId);
+  }
+
   view(item) {
-    this.criteria.selectedActivityId = item.code;
-    console.log(this.criteria);
+    this.criteria.selectedActivityId = item.id;
     sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
     this.router.navigateByUrl("/CRM/main/" + item.customerId);
   }
@@ -177,5 +187,30 @@ export class InqCRMComponent implements OnInit {
   async reopen(item) {
     await this.taskService.recallTask(item.id);
     await this.loadTasks();
+  }
+
+  assignActivityOwner(item) {
+    const dialogRef = this.dialog.open(ChangeOwnerComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        agentId: item.agentId,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        let data = {
+          activityId: item.id,
+          ownerUser: result.username,
+          customerId: item.customerId,
+        };
+        this.spinner.show();
+        await this.activityService.assignActivityOwner(data);
+        await this.search();
+        this.spinner.hide();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
   }
 }

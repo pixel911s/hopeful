@@ -11,8 +11,33 @@ const pool = mysql.createPool(config.mysql);
 module.exports = {
   get,
   save,
-  search
+  search,
+  deleteNote,
 };
+
+async function deleteNote(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let model = req.body;
+
+    let note = await noteDao.get(conn, model.id);
+
+    if (
+      note.customerId != model.customerId ||
+      note.createBy != model.username
+    ) {
+      return res.status(401).send("❌ ไม่สามารถลบข้อมูล Note ของคนอื่นได้.");
+    }
+
+    await noteDao.deleteNote(conn, model);
+
+    return res.send(util.callbackSuccess("ลบข้อมูล Note เสร็จสมบูรณ์", true));
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function get(req, res) {
   const conn = await pool.getConnection();
@@ -32,25 +57,16 @@ async function get(req, res) {
 
 async function save(req, res) {
   const conn = await pool.getConnection();
-  conn.beginTransaction();
   try {
-    let model = JSON.parse(req.body.data);
+    let model = req.body;
 
     await noteDao.save(conn, model);
-
-    conn.commit();
 
     return res.send(
       util.callbackSuccess("บันทึกข้อมูล Note เสร็จสมบูรณ์", true)
     );
   } catch (e) {
-    console.log(e);
-    conn.rollback();
-    if (e.code == "ER_DUP_ENTRY") {
-      return res.status(401).send("มีข้อมูล Note นี้แล้วในระบบ");
-    } else {
-      return res.status(500).send(e.message);
-    }
+    return res.status(500).send(e.message);
   } finally {
     conn.release();
   }
@@ -67,7 +83,7 @@ async function search(req, res) {
     //=== size : จำนวนหน้าที่แสดง
 
     let result = null;
-    
+
     let totalRecord = 0;
     criteria.isCount = true;
 
@@ -95,4 +111,3 @@ async function search(req, res) {
     conn.release();
   }
 }
-

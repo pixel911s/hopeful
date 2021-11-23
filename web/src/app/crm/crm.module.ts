@@ -5,10 +5,26 @@ import { SharedModule } from "../shared/shared.module";
 import { CRMRoutingModule } from "./crm-routing.module";
 import { InqCRMComponent } from "./search/inq-crm.component";
 import { MainCRMComponent } from "./main/main-crm.component";
+import { CreateNoteComponent } from "./includes/create-note/create-notecomponent";
+import { ManageTodoComponent } from "./includes/manage-todo/manage-todo.component";
+import { UpdateCustomerComponent } from "./includes/update-customer/update-customer.component";
+import { ChangeOwnerComponent } from "./includes/change-owner/change-owner.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, CRMRoutingModule],
-  declarations: [InqCRMComponent, MainCRMComponent],
-  entryComponents: [],
+  declarations: [
+    InqCRMComponent,
+    MainCRMComponent,
+    CreateNoteComponent,
+    ManageTodoComponent,
+    UpdateCustomerComponent,
+    ChangeOwnerComponent,
+  ],
+  entryComponents: [
+    CreateNoteComponent,
+    ManageTodoComponent,
+    UpdateCustomerComponent,
+    ChangeOwnerComponent,
+  ],
 })
 export class CRMModule {}

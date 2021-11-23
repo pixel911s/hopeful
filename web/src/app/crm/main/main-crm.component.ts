@@ -1,4 +1,5 @@
 import { OnInit, Component } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 import { AuthService } from "app/shared/auth/auth.service";
@@ -6,13 +7,18 @@ import { ActivityService } from "app/shared/services/activity.service";
 import { AgentService } from "app/shared/services/agent.service";
 import { CustomerService } from "app/shared/services/customer.service";
 import { MasterService } from "app/shared/services/master.service";
+import { NoteService } from "app/shared/services/note.service";
 import { OrderService } from "app/shared/services/order.service";
 import { TaskService } from "app/shared/services/task.service";
 import { UserConfigService } from "app/shared/services/user-config.service";
 import { UserService } from "app/shared/services/user.service";
+import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 import { IDropdownSettings } from "ng-multiselect-dropdown";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
+import { CreateNoteComponent } from "../includes/create-note/create-notecomponent";
+import { ManageTodoComponent } from "../includes/manage-todo/manage-todo.component";
+import { UpdateCustomerComponent } from "../includes/update-customer/update-customer.component";
 
 @Component({
   selector: "app-main-crm",
@@ -29,7 +35,12 @@ export class MainCRMComponent implements OnInit {
 
   public orderCriteria: any = {
     page: 1,
-    size: 10,
+    size: 5,
+  };
+
+  public noteCriteria: any = {
+    page: 1,
+    size: 5,
   };
 
   public master: any = {
@@ -39,6 +50,8 @@ export class MainCRMComponent implements OnInit {
 
   user;
   customer;
+  notes: any = {};
+  selectedActivity: any = null;
   date = new Date();
 
   openTasks: any = [];
@@ -47,24 +60,40 @@ export class MainCRMComponent implements OnInit {
   isTodoCollapsed1 = false;
   isTodoCollapsed2 = false;
   isASCollapsed = false;
+  isAdvanceCollapsed = true;
   isNoteCollapsed = false;
   isTransactionCollapsed = false;
 
   loadingCustomer = false;
   loadingActivitiesList = false;
   loadingOrder = false;
+  loadingActivity = false;
+  loadingNote = false;
+
+  dropdownSettings: IDropdownSettings = {
+    singleSelection: false,
+    idField: "id",
+    textField: "status",
+    selectAllText: "เลือกทั้งหมด",
+    unSelectAllText: "นำออกทั้งหมด",
+    itemsShowLimit: 3,
+    allowSearchFilter: false,
+  };
 
   constructor(
     private activityService: ActivityService,
     private taskService: TaskService,
     private router: Router,
     private authService: AuthService,
-    translate: TranslateService,
     private spinner: NgxSpinnerService,
     private masterService: MasterService,
     private customerService: CustomerService,
     private orderService: OrderService,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private toastr: ToastrService,
+    protected dialog: MatDialog,
+    private noteService: NoteService,
+    private translate: TranslateService
   ) {
     translate.use(this.authService.getUser().lang);
   }
@@ -88,12 +117,14 @@ export class MainCRMComponent implements OnInit {
     await this.loadCustomer(this.criteria.customerId);
     await this.loadOrderHistories();
 
-    // await this.loadAgents();
-    // await this.loadStatus();
+    await this.loadAgents();
+    await this.loadStatus();
     await this.loadActivityDate();
     // await this.search();
     await this.loadTasks();
     await this.searchDate(this.criteria.selectBtnIndex);
+    await this.loadActivity();
+    await this.loadNote();
   }
 
   async loadCustomer(id) {
@@ -107,45 +138,70 @@ export class MainCRMComponent implements OnInit {
     this.loadingOrder = true;
 
     let res: any = await this.orderService.search(this.orderCriteria);
-    this.customer.orders = res.data;
+    this.customer.orders = res;
+    console.log(this.customer.orders);
     this.loadingOrder = false;
   }
 
-  // async loadAgents() {
-  //   this.spinner.show();
-  //   this.master.agents = this.user.userAgents;
+  async loadActivity() {
+    this.loadingActivity = true;
 
-  //   this.criteria.userAgents = this.user.userAgents;
+    let res: any = await this.activityService.get(
+      this.criteria.selectedActivityId
+    );
+    this.selectedActivity = res.data;
+    this.loadingActivity = false;
+  }
 
-  //   console.log(this.user);
-  //   if (this.user.business.businessType == "A") {
-  //     this.criteria.exceptHQ = true;
-  //   } else {
-  //     this.master.agents.unshift({ id: 1, name: "HQ" });
-  //   }
-  //   this.spinner.hide();
-  // }
+  async loadNote() {
+    this.loadingNote = true;
 
-  // async loadStatus() {
-  //   this.spinner.show();
-  //   let res: any = await this.masterService.getActivityStatus();
-  //   this.master.status = res.data;
+    this.noteCriteria.customerId = this.criteria.customerId;
 
-  //   this.criteria.status = [
-  //     this.master.status[0],
-  //     this.master.status[1],
-  //     this.master.status[2],
-  //   ];
-  //   this.spinner.hide();
-  // }
+    let res: any = await this.noteService.search(this.noteCriteria);
+    this.notes = res;
+    this.loadingNote = false;
+  }
+
+  async loadAgents() {
+    this.spinner.show();
+    this.master.agents = this.user.userAgents;
+
+    this.criteria.userAgents = this.user.userAgents;
+
+    console.log(this.user);
+    if (this.user.business.businessType == "A") {
+      this.criteria.exceptHQ = true;
+    } else {
+      this.master.agents.unshift({ id: 1, name: "HQ" });
+    }
+    this.spinner.hide();
+  }
+
+  async loadStatus() {
+    this.spinner.show();
+    let res: any = await this.masterService.getActivityStatus();
+    this.master.status = res.data;
+
+    this.criteria.status = [
+      this.master.status[0],
+      this.master.status[1],
+      this.master.status[2],
+    ];
+    this.spinner.hide();
+  }
 
   async loadTasks() {
     this.spinner.show();
 
-    let res: any = await this.taskService.getCloseTask();
+    let res: any = await this.taskService.getCloseTask(
+      this.criteria.customerId
+    );
     this.closeTasks = res.data;
 
-    let res2: any = await this.taskService.getOpenTask();
+    let res2: any = await this.taskService.getOpenTask(
+      this.criteria.customerId
+    );
     this.openTasks = res2.data;
 
     this.spinner.hide();
@@ -166,10 +222,10 @@ export class MainCRMComponent implements OnInit {
     this.spinner.hide();
   }
 
-  // async advanceSearch() {
-  //   await this.loadActivityDate();
-  //   await this.search();
-  // }
+  async advanceSearch() {
+    await this.loadActivityDate();
+    await this.search();
+  }
 
   async searchDate(index) {
     this.criteria.fillterType = this.master.activityDate[index].fillterType;
@@ -205,5 +261,190 @@ export class MainCRMComponent implements OnInit {
   async reopen(item) {
     await this.taskService.recallTask(item.id);
     await this.loadTasks();
+  }
+
+  async deleteNote(item) {
+    if (item.createBy != this.user.username) {
+      this.toastr.show("❌ ไม่สามารถลบ Note ผู้อื่นได้");
+      return;
+    }
+
+    await this.noteService.deleteNote(item);
+    await this.loadNote();
+    this.toastr.show("✔️ ลบข้อมูล Note สำเร็จ");
+  }
+
+  async selectActivity(id) {
+    this.criteria.selectedActivityId = id;
+    await this.loadActivity();
+  }
+
+  async updateStatus(status) {
+    if (
+      this.customer.activityOwner == null ||
+      this.customer.activityOwner != this.user.username
+    ) {
+      this.toastr.show("❌ ไม่สามารถดำเนินการได้ เนื่องจากไม่ใช่ผู้ดูแล");
+      return;
+    }
+
+    const dialogRef = this.dialog.open(PopupConfirmComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการเปลี่ยนสถานะ",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        this.spinner.show();
+
+        await this.activityService.updateActivityStatus(
+          this.selectedActivity.id,
+          status
+        );
+
+        await this.loadActivity();
+
+        await this.search();
+
+        await this.loadTasks();
+
+        this.spinner.hide();
+
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  updateNote(item) {
+    if (item.createBy != this.user.username) {
+      this.toastr.show("❌ ไม่สามารถแก้ไข Note ผู้อื่นได้");
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CreateNoteComponent, {
+      maxWidth: "1000px",
+      minWidth: "300px",
+      data: Object.assign({}, item),
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        result.customerId = this.customer.id;
+
+        await this.noteService.save(result);
+        await this.loadNote();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  updateCustomer() {
+    const dialogRef = this.dialog.open(UpdateCustomerComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: Object.assign({}, this.customer),
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        result.customerId = this.criteria.customerId;
+
+        await this.customerService.updateProfile(result);
+        await this.loadCustomer(result.customerId);
+        await this.loadOrderHistories();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  createNote() {
+    const dialogRef = this.dialog.open(CreateNoteComponent, {
+      maxWidth: "1000px",
+      minWidth: "300px",
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        result.customerId = this.criteria.customerId;
+
+        await this.noteService.save(result);
+        await this.loadNote();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  createTask() {
+    if (!this.criteria.selectedActivityId) {
+      this.toastr.show("กรุณาเลือก Activity.");
+      return;
+    }
+
+    if (
+      this.customer.activityOwner == null ||
+      this.customer.activityOwner != this.user.username
+    ) {
+      this.toastr.show("❌ ไม่สามารถดำเนินการได้ เนื่องจากไม่ใช่ผู้ดูแล");
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ManageTodoComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        scheduleDate: new Date(),
+        hour: "00",
+        minute: "00",
+        noticeDay: 1,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        result.activityId = this.selectedActivity.id;
+
+        this.spinner.show();
+
+        await this.taskService.save(result);
+        await this.loadTasks();
+
+        this.spinner.hide();
+
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  assignActivityOwner() {
+    const dialogRef = this.dialog.open(PopupConfirmComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการดูแลลูกค้ารายนี้.",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        let data = {
+          activityId: this.selectedActivity.id,
+          ownerUser: this.user.username,
+          customerId: this.customer.id,
+        };
+
+        this.spinner.show();
+
+        await this.activityService.assignActivityOwner(data);
+        await this.loadCustomer(this.customer.id);
+        await this.loadOrderHistories();
+
+        this.spinner.hide();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
   }
 }

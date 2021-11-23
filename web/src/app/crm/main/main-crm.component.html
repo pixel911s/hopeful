@@ -6,7 +6,9 @@
         <div class="row">
           <div class="col-12">
             <h5 class="d-inline">รายละเอียดลูกค้า</h5>
-            <a class="float-right text-info poiter d-inline"
+            <a
+              class="float-right text-info poiter d-inline"
+              (click)="updateCustomer()"
               ><small>แก้ไขข้อมูล</small></a
             >
             <hr />
@@ -18,28 +20,37 @@
             <h6 class="d-inline">
               <i
                 class="fab fa-line"
-                style="color: #00b900; width: 20px"
+                style="color: #00b900; width: 30px"
                 *ngIf="customer.channel == 'LINE'"
               ></i>
               <i
                 class="fab fa-facebook"
-                style="color: #1778f2; width: 20px"
+                style="color: #1778f2; width: 30px"
                 *ngIf="customer.channel == 'FACEBOOK'"
               ></i>
               <i
                 class="far fa-address-card"
-                style="width: 20px"
+                style="width: 30px"
                 *ngIf="customer.channel == 'SYSTEM'"
               ></i>
-              {{ customer.name }}
-            </h6>
 
-            <!-- <i class="fab fa-facebook" style="color: #1778f2; width: 20px"></i> -->
+              <span>{{ customer.name }}</span>
+            </h6>
           </div>
           <div class="col-12" *ngIf="customer">
             <h6 class="d-inline">
-              <i class="fas fa-phone-square-alt" style="width: 20px"></i>
-              {{ customer.mobile }}
+              <i class="fas fa-phone-square-alt" style="width: 30px"></i>
+              <span>{{ customer.mobile }}</span>
+            </h6>
+          </div>
+
+          <div class="col-12" *ngIf="customer">
+            <h6 class="d-inline">
+              <i class="far fa-envelope" style="width: 30px"></i>
+              <span class="d-inline" *ngIf="customer.email">{{
+                customer.email
+              }}</span>
+              <span class="d-inline" *ngIf="!customer.email">-</span>
             </h6>
           </div>
         </div>
@@ -51,7 +62,102 @@
         <div class="row">
           <div class="col-12">
             <h5 class="d-inline">Activities</h5>
+            <a
+              class="text-info poiter float-right"
+              (click)="isAdvanceCollapsed = !isAdvanceCollapsed"
+              [attr.aria-expanded]="!isAdvanceCollapsed"
+              ><span *ngIf="isAdvanceCollapsed">+</span
+              ><span *ngIf="!isAdvanceCollapsed">-</span>advance search</a
+            >
             <hr />
+          </div>
+          <div
+            class="col-12"
+            id="isAdvanceCollapsed"
+            [collapse]="isAdvanceCollapsed"
+            [isAnimated]="true"
+          >
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="id">ActivityID</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; advanceSearch()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.code"
+                    class="form-control form-control-sm"
+                    id="id"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="name">ชื่อลูกค้า</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; advanceSearch()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.customerName"
+                    class="form-control form-control-sm"
+                    id="name"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="owner">ผู้ดูแล</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; advanceSearch()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.owner"
+                    class="form-control form-control-sm"
+                    id="owner"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="agent">ตัวแทนจำหน่าย</label>
+                  <select
+                    (change)="criteria.page = 1; search()"
+                    [(ngModel)]="criteria.agent"
+                    class="form-control form-control-sm"
+                    id="agent"
+                  >
+                    <option [ngValue]="undefined">ทั้งหมด</option>
+                    <option
+                      *ngFor="let item of master.agents"
+                      [ngValue]="item.id"
+                    >
+                      {{ item.name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-group">
+                  <label for="status">สถานะ</label>
+                  <ng-multiselect-dropdown
+                    [placeholder]="'โปรดเลือก'"
+                    [settings]="dropdownSettings"
+                    [data]="master.status"
+                    [(ngModel)]="criteria.status"
+                    (onSelect)="criteria.page = 1; advanceSearch()"
+                    (onSelectAll)="criteria.page = 1; advanceSearch()"
+                  >
+                  </ng-multiselect-dropdown>
+                </div>
+              </div>
+              <div class="col-12 m-b-20">
+                <button
+                  id="btnSearch"
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  (click)="criteria.page = 1; advanceSearch()"
+                >
+                  ค้นหา
+                </button>
+              </div>
+            </div>
           </div>
           <div class="col-12">
             <drag-scroll [scrollbar-hidden]="true" style="height: 27px">
@@ -76,15 +182,16 @@
           <div class="col-12 m-b-20" *ngIf="!loadingActivitiesList">
             <div
               class="row"
-              style="max-height: calc(100vh - 433px); overflow: auto"
+              style="max-height: calc(100vh - 453px); overflow: auto"
             >
               <div class="col-12" *ngFor="let item of data.data">
                 <div
                   style="border: 1px solid #e3e3e3; padding: 5px"
+                  class="poiter"
                   [ngClass]="{
-                    'selected-activity':
-                      criteria.selectedActivityId == item.code
+                    'selected-activity': criteria.selectedActivityId == item.id
                   }"
+                  (click)="selectActivity(item.id)"
                 >
                   <div class="row" style="font-size: 0.8rem">
                     <div class="col-7">{{ item.code }}</div>
@@ -94,7 +201,25 @@
                     <div class="col-12">{{ item.description }}</div>
                     <div class="col-6">{{ item.agentName }}</div>
                     <div class="col-6 text-right">
-                      <span class="badge bg-warning">{{ item.status }}</span>
+                      <span
+                        class="badge bg-warning"
+                        *ngIf="item.activityStatusId == 0"
+                        >{{ item.status }}</span
+                      >
+                      <span
+                        class="badge bg-success"
+                        *ngIf="
+                          item.activityStatusId == 1 ||
+                          item.activityStatusId == 2 ||
+                          item.activityStatusId == 3
+                        "
+                        >{{ item.status }}</span
+                      >
+                      <span
+                        class="badge bg-danger"
+                        *ngIf="item.activityStatusId == 4"
+                        >{{ item.status }}</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -129,6 +254,28 @@
         <div class="row">
           <div class="col-12">
             <h5 class="d-inline">Activity ที่เลือก</h5>
+            <span
+              class="badge bg-info m-l-10"
+              *ngIf="
+                customer.activityOwner != null &&
+                customer.activityOwner == user.username
+              "
+              >ท่านเป็นผู้ดูแล</span
+            >
+            <span
+              class="badge bg-danger m-l-10"
+              *ngIf="
+                customer.activityOwner != null &&
+                customer.activityOwner != user.username
+              "
+              >ท่านไม่ใช่ผู้ดูแล</span
+            >
+            <span
+              class="badge bg-warning m-l-10 poiter"
+              *ngIf="customer.activityOwner == null"
+              (click)="assignActivityOwner()"
+              >คลิกเพื่อดูแลลูกค้า</span
+            >
             <a
               class="float-right"
               type="button"
@@ -141,20 +288,54 @@
             </a>
             <hr />
           </div>
-          <div class="col-12 m-b-20">
-            <h6 class="d-inline">A202111-000001</h6>
-            <span class="float-right">04/12/2021</span>
+          <div class="col-12 text-center" *ngIf="loadingActivity">
+            <div class="loader"></div>
           </div>
-          <div class="col-12 m-b-20 text-center">
+          <div class="col-12" *ngIf="selectedActivity">
+            <h6 class="d-inline">{{ selectedActivity.code }}</h6>
+            <span class="float-right">{{
+              selectedActivity.dueDate | date: "dd/MM/yyyy"
+            }}</span>
+          </div>
+          <div class="col-12 m-b-20" *ngIf="selectedActivity">
+            {{ selectedActivity.description }}
+          </div>
+          <div class="col-12 text-center" *ngIf="selectedActivity">
             <ul id="breadcrumbs-two">
-              <li><a href="" class="pass">รอดำเนินการ</a></li>
-              <li><a href="" class="">ดำเนินการ</a></li>
-              <li><a href="" class="">ส่งใบเสนอราคา</a></li>
-              <li><a href="" class="">ปิดการขาย</a></li>
-              <li><a href="" class="">ยกเลิก</a></li>
+              <li><a (click)="updateStatus(0)" class="pass">รอดำเนินการ</a></li>
+              <li>
+                <a
+                  (click)="updateStatus(1)"
+                  [ngClass]="{ pass: selectedActivity.activityStatusId >= 1 }"
+                  >ดำเนินการ</a
+                >
+              </li>
+              <li>
+                <a
+                  (click)="updateStatus(2)"
+                  [ngClass]="{ pass: selectedActivity.activityStatusId >= 2 }"
+                  >เสนอราคา</a
+                >
+              </li>
+              <li>
+                <a
+                  (click)="updateStatus(3)"
+                  [ngClass]="{ pass: selectedActivity.activityStatusId >= 3 }"
+                  >ปิดการขาย</a
+                >
+              </li>
+              <li>
+                <a
+                  class="ccc"
+                  (click)="updateStatus(4)"
+                  [ngClass]="{
+                    cancel: selectedActivity.activityStatusId == 4
+                  }"
+                  >ยกเลิก</a
+                >
+              </li>
             </ul>
           </div>
-          <div class="col-12">B002-ทดสอบ 002 : 1 กระปุก</div>
         </div>
       </div>
     </div>
@@ -163,139 +344,161 @@
       <div class="card-body">
         <div class="row">
           <div class="col-12">
-            <h5 class="d-inline">To do list</h5>
+            <h5 class="d-inline">Tasks</h5>
+            <a class="poiter text-info float-right" (click)="createTask()"
+              >เพิ่ม Task+</a
+            >
             <hr />
           </div>
-          <div
-            class="col-12 text-right"
-            *ngIf="openTasks && openTasks.length > 0"
-          >
+          <!-- <div class="col-12 m-b-20">
             <div
-              class="text-info text-right poiter"
-              (click)="isTodoCollapsed1 = !isTodoCollapsed1"
-              [attr.aria-expanded]="!isTodoCollapsed1"
-              aria-controls="collapseBasic"
+              style="border: 1px solid #e3e3e3; padding: 20px"
+              class="text-center"
             >
-              รายการที่ต้องทำ
-              <i class="ft-chevron-down" *ngIf="isTodoCollapsed1"></i
-              ><i class="ft-minus" *ngIf="!isTodoCollapsed1"></i>
+              <a class="poiter text-info" (click)="createTask()">เพิ่ม Task+</a>
             </div>
-          </div>
-          <div
-            id="collapseBasic"
-            [collapse]="isTodoCollapsed1"
-            [isAnimated]="true"
-            class="m-b-20"
-          >
-            <div
-              class="col-12 m-b-5"
-              *ngFor="let item of openTasks; let index = index"
-            >
-              <div class="task-box">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="custom-control custom-checkbox">
-                      <input
-                        type="checkbox"
-                        class="custom-control-input"
-                        id="selectViewOrder{{ index }}"
-                        [(ngModel)]="item.isClose"
-                        (change)="close(item)"
-                      />
-                      <label
-                        class="custom-control-label poiter"
-                        for="selectViewOrder{{ index }}"
-                        style="word-break: break-all"
-                        >{{ item.description }}</label
-                      >
+          </div> -->
+          <div class="col-12 section-task">
+            <div class="row">
+              <div
+                class="col-12 text-right"
+                *ngIf="openTasks && openTasks.length > 0"
+              >
+                <div
+                  class="text-info text-right poiter"
+                  (click)="isTodoCollapsed1 = !isTodoCollapsed1"
+                  [attr.aria-expanded]="!isTodoCollapsed1"
+                  aria-controls="collapseBasic"
+                  style="background-color: #e7e7e7; padding: 5px"
+                >
+                  รายการที่ต้องทำ
+                  <i class="ft-chevron-down" *ngIf="isTodoCollapsed1"></i
+                  ><i class="ft-minus" *ngIf="!isTodoCollapsed1"></i>
+                </div>
+              </div>
+              <div
+                id="collapseBasic"
+                [collapse]="isTodoCollapsed1"
+                [isAnimated]="true"
+                class="m-b-20 w-100"
+              >
+                <div
+                  class="col-12 m-b-5"
+                  *ngFor="let item of openTasks; let index = index"
+                >
+                  <div class="task-box">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="selectViewOrder{{ index }}"
+                            [(ngModel)]="item.isClose"
+                            (change)="close(item)"
+                          />
+                          <label
+                            class="custom-control-label poiter"
+                            for="selectViewOrder{{ index }}"
+                            style="word-break: break-all"
+                            >{{ item.description }}</label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-4 text-right">
+                        {{ item.createBy }}
+                      </div>
+                      <div class="col-6">
+                        <a
+                          class="text-info"
+                          (click)="selectActivity(item.activityId)"
+                          ><small>{{ item.activityCode }}</small></a
+                        >
+                      </div>
+                      <div class="col-6 text-right">
+                        <small
+                          >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
+                          {{ item.scheduleTime }}</small
+                        >
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-4 text-right">
-                    {{ item.createBy }}
-                  </div>
-                  <div class="col-6">
-                    <a class="text-info"
-                      ><small>{{ item.activityCode }}</small></a
-                    >
-                  </div>
-                  <div class="col-6 text-right">
-                    <small
-                      >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
-                      {{ item.scheduleTime }}</small
-                    >
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div
-            class="col-12 text-right"
-            *ngIf="closeTasks && closeTasks.length > 0"
-          >
-            <!-- <button
-              type="button"
-              class="btn btn-primary"
-              (click)="isTodoCollapsed2 = !isTodoCollapsed2"
-              [attr.aria-expanded]="!isTodoCollapsed2"
-              aria-controls="collapseBasic"
-            >
-              รายการที่ทำเสร็จแล้ว
-              <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
-              ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
-            </button> -->
-            <div
-              class="text-info text-right poiter"
-              (click)="isTodoCollapsed2 = !isTodoCollapsed2"
-              [attr.aria-expanded]="!isTodoCollapsed2"
-              aria-controls="collapseBasic"
-            >
-              รายการที่ทำเสร็จแล้ว
-              <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
-              ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
-            </div>
-          </div>
-          <div
-            id="collapseBasic"
-            [collapse]="isTodoCollapsed2"
-            [isAnimated]="true"
-          >
-            <div class="col-12 m-b-5" *ngFor="let item of closeTasks">
-              <div class="task-box">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="custom-control custom-checkbox">
-                      <input
-                        type="checkbox"
-                        class="custom-control-input"
-                        id="selectViewOrder{{ index }}"
-                        [(ngModel)]="item.isClose"
-                        (change)="reopen(item)"
-                      />
-                      <label
-                        class="custom-control-label poiter"
-                        for="selectViewOrder{{ index }}"
-                        style="
-                          word-break: break-all;
-                          text-decoration-line: line-through;
-                        "
-                        >{{ item.description }}</label
-                      >
+              <div
+                class="col-12 text-right"
+                *ngIf="closeTasks && closeTasks.length > 0"
+              >
+                <!-- <button
+                type="button"
+                class="btn btn-primary"
+                (click)="isTodoCollapsed2 = !isTodoCollapsed2"
+                [attr.aria-expanded]="!isTodoCollapsed2"
+                aria-controls="collapseBasic"
+              >
+                รายการที่ทำเสร็จแล้ว
+                <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
+                ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
+              </button> -->
+                <div
+                  class="text-info text-right poiter"
+                  (click)="isTodoCollapsed2 = !isTodoCollapsed2"
+                  [attr.aria-expanded]="!isTodoCollapsed2"
+                  aria-controls="collapseBasic"
+                  style="background-color: #e7e7e7; padding: 5px"
+                >
+                  รายการที่ทำเสร็จแล้ว
+                  <i class="ft-chevron-down" *ngIf="isTodoCollapsed2"></i
+                  ><i class="ft-minus" *ngIf="!isTodoCollapsed2"></i>
+                </div>
+              </div>
+              <div
+                id="collapseBasic"
+                [collapse]="isTodoCollapsed2"
+                [isAnimated]="true"
+                class="w-100"
+              >
+                <div class="col-12 m-b-5" *ngFor="let item of closeTasks">
+                  <div class="task-box">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="selectViewOrder{{ index }}"
+                            [(ngModel)]="item.isClose"
+                            (change)="reopen(item)"
+                          />
+                          <label
+                            class="custom-control-label poiter"
+                            for="selectViewOrder{{ index }}"
+                            style="
+                              word-break: break-all;
+                              text-decoration-line: line-through;
+                            "
+                            >{{ item.description }}</label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-4 text-right">
+                        {{ item.createBy }}
+                      </div>
+                      <div class="col-6">
+                        <a
+                          class="text-info"
+                          (click)="selectActivity(item.activityId)"
+                          ><small>{{ item.activityCode }}</small></a
+                        >
+                      </div>
+                      <div class="col-6 text-right">
+                        <small
+                          >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
+                          {{ item.scheduleTime }}</small
+                        >
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-4 text-right">
-                    {{ item.createBy }}
-                  </div>
-                  <div class="col-6">
-                    <a class="text-info"
-                      ><small>{{ item.activityCode }}</small></a
-                    >
-                  </div>
-                  <div class="col-6 text-right">
-                    <small
-                      >{{ item.scheduleDate | date: "dd/MM/yyyy" }}
-                      {{ item.scheduleTime }}</small
-                    >
                   </div>
                 </div>
               </div>
@@ -330,23 +533,69 @@
             [collapse]="isNoteCollapsed"
             [isAnimated]="true"
           >
-            <div class="text-right m-b-10">
-              <a class="poiter text-info">เพิ่มNote+</a>
+            <div
+              class="text-right m-b-10"
+              *ngIf="!loadingNote && notes && notes.data"
+            >
+              <a class="poiter text-info" (click)="createNote()">เพิ่มNote+</a>
             </div>
 
-            <div class="note" *ngFor="let item of [1, 2, 3]">
+            <div *ngIf="!loadingNote && (!notes || !notes.data)">
+              <div
+                style="border: 1px solid #e3e3e3; padding: 20px"
+                class="text-center"
+              >
+                <a class="poiter text-info" (click)="createNote()"
+                  >เพิ่มNote+</a
+                >
+              </div>
+            </div>
+
+            <div class="text-center" *ngIf="loadingNote">
+              <div class="loader"></div>
+            </div>
+
+            <div class="note" *ngFor="let item of notes.data">
               <div class="row">
                 <div class="col-9">
-                  <small>19/11/2021 23:59:59</small>
+                  <small>{{
+                    item.createDate | date: "dd/MM/yyyy HH:mm:ss"
+                  }}</small>
                 </div>
-                <div class="col-3 text-right text-danger">
-                  <i class="fas fa-times"></i>
+                <div class="col-3 text-right">
+                  <i
+                    (click)="updateNote(item)"
+                    class="fas fa-edit poiter text-info"
+                  ></i>
+
+                  <i
+                    (click)="deleteNote(item)"
+                    class="far fa-trash-alt m-l-10 text-danger poiter"
+                  ></i>
                 </div>
-                <div class="col-12">xxxxxxxxxxxxx</div>
+                <div class="col-12" style="white-space: pre-line">
+                  {{ item.description }}
+                </div>
                 <div class="col-12">
-                  <small>canonmix</small>
+                  <small>{{ item.createBy }}</small>
                 </div>
               </div>
+            </div>
+            <div
+              *ngIf="
+                !loadingNote &&
+                notes.data &&
+                notes.totalRecord > noteCriteria.size
+              "
+            >
+              <ngb-pagination
+                class="float-right"
+                [(page)]="noteCriteria.page"
+                [pageSize]="noteCriteria.size"
+                [maxSize]="5"
+                [collectionSize]="notes.totalRecord"
+                (pageChange)="loadNote()"
+              ></ngb-pagination>
             </div>
           </div>
 
@@ -381,20 +630,52 @@
             >
               <div class="row">
                 <div class="col-12 text-right">
-                  <a class="text-info poiter">SO202111-000033</a>
+                  <a
+                    class="text-info poiter"
+                    [routerLink]="['/order/view/' + item.id]"
+                    routerLinkActive="router-link-active"
+                    >{{ item.orderNo }}</a
+                  >
                 </div>
 
                 <div class="col-12 text-right">
-                  <small>19/11/2021</small>
+                  <small>{{ item.orderDate | date: "dd/MM/yyyy" }}</small>
                 </div>
 
                 <div class="col-12 text-right">
-                  <small>HQ : canonmix</small>
+                  <small>{{ item.businessName }} : {{ item.createBy }}</small>
                 </div>
                 <div class="col-12 text-right">
-                  <h5>ยอด 5,990.00</h5>
+                  <h5>ยอด {{ item.netAmount | number: ".2" }}</h5>
                 </div>
               </div>
+            </div>
+            <div
+              *ngIf="
+                !loadingOrder &&
+                customer.orders.data &&
+                customer.orders.totalRecord > orderCriteria.size
+              "
+            >
+              <ngb-pagination
+                class="float-right"
+                [(page)]="orderCriteria.page"
+                [pageSize]="orderCriteria.size"
+                [maxSize]="5"
+                [collectionSize]="customer.orders.totalRecord"
+                (pageChange)="loadOrderHistories()"
+              ></ngb-pagination>
+            </div>
+          </div>
+          <div
+            class="col-12"
+            *ngIf="!loadingOrder && (!customer || !customer.orders.data)"
+          >
+            <div
+              style="border: 1px solid #e3e3e3; padding: 20px"
+              class="text-center"
+            >
+              ไม่มีประวัติการสั่งซื้อ
             </div>
           </div>
 

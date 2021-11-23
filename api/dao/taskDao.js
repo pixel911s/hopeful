@@ -6,6 +6,7 @@ module.exports = {
   closeTask,
   recallTask,
   getTaskList,
+  closeAllTask,
 };
 
 async function get(conn, id) {
@@ -52,7 +53,7 @@ async function save(conn, model) {
       let _result = await conn.query(sql, [
         model.activityId,
         model.description.trim(),
-        model.scheduleDate,
+        model.scheduleDate ? new Date(model.scheduleDate) : null,
         model.scheduleTime,
         model.noticeDay,
         false,
@@ -108,7 +109,7 @@ async function recallTask(conn, id, username) {
   }
 }
 
-async function getTaskList(conn, ownerUser, taskStatus) {
+async function getTaskList(conn, criteria) {
   //== taskStatus
   //== O : Open
   //== C : Close
@@ -116,12 +117,18 @@ async function getTaskList(conn, ownerUser, taskStatus) {
     let params = [];
 
     let sql =
-      "select t.*, activity.code as activityCode from task t left join activity activity on t.activityId = activity.id where  1=1 ";
-    if (ownerUser && ownerUser != "") {
+      "select t.*, activity.code as activityCode, activity.customerId  from task t left join activity activity on t.activityId = activity.id where  1=1 ";
+    if (criteria.username) {
       sql += " and t.createBy=?";
-      params.push(ownerUser);
+      params.push(criteria.username);
     }
-    if (taskStatus == "C") {
+
+    if (criteria.customerId) {
+      sql += " and activity.customerId=?";
+      params.push(criteria.customerId);
+    }
+
+    if (criteria.taskStatus == "C") {
       sql += " and t.isClose=true";
     } else {
       sql += " and t.isClose=false";
@@ -133,5 +140,20 @@ async function getTaskList(conn, ownerUser, taskStatus) {
     return result;
   } catch (err) {
     throw err;
+  }
+}
+
+async function closeAllTask(conn, id, username) {
+  try {
+    // ปิด Task
+    let sql =
+      "update task set `isClose`=true, `closeDate`=?, `updateBy`=?, `updateDate`=? where activityId = ?";
+
+    await conn.query(sql, [new Date(), username, new Date(), id]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }

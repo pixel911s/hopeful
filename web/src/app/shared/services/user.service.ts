@@ -28,6 +28,12 @@ export class UserService {
       .toPromise();
   }
 
+  getUseragent(criteria) {
+    return this.http
+      .post(environment.apiUrl + "/user/getUseragent", criteria)
+      .toPromise();
+  }
+
   save(data) {
     data.shopId = this.authService.getUser().shopId;
     data.updateUser = this.authService.getUser().username;

@@ -35,25 +35,17 @@ async function get(req, res) {
 
 async function save(req, res) {
   const conn = await pool.getConnection();
-  conn.beginTransaction();
   try {
-    let model = JSON.parse(req.body.data);
+    let model = req.body;
 
     await taskDao.save(conn, model);
-
-    conn.commit();
 
     return res.send(
       util.callbackSuccess("บันทึกข้อมูล Task เสร็จสมบูรณ์", true)
     );
   } catch (e) {
     console.log(e);
-    conn.rollback();
-    if (e.code == "ER_DUP_ENTRY") {
-      return res.status(401).send("มีข้อมูล Task นี้แล้วในระบบ");
-    } else {
-      return res.status(500).send(e.message);
-    }
+    return res.status(500).send(e.message);
   } finally {
     conn.release();
   }
@@ -118,7 +110,9 @@ async function getOpenTask(req, res) {
     //username = ใส่ค่าว่างหรือไม่ส่ง หากต้องการดูทั้งหมด , หากต้องการดูเฉพาะของตัวเอง ให้ส่ง username มา
     //taskStatus = O - Task ที่ยังไม่ปิด
 
-    let result = await taskDao.getTaskList(conn, criteria.username, "O");
+    criteria.taskStatus = "O";
+
+    let result = await taskDao.getTaskList(conn, criteria);
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
@@ -138,7 +132,9 @@ async function getCloseTask(req, res) {
     //username = ใส่ค่าว่างหรือไม่ส่ง หากต้องการดูทั้งหมด , หากต้องการดูเฉพาะของตัวเอง ให้ส่ง username มา
     //taskStatus = C - Task ที่ปิดแล้ว
 
-    let result = await taskDao.getTaskList(conn, criteria.username, "C");
+    criteria.taskStatus = "C";
+
+    let result = await taskDao.getTaskList(conn, criteria);
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
