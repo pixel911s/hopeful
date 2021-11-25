@@ -246,61 +246,132 @@ async function addOrder(model, conn) {
 
     //=== Add Activity ==========================================
 
-    let _activityDesc =
-      orderItem.code +
-      "-" +
-      orderItem.name +
-      " : " +
-      orderItem.qty +
-      " " +
-      orderItem.unit;
-    let _activityCode = await runningDao.getNextRunning(
-      conn,
-      "A",
-      _date.getFullYear(),
-      month
-    );
-    //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-    let _remainingDay = +orderItem.remainingDay * +orderItem.qty;
+    if (orderItem.isSet) {
 
-    let _dueDate = new Date();
-    _dueDate.setDate(_dueDate.getDate() + _remainingDay);
-    _dueDate = _dueDate.setHours(0, 0, 0, 0);
+      //=== กรณีเป็นสินค้าเซต ให้เอาสินค้าจาก ItemSet ที่แนบมาใช้
 
-    let _activity = {
-      code: _activityCode,
-      description: _activityDesc,
-      productId: orderItem.id,
-      remainingDay: _remainingDay,
-      dueDate: _dueDate,
-      agentId: model.ownerId,
-      customerId: model.customerId,
-      ownerUser: _activityOwner,
-      activityStatusId: 0,
-      refOrderId: _orderId,
-      refOrderItemId: _orderItemId,
-      username: model.username,
-    };
+      for (let i = 0; i < orderItem.itemSet.length; i++) {
+        const element = orderItem.itemSet[i];
 
-    console.log("ACTIVITY : ", _activity);
+        let _activityDesc =
+          element.product.code +
+          "-" +
+          element.product.name +
+          " : " +
+          element.qty +
+          " " +
+          element.product.unit;
+        let _activityCode = await runningDao.getNextRunning(
+          conn,
+          "A",
+          _date.getFullYear(),
+          month
+        );
+        //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
+        let _remainingDay = +element.product.remainingDay * +element.qty;
 
-    let _activityId = await activityDao.save(conn, _activity);
+        let _dueDate = new Date(model.orderDate);
+        _dueDate.setDate(_dueDate.getDate() + _remainingDay);
+        _dueDate = _dueDate.setHours(0, 0, 0, 0);
+
+        let _activity = {
+          code: _activityCode,
+          description: _activityDesc,
+          productId: orderItem.id,
+          remainingDay: _remainingDay,
+          dueDate: _dueDate,
+          agentId: model.ownerId,
+          customerId: model.customerId,
+          ownerUser: _activityOwner,
+          activityStatusId: 0,
+          refOrderId: _orderId,
+          refOrderItemId: _orderItemId,
+          username: model.username,
+        };
+
+        console.log("ACTIVITY : ", _activity);
+
+        let _activityId = await activityDao.save(conn, _activity);
+
+        let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
+
+      let _auditLog = {
+        logType: "activity",
+        logDesc: _logDesc,
+        logBy: model.username,
+        refTable: "activity",
+        refId: _activityId
+      }
+
+      await auditLogDao.save(conn, _auditLog);
+
+
+      }
+
+    } else {
+
+      //==== กรณีไม่ใช่สินค้า Set
+
+      let _activityDesc =
+        orderItem.code +
+        "-" +
+        orderItem.name +
+        " : " +
+        orderItem.qty +
+        " " +
+        orderItem.unit;
+      let _activityCode = await runningDao.getNextRunning(
+        conn,
+        "A",
+        _date.getFullYear(),
+        month
+      );
+      //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
+      let _remainingDay = +orderItem.remainingDay * +orderItem.qty;
+
+      let _dueDate = new Date(model.orderDate);
+      _dueDate.setDate(_dueDate.getDate() + _remainingDay);
+      _dueDate = _dueDate.setHours(0, 0, 0, 0);
+
+      let _activity = {
+        code: _activityCode,
+        description: _activityDesc,
+        productId: orderItem.id,
+        remainingDay: _remainingDay,
+        dueDate: _dueDate,
+        agentId: model.ownerId,
+        customerId: model.customerId,
+        ownerUser: _activityOwner,
+        activityStatusId: 0,
+        refOrderId: _orderId,
+        refOrderItemId: _orderItemId,
+        username: model.username,
+      };
+
+      console.log("ACTIVITY : ", _activity);
+
+      let _activityId = await activityDao.save(conn, _activity);
+
+      //==== Add Audit Log ========================================
+
+      let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
+
+      let _auditLog = {
+        logType: "activity",
+        logDesc: _logDesc,
+        logBy: model.username,
+        refTable: "activity",
+        refId: _activityId
+      }
+
+      await auditLogDao.save(conn, _auditLog);
+    }
+
+
 
     //===========================================================
 
-    //==== Add Audit Log ========================================
 
-    let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
-
-    let _auditLog = {
-      logType: "activity",
-      logDesc: _logDesc,
-      logBy: model.username,
-      refTable: "activity",
-      refId: _activityId
-    }
-
-    await auditLogDao.save(conn, _auditLog);
   }
 
   return true;

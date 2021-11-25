@@ -304,8 +304,8 @@ async function saveDetail(conn, model) {
     let _id = 0;
 
     let sql =
-      "insert into orderItem (`orderId`,`productId`,`qty`,`price`,`discount`,`itemAmount`)";
-    sql += "  VALUES (?,?,?,?,?,?)";
+      "insert into orderItem (`orderId`,`productId`,`qty`,`price`,`discount`,`itemAmount`,`isSet`,`itemSet`)";
+    sql += "  VALUES (?,?,?,?,?,?,?,?)";
 
     let _result = await conn.query(sql, [
       model.orderId,
@@ -314,6 +314,8 @@ async function saveDetail(conn, model) {
       model.price,
       model.discount,
       model.itemAmount,
+      model.isSet,
+      JSON.stringify(model.itemSet)
     ]);
 
     _id = _result.insertId;
