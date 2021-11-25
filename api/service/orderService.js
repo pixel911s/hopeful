@@ -8,6 +8,8 @@ var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
 var activityDao = require("../dao/activityDao");
 
+var auditLogDao = require("../dao/auditLogDao");
+
 const config = require("config");
 const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
@@ -297,8 +299,8 @@ async function addOrder(model, conn) {
       logDesc: _logDesc,
       logBy: model.username,
       refTable: "activity",
-      refId: _activityId
-    }
+      refId: _activityId,
+    };
 
     await auditLogDao.save(conn, _auditLog);
   }
