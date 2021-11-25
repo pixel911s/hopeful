@@ -28,4 +28,43 @@ export class ActivityService {
       .post(environment.apiUrl + "/activity/getSummaryActivityCount", data)
       .toPromise();
   }
+
+  get(id) {
+    let criteria = {
+      id: id,
+      userAgents: this.authService.getUser().userAgents,
+    };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+
+    return this.http
+      .post(environment.apiUrl + "/activity/get", criteria)
+      .toPromise();
+  }
+
+  updateActivityStatus(id, activityStatusId) {
+    let criteria = {
+      id: id,
+      userAgents: this.authService.getUser().userAgents,
+      activityStatusId: activityStatusId,
+      username: this.authService.getUser().username,
+    };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+
+    return this.http
+      .post(environment.apiUrl + "/activity/updateActivityStatus", criteria)
+      .toPromise();
+  }
+
+  assignActivityOwner(data) {
+    data.username = this.authService.getUser().username;
+    return this.http
+      .post(environment.apiUrl + "/activity/assignActivityOwner", data)
+      .toPromise();
+  }
 }

@@ -1,0 +1,103 @@
+<div
+  mat-dialog-content
+  style="max-height: 90vh"
+  class="m-b-20"
+  *ngIf="data"
+  [formGroup]="formGroup"
+>
+  <div class="row">
+    <div class="col-12">
+      <h5 class="d-inline">ข้อมูลลูกค้า</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.name.touched && f.name.errors?.required
+        }"
+      >
+        <label for="name">ชื่อลูกค้า</label>
+        <input
+          autocomplete="off"
+          id="name"
+          maxlength="300"
+          class="form-control form-control-sm"
+          formControlName="name"
+          [(ngModel)]="data.name"
+          [ngClass]="{
+            'is-invalid': f.name.touched && f.name.errors,
+            'is-valid': f.name.touched && !f.name.errors
+          }"
+        />
+        <small
+          class="text-danger d-block"
+          *ngIf="f.name.touched && f.name.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.mobile.touched && f.mobile.errors?.required
+        }"
+      >
+        <label for="mobile">เบอร์ติดต่อ</label>
+        <input
+          autocomplete="off"
+          id="mobile"
+          maxlength="50"
+          class="form-control form-control-sm"
+          formControlName="mobile"
+          [(ngModel)]="data.mobile"
+          [ngClass]="{
+            'is-invalid': f.mobile.touched && f.mobile.errors,
+            'is-valid': f.mobile.touched && !f.mobile.errors
+          }"
+        />
+        <small
+          class="text-danger d-block"
+          *ngIf="f.mobile.touched && f.mobile.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="form-group">
+        <label for="email">อีเมล</label>
+        <input
+          autocomplete="off"
+          maxlength="100"
+          class="form-control form-control-sm"
+          formControlName="email"
+          [(ngModel)]="data.email"
+        />
+      </div>
+    </div>
+
+    <div class="col-12 text-right">
+      <button
+        id="btnCancel"
+        type="button"
+        class="btn btn-secondary"
+        (click)="onNoClick()"
+      >
+        ยกเลิก
+      </button>
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary m-l-10"
+        (click)="save()"
+      >
+        ยืนยัน
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,171 @@
+<div
+  mat-dialog-content
+  style="max-height: 90vh"
+  class="m-b-20"
+  *ngIf="data"
+  [formGroup]="formGroup"
+>
+  <div class="row">
+    <div class="col-12">
+      <h5 class="d-inline">จัดการ Task</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.description.touched && f.description.errors?.required
+        }"
+      >
+        <label for="description">รายละเอียด</label>
+        <textarea
+          autocomplete="off"
+          id="description"
+          rows="4"
+          class="form-control form-control-sm"
+          formControlName="description"
+          [(ngModel)]="data.description"
+          [ngClass]="{
+            'is-invalid': f.description.touched && f.description.errors,
+            'is-valid': f.description.touched && !f.description.errors
+          }"
+        ></textarea>
+        <small
+          class="text-danger d-block"
+          *ngIf="f.description.touched && f.description.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.scheduleDate.touched && f.scheduleDate.errors
+        }"
+      >
+        <label for="scheduleDate">วันที่นัดหมาย *</label>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          bsDatepicker
+          formControlName="scheduleDate"
+          [(ngModel)]="data.scheduleDate"
+          [ngClass]="{
+            'is-invalid': f.scheduleDate.touched && f.scheduleDate.errors,
+            'is-valid': f.scheduleDate.touched && !f.scheduleDate.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.scheduleDate.touched && f.scheduleDate.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+    <div class="col-6">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.hour.touched && f.hour.errors
+        }"
+      >
+        <label for="hour">เวลาชั่วโมง *</label>
+        <select
+          class="form-control form-control-sm"
+          id="hour"
+          formControlName="hour"
+          [(ngModel)]="data.hour"
+          [ngClass]="{
+            'is-invalid': f.hour.touched && f.hour.errors,
+            'is-valid': f.hour.touched && !f.hour.errors
+          }"
+        >
+          <option *ngFor="let item of hours" [ngValue]="item">
+            {{ item }}
+          </option>
+        </select>
+        <small
+          class="text-danger"
+          *ngIf="f.hour.touched && f.hour.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+    <div class="col-6">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.minute.touched && f.minute.errors
+        }"
+      >
+        <label for="minute">เวลานาที *</label>
+        <select
+          class="form-control form-control-sm"
+          id="minute"
+          formControlName="minute"
+          [(ngModel)]="data.minute"
+          [ngClass]="{
+            'is-invalid': f.minute.touched && f.minute.errors,
+            'is-valid': f.minute.touched && !f.minute.errors
+          }"
+        >
+          <option *ngFor="let item of minutes" [ngValue]="item">
+            {{ item }}
+          </option>
+        </select>
+        <small
+          class="text-danger"
+          *ngIf="f.minute.touched && f.minute.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.noticeDay.touched && f.noticeDay.errors
+        }"
+      >
+        <label for="noticeDay">แจ้งเตือนล่วงหน้า (วัน) *</label>
+        <input
+          class="form-control form-control-sm"
+          id="noticeDay"
+          type="number"
+          formControlName="noticeDay"
+          [(ngModel)]="data.noticeDay"
+          [ngClass]="{
+            'is-invalid': f.noticeDay.touched && f.noticeDay.errors,
+            'is-valid': f.noticeDay.touched && !f.noticeDay.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.noticeDay.touched && f.noticeDay.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+    <div class="col-12 text-right">
+      <button
+        id="btnCancel"
+        type="button"
+        class="btn btn-secondary"
+        (click)="onNoClick()"
+      >
+        ยกเลิก
+      </button>
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary m-l-10"
+        (click)="save()"
+      >
+        ยืนยัน
+      </button>
+    </div>
+  </div>
+</div>

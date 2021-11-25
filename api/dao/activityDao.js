@@ -10,7 +10,7 @@ module.exports = {
   cancelActivityByOrderId,
   inquiry,
   getActivityDateConfig,
-  updateOwner
+  updateOwner,
 };
 
 async function get(conn, id) {
@@ -81,7 +81,7 @@ async function save(conn, model) {
         model.refOrderItemId,
         model.username,
         new Date(),
-        new Date()
+        new Date(),
       ]);
 
       console.log("INSERT RESULT : ", _result);
@@ -98,16 +98,34 @@ async function save(conn, model) {
   }
 }
 
-async function updateActivityStatus(conn, id, activityStatusId, username, date0, date1, date2, date3, date4) {
+async function updateActivityStatus(
+  conn,
+  id,
+  activityStatusId,
+  username,
+  date0,
+  date1,
+  date2,
+  date3,
+  date4
+) {
   try {
     //Update Activity Status
-   
+
     let sql =
       "update activity set `activityStatusId`=?, `updateBy`=?, `statusDate0`=?, `statusDate1`=?, `statusDate2`=?, `statusDate3`=?, `statusDate4`=?, `updateDate`=? where id = ?";
 
-    await conn.query(sql, [activityStatusId, username, date0, date1, date2, date3, date4, new Date(), id]);
-
-    
+    await conn.query(sql, [
+      activityStatusId,
+      username,
+      date0,
+      date1,
+      date2,
+      date3,
+      date4,
+      new Date(),
+      id,
+    ]);
 
     return true;
   } catch (e) {
@@ -270,13 +288,13 @@ async function getActivityDateConfig(conn, username) {
   }
 }
 
-async function updateOwner(conn, activityId, ownerUser, username) {
+async function updateOwner(conn, customerId, ownerUser, username) {
   try {
     //Update Activity Status
     let sql =
-      "update activity set `ownerUser`=?, `updateBy`=?, `updateDate`=? where id = ?";
+      "update activity set `ownerUser`=?, `updateBy`=?, `updateDate`=? where customerId = ? and activityStatusId != 3 and activityStatusId != 4";
 
-    await conn.query(sql, [ownerUser, username, new Date(), activityId]);
+    await conn.query(sql, [ownerUser, username, new Date(), customerId]);
 
     return true;
   } catch (e) {

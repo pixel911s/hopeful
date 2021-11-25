@@ -19,6 +19,8 @@ module.exports = {
   deleteAgent,
   getAgent,
   getAgentObj,
+
+  getUseragent,
 };
 
 async function getHQUser(conn, criteria) {
@@ -337,6 +339,22 @@ async function getAgentObj(conn, username) {
     let sql =
       "select bu.* from business bu left join userAgent ua on bu.id = ua.agentId where ua.userName = ? order by bu.name asc";
     const result = await conn.query(sql, [username]);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function getUseragent(conn, agentId) {
+  try {
+    let sql = "SELECT * FROM useragent where agentId = ? order by username asc";
+
+    if (agentId == 1) {
+      sql = "SELECT * FROM user where businessId = ? order by username asc";
+    }
+
+    const result = await conn.query(sql, [agentId]);
 
     return result;
   } catch (err) {

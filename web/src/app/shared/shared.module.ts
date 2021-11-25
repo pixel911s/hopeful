@@ -45,6 +45,7 @@ import { AngularDualListBoxModule } from "angular-dual-listbox";
 import { CollapseModule } from "ngx-bootstrap/collapse";
 import { DragScrollModule } from "ngx-drag-scroll";
 import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
+import { TimepickerModule } from "ngx-bootstrap/timepicker";
 
 @NgModule({
   exports: [
@@ -72,6 +73,7 @@ import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
     CollapseModule,
     DragScrollModule,
     NgMultiSelectDropDownModule,
+    TimepickerModule,
   ],
   imports: [
     RouterModule,
@@ -100,6 +102,7 @@ import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
     CollapseModule,
     DragScrollModule,
     NgMultiSelectDropDownModule,
+    TimepickerModule.forRoot(),
   ],
   declarations: [
     FooterComponent,

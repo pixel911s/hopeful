@@ -27,6 +27,8 @@ ul {
 }
 
 #breadcrumbs-two {
+  display: flex;
+  justify-content: center;
   zoom: 80%;
   overflow: hidden;
   width: 100%;
@@ -38,6 +40,21 @@ ul {
 
     &::after {
       border-left-color: #28a745;
+    }
+  }
+
+  .ccc {
+    &:hover {
+      color: white;
+      background: #f32e2e;
+
+      &::before {
+        border-color: #f32e2e #f32e2e #f32e2e transparent;
+      }
+
+      &::after {
+        border-left-color: #f32e2e;
+      }
     }
   }
 
@@ -118,7 +135,12 @@ ul {
 }
 
 .section1 {
-  height: calc(100vh - 260px);
+  height: calc(100vh - 280px);
+  overflow: auto;
+}
+
+.section-task {
+  height: calc(100vh - 411px);
   overflow: auto;
 }
 

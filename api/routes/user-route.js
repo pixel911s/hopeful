@@ -15,5 +15,6 @@ router.route("/search").post(userService.search);
 router.route("/get").post(userService.get);
 router.route("/login").post(userService.login);
 router.route("/change-password").post(userService.changePassword);
+router.route("/getUseragent").post(userService.getUseragent);
 
 module.exports = router;

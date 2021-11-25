@@ -7,18 +7,26 @@ import { AuthService } from "../auth/auth.service";
 export class TaskService {
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  getOpenTask() {
+  save(data) {
+    data.username = this.authService.getUser().username;
+
+    return this.http.post(environment.apiUrl + "/task/save", data).toPromise();
+  }
+
+  getOpenTask(customerId = null) {
     let data = {
       username: this.authService.getUser().username,
+      customerId: customerId,
     };
     return this.http
       .post(environment.apiUrl + "/task/getOpenTask", data)
       .toPromise();
   }
 
-  getCloseTask() {
+  getCloseTask(customerId = null) {
     let data = {
       username: this.authService.getUser().username,
+      customerId: customerId,
     };
     return this.http
       .post(environment.apiUrl + "/task/getCloseTask", data)

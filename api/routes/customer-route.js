@@ -11,5 +11,6 @@ router.use(function (req, res, next) {
 router.route("/get").post(customerService.get);
 router.route("/getByMobile").post(customerService.getByMobile);
 router.route("/getAddress").post(customerService.getAddress);
+router.route("/updateProfile").post(customerService.updateProfile);
 
 module.exports = router;

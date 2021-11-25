@@ -29,4 +29,12 @@ export class CustomerService {
       .post(environment.apiUrl + "/customer/get", criteria)
       .toPromise();
   }
+
+  updateProfile(data) {
+    data.username = this.authService.getUser().username;
+
+    return this.http
+      .post(environment.apiUrl + "/customer/updateProfile", data)
+      .toPromise();
+  }
 }

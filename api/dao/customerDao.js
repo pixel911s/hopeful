@@ -8,6 +8,7 @@ module.exports = {
   addAddress,
   deleteAddress,
   getAddress,
+  updateOwner,
 };
 
 async function getByMobileNo(conn, mobileNo) {
@@ -23,13 +24,32 @@ async function getByMobileNo(conn, mobileNo) {
 
 async function get(conn, id) {
   try {
-    let sql =
-      "select * from business where businessType = 'C' and id = ?";
+    let sql = "select * from business where businessType = 'C' and id = ?";
     const result = await conn.query(sql, [id]);
 
     return result[0];
   } catch (err) {
     throw err;
+  }
+}
+
+async function updateOwner(conn, model) {
+  try {
+    if (model.id) {
+      let params = [];
+
+      let sql = "UPDATE `business` SET `activityOwner` = ? WHERE `id` = ?";
+
+      params.push(model.activityOwner);
+      params.push(model.id);
+
+      await conn.query(sql, params);
+    }
+
+    return model;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }
 

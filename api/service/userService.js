@@ -18,7 +18,24 @@ module.exports = {
   saveAgents,
 
   saveUserData,
+  getUseragent,
 };
+
+async function getUseragent(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await userDao.getUseragent(conn, criteria.id);
+
+    return res.send(util.callbackSuccess("", result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function login(req, res) {
   const conn = await pool.getConnection();

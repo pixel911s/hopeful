@@ -3,7 +3,9 @@
 var util = require("../utils/responseUtils");
 const fileUtil = require("../utils/fileUtil");
 var activityDao = require("../dao/activityDao");
+var taskDao = require("../dao/taskDao");
 var userDao = require("../dao/userDao");
+var customerDao = require("../dao/customerDao");
 var auditLogDao = require("../dao/auditLogDao");
 
 const config = require("config");
@@ -16,7 +18,7 @@ module.exports = {
   updateActivityStatus,
   getSummaryActivityCount,
   searchList,
-  assignActivityOwner
+  assignActivityOwner,
 };
 
 async function get(req, res) {
@@ -112,7 +114,6 @@ async function updateActivityStatus(req, res) {
             _date4 = new Date();
           }
         }
-
       }
     }
 
@@ -128,15 +129,25 @@ async function updateActivityStatus(req, res) {
       _date4
     );
 
-    let _logDesc = "Update Activity Status : Activity Code-->" + _activity.code + " : New Status-->" + model.activityStatusId+" : Old Status-->" + _activity.activityStatusId??0;
+    if (model.activityStatusId == 4) {
+      await taskDao.closeAllTask(conn, model.id, model.username);
+    }
+
+    let _logDesc =
+      "Update Activity Status : Activity Code-->" +
+        _activity.code +
+        " : New Status-->" +
+        model.activityStatusId +
+        " : Old Status-->" +
+        _activity.activityStatusId ?? 0;
 
     let _auditLog = {
       logType: "activity",
       logDesc: _logDesc,
       logBy: model.username,
       refTable: "activity",
-      refId: model.id
-    }
+      refId: model.id,
+    };
 
     await auditLogDao.save(conn, _auditLog);
 
@@ -146,6 +157,7 @@ async function updateActivityStatus(req, res) {
       util.callbackSuccess("ทำการอัพเดทข้อมูล Activity เสร็จสมบูรณ์", true)
     );
   } catch (e) {
+    console.log(e);
     conn.rollback();
     return res.status(500).send(e.message);
   } finally {
@@ -343,29 +355,49 @@ async function assignActivityOwner(req, res) {
   //==== activityId   : เลขที่ Activity
   //==== ownerUser    : Owner to Assigned
   //==== username     : ผู้ทำรายการ
+  //==== customerId     : รหัสลูกค้า
 
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-
     let model = req.body;
     console.log("AssignActivityOwnerModel: ", model);
 
-    let _activity = await activityDao.get(conn, model.activityId);
-    let _logDesc = "Assign Activity Owner : Activity Code-->" + _activity.code + " : Assigned to New Owner-->" + model.ownerUser;
-    if (_activity.ownerUser && _activity != "") {
-      _logDesc += " : Replace to Old Owner-->" + _activity.ownerUser;
+    // let _activity = await activityDao.get(conn, model.activityId);
+    let customer = await customerDao.get(conn, model.customerId);
+
+    let _logDesc =
+      "Assign Activity Owner : Customer ID-->" +
+      model.customerId +
+      " : Assigned to New Owner-->" +
+      model.ownerUser;
+    if (customer.activityOwner) {
+      _logDesc += " : Replace to Old Owner-->" + customer.activityOwner;
     }
 
     let _auditLog = {
-      logType: "activity",
+      logType: "customer_owner",
       logDesc: _logDesc,
       logBy: model.username,
-      refTable: "activity",
-      refId: _activity.id
-    }
+      refTable: "business",
+      refId: model.customerId,
+    };
 
-    await activityDao.updateOwner(conn, model.activityId, model.ownerUser, model.username);
+    await activityDao.updateOwner(
+      conn,
+      model.customerId,
+      model.ownerUser,
+      model.username
+    );
+
+    await taskDao.closeAllTask(conn, model.activityId, model.username);
+
+    let updateOwner = {
+      id: model.customerId,
+      activityOwner: model.ownerUser,
+    };
+
+    await customerDao.updateOwner(conn, updateOwner);
 
     await auditLogDao.save(conn, _auditLog);
 
