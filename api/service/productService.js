@@ -40,6 +40,13 @@ async function get(req, res) {
     let result = await productDao.get(conn, criteria.id);
     result.agentPrices = await productDao.getAgentPrice(conn, criteria.id);
 
+    for (let index = 0; index < result.itemInSet.length; index++) {
+      const element = result.itemInSet[index];
+
+      let _prod = await productDao.get(conn,element.itemId);
+      element.product = _prod;      
+    }
+
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
     console.error(e);
@@ -79,7 +86,7 @@ async function save(req, res) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-    let model = JSON.parse(req.body.data);
+    let model = JSON.parse(req.body.data);   
     let files = req.files;
     let inputFile = config.path.product_file_input;
     let outputFile = config.path.product_file_output;
