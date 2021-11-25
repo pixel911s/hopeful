@@ -44,6 +44,24 @@ async function get(req, res) {
 
     result.orderDetail = await orderDao.getDetail(conn, criteria.id);
 
+    for (let index = 0; index < result.orderDetail.length; index++) {
+      let orderDetail = result.orderDetail[index];
+
+      if (orderDetail.isSet)
+      {
+        orderDetail.itemSet = JSON.parse(orderDetail.itemSet);
+
+        for (let i = 0; i < orderDetail.itemSet.length; i++) {
+          let itemSet = orderDetail.itemSet[i];
+
+          itemSet.product = await productDao.get(conn, itemSet.itemId);
+          
+        }
+      }
+      
+    }
+    
+
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
     console.error(e);
@@ -87,7 +105,7 @@ async function create(req, res) {
   try {
     let model = req.body;
 
-    addOrder(model, conn);
+    await addOrder(model, conn);
 
     conn.commit();
 
@@ -244,16 +262,36 @@ async function addOrder(model, conn) {
   for (let index = 0; index < model.orderDetail.length; index++) {
     let orderItem = model.orderDetail[index];
     orderItem.orderId = _orderId;
+
+    let product = await productDao.get(conn, orderItem.id);
+
+    orderItem.isSet = false;
+    orderItem.itemSet = [];
+
+    if (product.isSet) {
+
+      orderItem.isSet = true;
+      for (let i = 0; i < product.itemInSet.length; i++) {
+        const element = product.itemInSet[i];
+        let _itemset = { itemId: element.itemId, qty: element.qty }
+        orderItem.itemSet.push(_itemset)
+      }
+    }
+
     let _orderItemId = await orderDao.saveDetail(conn, orderItem);
 
     //=== Add Activity ==========================================
 
-    if (orderItem.isSet) {
+    if (product.isSet) {
 
-      //=== กรณีเป็นสินค้าเซต ให้เอาสินค้าจาก ItemSet ที่แนบมาใช้
+      //=== กรณีเป็นสินค้าเซต
 
-      for (let i = 0; i < orderItem.itemSet.length; i++) {
-        const element = orderItem.itemSet[i];
+      for (let i = 0; i < product.itemInSet.length; i++) {
+        const element = product.itemInSet[i];
+
+        element.product = await productDao.get(conn,element.itemId);
+
+        console.log("Item Set : ", element);
 
         let _activityDesc =
           element.product.code +
@@ -279,7 +317,7 @@ async function addOrder(model, conn) {
         let _activity = {
           code: _activityCode,
           description: _activityDesc,
-          productId: orderItem.id,
+          productId: element.itemId,
           remainingDay: _remainingDay,
           dueDate: _dueDate,
           agentId: model.ownerId,
@@ -297,15 +335,15 @@ async function addOrder(model, conn) {
 
         let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
 
-      let _auditLog = {
-        logType: "activity",
-        logDesc: _logDesc,
-        logBy: model.username,
-        refTable: "activity",
-        refId: _activityId
-      }
+        let _auditLog = {
+          logType: "activity",
+          logDesc: _logDesc,
+          logBy: model.username,
+          refTable: "activity",
+          refId: _activityId
+        }
 
-      await auditLogDao.save(conn, _auditLog);
+        await auditLogDao.save(conn, _auditLog);
 
 
       }
@@ -329,7 +367,7 @@ async function addOrder(model, conn) {
         month
       );
       //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-      let _remainingDay = +orderItem.remainingDay * +orderItem.qty;
+      let _remainingDay = +product.remainingDay * +orderItem.qty;
 
       let _dueDate = new Date(model.orderDate);
       _dueDate.setDate(_dueDate.getDate() + _remainingDay);
@@ -338,7 +376,7 @@ async function addOrder(model, conn) {
       let _activity = {
         code: _activityCode,
         description: _activityDesc,
-        productId: orderItem.id,
+        productId: product.id,
         remainingDay: _remainingDay,
         dueDate: _dueDate,
         agentId: model.ownerId,
@@ -365,7 +403,7 @@ async function addOrder(model, conn) {
         refTable: "activity",
         refId: _activityId
       }
-      await auditLogDao.save(conn, _auditLog);     
+      await auditLogDao.save(conn, _auditLog);
     }
 
     //===========================================================

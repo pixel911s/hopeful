@@ -86,7 +86,8 @@ async function save(req, res) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-    let model = JSON.parse(req.body.data);   
+    //let model = JSON.parse(req.body.data);
+    let model = req.body;   
     let files = req.files;
     let inputFile = config.path.product_file_input;
     let outputFile = config.path.product_file_output;
