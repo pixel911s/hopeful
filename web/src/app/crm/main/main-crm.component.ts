@@ -314,6 +314,24 @@ export class MainCRMComponent implements OnInit {
         this.spinner.hide();
 
         this.toastr.show(this.translate.instant("success.save-complete"));
+
+        if (status == 3) {
+          const dialogRef = this.dialog.open(PopupConfirmComponent, {
+            maxWidth: "300px",
+            minWidth: "300px",
+            data: {
+              message: "กดยืนยันเพื่อไปที่หน้าเปิดออเดอร์สำหรับลูกค้าคนนี้.",
+            },
+          });
+
+          dialogRef.afterClosed().subscribe(async (result) => {
+            if (result) {
+              this.router.navigateByUrl(
+                "/order/create/" + this.customer.mobile
+              );
+            }
+          });
+        }
       }
     });
   }

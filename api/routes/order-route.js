@@ -16,5 +16,6 @@ router.route("/update").post(orderService.update);
 router.route("/search").post(orderService.search);
 router.route("/deleteOrder").post(orderService.deleteOrder);
 router.route("/upload").post(orderService.upload);
+router.route("/exportTemplate").post(orderService.exportTemplate);
 
 module.exports = router;

@@ -15,7 +15,7 @@ export class NavBarComponent implements OnInit {
     this.data = JSON.parse(sessionStorage.getItem("NAV"));
 
     if (!this.data) {
-      this.data = [{ name: "หน้าหลัก", path: "/dashboard", isActive: false }];
+      this.data = [{ name: "หน้าหลัก", path: "/page", isActive: false }];
       sessionStorage.setItem("NAV", JSON.stringify(this.data));
     } else {
       let snapIndex = 0;
@@ -33,7 +33,7 @@ export class NavBarComponent implements OnInit {
       }
     }
 
-    if (this.router.url !== "/dashboard") {
+    if (this.router.url !== "/page") {
       let nav = this.route.snapshot.data;
 
       nav.isActive = true;
@@ -41,7 +41,7 @@ export class NavBarComponent implements OnInit {
 
       this.data.push(nav);
     } else {
-      this.data = [{ name: "Dashboard", path: "/dashboard", isActive: false }];
+      this.data = [{ name: "Dashboard", path: "/page", isActive: false }];
       sessionStorage.setItem("NAV", JSON.stringify(this.data));
     }
 

@@ -25,13 +25,15 @@ export class SelectProductComponent extends BaseComponent implements OnInit {
     private translate: TranslateService,
     private authService: AuthService,
     private productService: ProductService,
-    private spinner: NgxSpinnerService
+    private spinner: NgxSpinnerService,
+    @Inject(MAT_DIALOG_DATA) public params: any
   ) {
     super();
     translate.use(this.authService.getUser().lang);
   }
 
   async ngOnInit(): Promise<void> {
+    if (this.params.isSet) this.criteria.isSet = this.params.isSet;
     await this.search();
   }
 

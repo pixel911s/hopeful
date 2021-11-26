@@ -256,10 +256,14 @@ async function save(conn, model) {
         "insert into `order` (paymentType,orderNo,orderDate,ownerId,customerId,totalQty,totalAmount,billDiscountAmount,itemDiscountAmount,deliveryPrice,netAmount,status,deliveryName,deliveryAddressInfo,deliverySubDistrict,deliveryDistrict,deliveryProvince,deliveryZipcode,deliveryContact, remark,createBy,createDate,updateBy,updateDate)";
       sql += "  values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+      let orderDate = new Date();
+      if (model.orderDate)
+        orderDate.setDate(new Date(model.orderDate).getDate());
+
       let _result = await conn.query(sql, [
         model.paymentType,
         model.orderNo,
-        model.orderDate ? new Date(model.orderDate) : new Date(),
+        orderDate,
         model.ownerId,
         model.customerId,
         model.totalQty,
@@ -315,7 +319,7 @@ async function saveDetail(conn, model) {
       model.discount,
       model.itemAmount,
       model.isSet,
-      JSON.stringify(model.itemSet)
+      JSON.stringify(model.itemSet),
     ]);
 
     _id = _result.insertId;

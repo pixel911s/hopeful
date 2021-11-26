@@ -47,18 +47,18 @@ async function get(req, res) {
 
     let result = await customerDao.get(conn, criteria.id);
 
-    let canAccess = false;
+    // let canAccess = false;
 
-    for (let index = 0; index < criteria.userAgents.length; index++) {
-      const agent = criteria.userAgents[index];
-      if (agent.id == result.ownerId) {
-        canAccess = true;
-      }
-    }
+    // for (let index = 0; index < criteria.userAgents.length; index++) {
+    //   const agent = criteria.userAgents[index];
+    //   if (agent.id == result.ownerId) {
+    //     canAccess = true;
+    //   }
+    // }
 
-    if (!canAccess) {
-      return res.status(404).send("Can't access data");
-    }
+    // if (!canAccess) {
+    //   return res.status(404).send("Can't access data");
+    // }
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {

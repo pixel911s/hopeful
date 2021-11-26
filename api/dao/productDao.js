@@ -17,9 +17,11 @@ async function get(conn, id) {
     let sql = "select * from product where id = ?";
     const result = await conn.query(sql, [id]);
 
-    result[0].itemInSet = JSON.parse(result[0].itemInSet);
+    let sku = result[0];
 
-    return result[0];
+    if (sku.isSet && sku.itemInSet) sku.itemInSet = JSON.parse(sku.itemInSet);
+
+    return sku;
   } catch (err) {
     throw err;
   }
@@ -52,11 +54,10 @@ async function count(conn, criteria) {
       params.push("%" + criteria.keyword + "%");
     }
 
-    if (criteria.isSet){
-      if (criteria.isSet==true)
-      {
+    if (criteria.isSet) {
+      if (criteria.isSet == true) {
         sql += " and isSet=true";
-      }else{
+      } else {
         sql += " and isSet=false";
       }
     }
@@ -101,11 +102,10 @@ async function search(conn, criteria) {
       params.push("%" + criteria.keyword + "%");
     }
 
-    if (criteria.isSet){
-      if (criteria.isSet==true)
-      {
+    if (criteria.isSet) {
+      if (criteria.isSet == true) {
         sql += " and isSet=true";
-      }else{
+      } else {
         sql += " and isSet=false";
       }
     }
@@ -128,8 +128,7 @@ async function save(conn, model) {
     let _id = 0;
 
     console.log(model);
-    if (!model.isSet)
-    {
+    if (!model.isSet) {
       model.itemInSet = [];
     }
 
@@ -184,15 +183,14 @@ async function save(conn, model) {
       sql += " ,isSet = ? ";
       params.push(model.isSet);
 
-      sql+= " ,itemInSet = ?";
+      sql += " ,itemInSet = ?";
       params.push(JSON.stringify(model.itemInSet));
-
 
       sql += " where id = ?";
       params.push(model.id);
 
       await conn.query(sql, params);
-    } else {      
+    } else {
       //insert
 
       console.log("Insert");
@@ -218,7 +216,7 @@ async function save(conn, model) {
         model.updateUser,
         new Date(),
         model.isSet,
-        JSON.stringify(model.itemInSet)
+        JSON.stringify(model.itemInSet),
       ]);
 
       console.log("INSERT RESULT : ", _result);

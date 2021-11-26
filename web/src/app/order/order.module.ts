@@ -17,11 +17,10 @@ import { ImportOrderComponent } from "./includes/import-order/import-order.compo
     CreateOrderComponent,
     SearchOrderComponent,
     OrderFormComponent,
-    SelectProductComponent,
     UpdateOrderComponent,
     ViewOrderComponent,
     ImportOrderComponent,
   ],
-  entryComponents: [SelectProductComponent, ImportOrderComponent],
+  entryComponents: [ImportOrderComponent],
 })
 export class OrderModule {}

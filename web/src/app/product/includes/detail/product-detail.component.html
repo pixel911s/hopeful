@@ -1,11 +1,56 @@
 <div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
   <div class="col-12 col-md-8 m-b-20">
-    <div class="card">
+    <div class="card m-b-20">
       <div class="card-body">
         <div class="row">
           <div class="col-12">
             <h5 class="d-inline">{{ header }}</h5>
             <hr />
+          </div>
+
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.isSet.touched && f.isSet.errors
+              }"
+            >
+              <label for="name">ประเภทสินค้า *</label>
+              <div>
+                <div class="custom-control custom-radio custom-control-inline">
+                  <input
+                    [value]="false"
+                    formControlName="isSet"
+                    [(ngModel)]="data.isSet"
+                    type="radio"
+                    id="customRadioInline1"
+                    class="custom-control-input"
+                  />
+                  <label class="custom-control-label" for="customRadioInline1"
+                    >สินค้าทั่วไป</label
+                  >
+                </div>
+
+                <div class="custom-control custom-radio custom-control-inline">
+                  <input
+                    [value]="true"
+                    formControlName="isSet"
+                    [(ngModel)]="data.isSet"
+                    type="radio"
+                    id="customRadioInline2"
+                    class="custom-control-input"
+                  />
+                  <label class="custom-control-label" for="customRadioInline2"
+                    >สินค้าเซท</label
+                  >
+                </div>
+                <small
+                  class="text-danger"
+                  *ngIf="f.isSet.touched && f.isSet.errors?.required"
+                  >{{ "error.required" | translate }}</small
+                >
+              </div>
+            </div>
           </div>
 
           <div class="col-md-3">
@@ -15,7 +60,7 @@
                 'is-invalid': f.barcode.touched && f.barcode.errors
               }"
             >
-              <label for="barcode">SKU ID *</label>
+              <label for="barcode">SKU ID (Barcode) *</label>
               <input
                 autocomplete="off"
                 maxlength="20"
@@ -215,6 +260,58 @@
                 <option [ngValue]="1">ใช้งาน</option>
                 <option [ngValue]="0">ไม่ใช้งาน</option>
               </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" *ngIf="data.isSet">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">สินค้าในเซท</h5>
+            <hr />
+          </div>
+          <div class="col-12">
+            <button
+              *ngIf="!isReadOnly"
+              (click)="selectProduct()"
+              type="button"
+              class="btn btn-primary"
+            >
+              เพิ่มสินค้าเข้าเซท
+            </button>
+          </div>
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData2">
+                <thead>
+                  <tr>
+                    <th class="text-center"></th>
+                    <th class="text-center">SKUID</th>
+                    <th class="text-left">ชื่อสินค้า</th>
+                    <th class="text-right">ราคาขาย</th>
+                    <th *ngIf="!isReadOnly"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of data.itemInSet; let i = index">
+                    <td style="width: 70px">
+                      <img style="max-width: 100%" [src]="item.imageUrl" />
+                    </td>
+                    <td class="text-center">{{ item.code }}</td>
+                    <td class="text-left">{{ item.name }}</td>
+                    <td class="text-right">{{ item.price | number: ".2" }}</td>
+
+                    <td class="text-right" *ngIf="!isReadOnly">
+                      <a (click)="removeProduct(item, i)" style="color: #007bff"
+                        ><b><small>ลบข้อมูล</small></b></a
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

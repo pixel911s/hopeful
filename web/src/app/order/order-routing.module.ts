@@ -22,6 +22,12 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        path: "create/:mobile",
+        component: CreateOrderComponent,
+        data: { name: "สร้างคำสั่งซื้อ", id: "CREATE_ORDER" },
+        canActivate: [AuthGuard],
+      },
+      {
         path: "view/:id",
         component: ViewOrderComponent,
         data: { name: "ดูข้อมูลคำสั่งซื้อ", id: "VIEW_ORDER" },

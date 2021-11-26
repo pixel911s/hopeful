@@ -20,6 +20,7 @@ export class CreateOrderComponent extends BaseComponent implements OnInit {
     createDate: new Date(),
     orderDate: new Date(),
   };
+
   public formGroup: FormGroup;
   public isReadOnly: any = true;
 
@@ -30,7 +31,8 @@ export class CreateOrderComponent extends BaseComponent implements OnInit {
     private orderService: OrderService,
     private spinner: NgxSpinnerService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private activeRoute: ActivatedRoute
   ) {
     super();
   }
@@ -39,6 +41,10 @@ export class CreateOrderComponent extends BaseComponent implements OnInit {
     this.data.createBy = this.authService.getUser().username;
     this.data.businessName = this.authService.getUser().business.name;
     this.formGroup = this.formBuilder.group({});
+
+    if (this.activeRoute.snapshot.params.mobile) {
+      this.data.deliveryContact = this.activeRoute.snapshot.params.mobile;
+    }
   }
 
   async save() {

@@ -46,6 +46,7 @@ import { CollapseModule } from "ngx-bootstrap/collapse";
 import { DragScrollModule } from "ngx-drag-scroll";
 import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
 import { TimepickerModule } from "ngx-bootstrap/timepicker";
+import { SelectProductComponent } from "app/order/includes/select-product/select-product.component";
 
 @NgModule({
   exports: [
@@ -123,8 +124,9 @@ import { TimepickerModule } from "ngx-bootstrap/timepicker";
     NavBarComponent,
     PopupConfirmComponent,
     UserDetailComponent,
+    SelectProductComponent,
   ],
-  entryComponents: [PopupConfirmComponent],
+  entryComponents: [PopupConfirmComponent, SelectProductComponent],
   providers: [
     { provide: BsDatepickerConfig, useFactory: getDatepickerConfig },
     DatePipe,

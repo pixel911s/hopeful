@@ -160,4 +160,10 @@ export class SearchOrderComponent implements OnInit {
       }
     });
   }
+
+  async exportTemplate() {
+    this.spinner.show();
+    await this.transactionService.exportTemplate();
+    this.spinner.hide();
+  }
 }

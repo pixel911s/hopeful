@@ -15,6 +15,8 @@ import { BaseComponent } from "app/base/base.component";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
 import { PriceListFormComponent } from "../pricelist-form/pricelist-form.component";
+import { ProductService } from "app/shared/services/product.service";
+import { SelectProductComponent } from "app/order/includes/select-product/select-product.component";
 
 @Component({
   selector: "app-product-detail",
@@ -49,7 +51,8 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
     private formBuilder: FormBuilder,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    protected dialog: MatDialog
+    protected dialog: MatDialog,
+    private productService: ProductService
   ) {
     super();
     translate.use(this.authService.getUser().lang);
@@ -123,6 +126,11 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
       "status",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
+
+    this.formGroup.addControl(
+      "isSet",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
   }
 
   public async filesSelect(selectedFiles: Ng4FilesSelected) {
@@ -190,6 +198,49 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
         );
 
         console.log(this.data.agentPrices);
+      }
+    });
+  }
+
+  selectProduct() {
+    const dialogRef = this.dialog.open(SelectProductComponent, {
+      maxWidth: "600px",
+      minWidth: "300px",
+      data: { info: true, isSet: false },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        if (!this.data.itemInSet) {
+          this.data.itemInSet = [];
+        }
+        let duplicated = false;
+        for (let index = 0; index < this.data.itemInSet.length; index++) {
+          const product = this.data.itemInSet[index];
+          if (product.id == result.id) {
+            duplicated = true;
+          }
+        }
+        if (!duplicated) {
+          result.qty = 1;
+          this.data.itemInSet.push(result);
+        }
+      }
+    });
+  }
+
+  removeProduct(item, index) {
+    const dialogRef = this.dialog.open(PopupConfirmComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการลบข้อมูล",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.data.itemInSet.splice(index, 1);
       }
     });
   }

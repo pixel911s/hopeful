@@ -3,6 +3,8 @@ import { HttpClient } from "@angular/common/http";
 import { environment } from "environments/environment";
 import { AuthService } from "../auth/auth.service";
 
+import { saveAs } from "file-saver";
+
 @Injectable({ providedIn: "root" })
 export class OrderService {
   constructor(private http: HttpClient, private authService: AuthService) {}
@@ -61,5 +63,21 @@ export class OrderService {
     return this.http
       .post(environment.apiUrl + "/order/upload", data)
       .toPromise();
+  }
+
+  private async export(url, param, filename) {
+    const res: any = await this.http
+      .post(environment.apiUrl + url, param, {
+        responseType: "blob",
+      })
+      .subscribe(
+        (data) => saveAs(data, filename),
+        (error) => console.log(error)
+      );
+  }
+
+  public exportTemplate() {
+    const url = "/order/exportTemplate";
+    this.export(url, null, "ORDER_TEMPLATE.xlsx");
   }
 }

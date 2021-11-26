@@ -14,6 +14,8 @@ const config = require("config");
 const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
 
+const ExcelJS = require("exceljs");
+
 module.exports = {
   get,
   search,
@@ -21,6 +23,8 @@ module.exports = {
   update,
   deleteOrder,
   upload,
+
+  exportTemplate,
 };
 
 async function get(req, res) {
@@ -47,20 +51,16 @@ async function get(req, res) {
     for (let index = 0; index < result.orderDetail.length; index++) {
       let orderDetail = result.orderDetail[index];
 
-      if (orderDetail.isSet)
-      {
+      if (orderDetail.isSet) {
         orderDetail.itemSet = JSON.parse(orderDetail.itemSet);
 
         for (let i = 0; i < orderDetail.itemSet.length; i++) {
           let itemSet = orderDetail.itemSet[i];
 
           itemSet.product = await productDao.get(conn, itemSet.itemId);
-          
         }
       }
-      
     }
-    
 
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
@@ -259,156 +259,82 @@ async function addOrder(model, conn) {
 
   //=================================================
 
+  let productLoadLists = [];
+
   for (let index = 0; index < model.orderDetail.length; index++) {
     let orderItem = model.orderDetail[index];
     orderItem.orderId = _orderId;
 
-    let product = await productDao.get(conn, orderItem.id);
+    let product = productLoadLists.find((item) => {
+      return item.id == orderItem.id;
+    });
 
-    orderItem.isSet = false;
-    orderItem.itemSet = [];
-
-    if (product.isSet) {
-
-      orderItem.isSet = true;
-      for (let i = 0; i < product.itemInSet.length; i++) {
-        const element = product.itemInSet[i];
-        let _itemset = { itemId: element.itemId, qty: element.qty }
-        orderItem.itemSet.push(_itemset)
-      }
+    if (!product) {
+      product = await productDao.get(conn, orderItem.id);
+      productLoadLists.push(product);
     }
+
+    orderItem.isSet = product.isSet;
+    orderItem.itemSet = Object.assign({}, product.itemInSet);
 
     let _orderItemId = await orderDao.saveDetail(conn, orderItem);
 
     //=== Add Activity ==========================================
 
-    if (product.isSet) {
+    let _activityDesc =
+      orderItem.code +
+      "-" +
+      orderItem.name +
+      " : " +
+      orderItem.qty +
+      " " +
+      orderItem.unit;
+    let _activityCode = await runningDao.getNextRunning(
+      conn,
+      "A",
+      _date.getFullYear(),
+      month
+    );
+    //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
+    let _remainingDay = +product.remainingDay * +orderItem.qty;
 
-      //=== กรณีเป็นสินค้าเซต
+    let _dueDate = new Date(model.orderDate);
+    _dueDate.setDate(_dueDate.getDate() + _remainingDay);
+    _dueDate = _dueDate.setHours(0, 0, 0, 0);
 
-      for (let i = 0; i < product.itemInSet.length; i++) {
-        const element = product.itemInSet[i];
+    let _activity = {
+      code: _activityCode,
+      description: _activityDesc,
+      productId: product.id,
+      remainingDay: _remainingDay,
+      dueDate: _dueDate,
+      agentId: model.ownerId,
+      customerId: model.customerId,
+      ownerUser: _activityOwner,
+      activityStatusId: 0,
+      refOrderId: _orderId,
+      refOrderItemId: _orderItemId,
+      username: model.username,
+    };
 
-        element.product = await productDao.get(conn,element.itemId);
+    console.log("ACTIVITY : ", _activity);
 
-        console.log("Item Set : ", element);
+    let _activityId = await activityDao.save(conn, _activity);
 
-        let _activityDesc =
-          element.product.code +
-          "-" +
-          element.product.name +
-          " : " +
-          element.qty +
-          " " +
-          element.product.unit;
-        let _activityCode = await runningDao.getNextRunning(
-          conn,
-          "A",
-          _date.getFullYear(),
-          month
-        );
-        //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-        let _remainingDay = +element.product.remainingDay * +element.qty;
+    //==== Add Audit Log ========================================
 
-        let _dueDate = new Date(model.orderDate);
-        _dueDate.setDate(_dueDate.getDate() + _remainingDay);
-        _dueDate = _dueDate.setHours(0, 0, 0, 0);
+    let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
 
-        let _activity = {
-          code: _activityCode,
-          description: _activityDesc,
-          productId: element.itemId,
-          remainingDay: _remainingDay,
-          dueDate: _dueDate,
-          agentId: model.ownerId,
-          customerId: model.customerId,
-          ownerUser: _activityOwner,
-          activityStatusId: 0,
-          refOrderId: _orderId,
-          refOrderItemId: _orderItemId,
-          username: model.username,
-        };
-
-        console.log("ACTIVITY : ", _activity);
-
-        let _activityId = await activityDao.save(conn, _activity);
-
-        let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
-
-        let _auditLog = {
-          logType: "activity",
-          logDesc: _logDesc,
-          logBy: model.username,
-          refTable: "activity",
-          refId: _activityId
-        }
-
-        await auditLogDao.save(conn, _auditLog);
-
-
-      }
-
-    } else {
-
-      //==== กรณีไม่ใช่สินค้า Set
-
-      let _activityDesc =
-        orderItem.code +
-        "-" +
-        orderItem.name +
-        " : " +
-        orderItem.qty +
-        " " +
-        orderItem.unit;
-      let _activityCode = await runningDao.getNextRunning(
-        conn,
-        "A",
-        _date.getFullYear(),
-        month
-      );
-      //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-      let _remainingDay = +product.remainingDay * +orderItem.qty;
-
-      let _dueDate = new Date(model.orderDate);
-      _dueDate.setDate(_dueDate.getDate() + _remainingDay);
-      _dueDate = _dueDate.setHours(0, 0, 0, 0);
-
-      let _activity = {
-        code: _activityCode,
-        description: _activityDesc,
-        productId: product.id,
-        remainingDay: _remainingDay,
-        dueDate: _dueDate,
-        agentId: model.ownerId,
-        customerId: model.customerId,
-        ownerUser: _activityOwner,
-        activityStatusId: 0,
-        refOrderId: _orderId,
-        refOrderItemId: _orderItemId,
-        username: model.username,
-      };
-
-      console.log("ACTIVITY : ", _activity);
-
-      let _activityId = await activityDao.save(conn, _activity);
-
-      //==== Add Audit Log ========================================
-
-      let _logDesc = "Create Activity : Activity Code-->" + _activity.code;
-
-      let _auditLog = {
-        logType: "activity",
-        logDesc: _logDesc,
-        logBy: model.username,
-        refTable: "activity",
-        refId: _activityId
-      }
-      await auditLogDao.save(conn, _auditLog);
-    }
+    let _auditLog = {
+      logType: "activity",
+      logDesc: _logDesc,
+      logBy: model.username,
+      refTable: "activity",
+      refId: _activityId,
+    };
+    await auditLogDao.save(conn, _auditLog);
 
     //===========================================================
-
-
   }
 
   return true;
@@ -467,6 +393,55 @@ async function deleteOrder(req, res) {
     );
   } catch (e) {
     conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportTemplate(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/ORDER_TEMPLATE.xlsx");
+    const worksheet = workbook.getWorksheet(3);
+
+    req.body.page = undefined;
+
+    let criteria = {
+      page: 1,
+      size: 99999,
+    };
+    let products = await productDao.search(conn, criteria);
+    let productIds = [];
+
+    for (let index = 0; index < products.length; index++) {
+      const product = products[index];
+
+      const row = worksheet.getRow(index + 1);
+      row.getCell(1).value = product.code;
+      row.getCell(2).value = product.name;
+
+      productIds.push(product.code);
+    }
+
+    const worksheet1 = workbook.getWorksheet("DATA");
+    let joineddropdownlist = '"' + productIds.join(",") + '"';
+    for (let i = 2; i < 5; i++) {
+      worksheet1.getCell("L" + i).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        operator: "equal",
+        formulae: [joineddropdownlist],
+      };
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
     return res.status(500).send(e.message);
   } finally {
     conn.release();

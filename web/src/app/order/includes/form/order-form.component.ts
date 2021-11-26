@@ -72,6 +72,8 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
       );
       this.subdistricts = res3.data;
     }
+
+    this.checkMobile();
   }
 
   prepareFormGroup() {

@@ -38,6 +38,7 @@
     "classlist.js": "1.1.20150312",
     "core-js": "3.8.1",
     "date-fns": "2.16.1",
+    "file-saver": "^2.0.5",
     "firebase": "8.1.2",
     "gulp": "4.0.2",
     "hopscotch": "0.3.1",
