@@ -167,7 +167,7 @@ async function getNotify(conn) {
     let sql ="select a.id as taskId,b.code as activityCode,a.description,DATE_FORMAT(scheduleDate, '%d-%m-%Y') as scheduleDate,scheduleTime,c.lineNotifyToken,a.createBy from task as a ";
     sql+=" left join activity b on a.activityId=b.id ";
     sql+=" left join user c on b.ownerUser COLLATE utf8mb4_unicode_ci = c.username ";
-    sql+=" where ADDTIME(CURRENT_TIMESTAMP,CONCAT(noticeDay,':0:0')) > STR_TO_DATE(CONCAT(DATE_FORMAT(scheduleDate, '%Y-%m-%d '),scheduleTime),'%Y-%m-%d %H:%i') and (notifyFlag is null or notifyFlag=0) ";
+    sql+=" where ADDTIME(CURRENT_TIMESTAMP,CONCAT(noticeDay,':0:0')) >= STR_TO_DATE(CONCAT(DATE_FORMAT(scheduleDate, '%Y-%m-%d '),scheduleTime),'%Y-%m-%d %H:%i') and (notifyFlag is null or notifyFlag=0) ";
     sql+=" and c.lineNotifyToken is not null";
 
     const result = await conn.query(sql, params);
