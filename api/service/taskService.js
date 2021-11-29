@@ -15,6 +15,8 @@ module.exports = {
   recallTask,
   getOpenTask,
   getCloseTask,
+  getNotify,
+  updateNotifyFlag
 };
 
 async function get(req, res) {
@@ -140,6 +142,42 @@ async function getCloseTask(req, res) {
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getNotify() {
+  const conn = await pool.getConnection();
+  try {
+    //=== ดึงข้อมูล Task ที่ถึงกำหนดการแจ้งเตือน เพื่อทำส่ง Line Notify
+
+    return await taskDao.getNotify(conn);
+
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function updateNotifyFlag(taskId) {
+  //=== ใช้ ปิด Line Notify
+  //==== Parameter
+  //==== taskId : id ของ Task
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    
+    await taskDao.updateNotifyFlag(conn, taskId);
+
+    conn.commit();
+
+    return true
+  } catch (e) {
+    conn.rollback();
+    return false
   } finally {
     conn.release();
   }

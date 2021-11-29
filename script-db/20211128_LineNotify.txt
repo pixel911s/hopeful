@@ -1,0 +1,3 @@
+ALTER TABLE `hopefull_db`.`task` 
+ADD COLUMN `notifyFlag` TINYINT NULL AFTER `updateDate`,
+ADD COLUMN `notifyDate` DATETIME NULL AFTER `notifyFlag`;

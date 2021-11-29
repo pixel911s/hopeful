@@ -7,6 +7,8 @@ module.exports = {
   recallTask,
   getTaskList,
   closeAllTask,
+  getNotify,
+  updateNotifyFlag
 };
 
 async function get(conn, id) {
@@ -150,6 +152,39 @@ async function closeAllTask(conn, id, username) {
       "update task set `isClose`=true, `closeDate`=?, `updateBy`=?, `updateDate`=? where activityId = ?";
 
     await conn.query(sql, [new Date(), username, new Date(), id]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function getNotify(conn) {
+  try {
+    let params = [];
+
+    let sql ="select a.id as taskId,b.code as activityCode,a.description,DATE_FORMAT(scheduleDate, '%d-%m-%Y') as scheduleDate,scheduleTime,c.lineNotifyToken,a.createBy from task as a ";
+    sql+=" left join activity b on a.activityId=b.id ";
+    sql+=" left join user c on b.ownerUser COLLATE utf8mb4_unicode_ci = c.username ";
+    sql+=" where ADDTIME(CURRENT_TIMESTAMP,CONCAT(noticeDay,':0:0')) > STR_TO_DATE(CONCAT(DATE_FORMAT(scheduleDate, '%Y-%m-%d '),scheduleTime),'%Y-%m-%d %H:%i') and (notifyFlag is null or notifyFlag=0) ";
+    sql+=" and c.lineNotifyToken is not null";
+
+    const result = await conn.query(sql, params);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function updateNotifyFlag(conn, taskId) {
+  try {
+    // ปิด Line Notify
+    let sql =
+      "update task set `notifyFlag`=true, `notifyDate`=? where id = ?";
+
+    await conn.query(sql, [new Date(), taskId]);
 
     return true;
   } catch (e) {
