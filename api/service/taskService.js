@@ -4,6 +4,10 @@ var util = require("../utils/responseUtils");
 const fileUtil = require("../utils/fileUtil");
 var taskDao = require("../dao/taskDao");
 
+var activityDao = require("../dao/activityDao");
+
+var crmHistoryDao = require("../dao/crmHistoryDao");
+
 const config = require("config");
 const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
@@ -16,7 +20,7 @@ module.exports = {
   getOpenTask,
   getCloseTask,
   getNotify,
-  updateNotifyFlag
+  updateNotifyFlag,
 };
 
 async function get(req, res) {
@@ -42,6 +46,18 @@ async function save(req, res) {
 
     await taskDao.save(conn, model);
 
+    let _activity = await activityDao.get(conn, model.activityId);
+
+    let history = {
+      customerId: _activity.customerId,
+      activityCode: "",
+      action: "CREATE TASK",
+      description: model.description,
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
+
     return res.send(
       util.callbackSuccess("บันทึกข้อมูล Task เสร็จสมบูรณ์", true)
     );
@@ -63,7 +79,21 @@ async function closeTask(req, res) {
   try {
     let model = req.body;
 
+    let task = await taskDao.get(conn, model.id);
+
     await taskDao.closeTask(conn, model.id, model.username);
+
+    let _activity = await activityDao.get(conn, task.activityId);
+
+    let history = {
+      customerId: _activity.customerId,
+      activityCode: "",
+      action: "CLOSE TASK",
+      description: task.description,
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
 
     conn.commit();
 
@@ -71,6 +101,7 @@ async function closeTask(req, res) {
       util.callbackSuccess("ทำการยกเลิก Task เสร็จสมบูรณ์", true)
     );
   } catch (e) {
+    console.log(e);
     conn.rollback();
     return res.status(500).send(e.message);
   } finally {
@@ -88,7 +119,21 @@ async function recallTask(req, res) {
   try {
     let model = req.body;
 
+    let task = await taskDao.get(conn, model.id);
+
     await taskDao.recallTask(conn, model.id, model.username);
+
+    let _activity = await activityDao.get(conn, task.activityId);
+
+    let history = {
+      customerId: _activity.customerId,
+      activityCode: "",
+      action: "REOPEN TASK",
+      description: task.description,
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
 
     conn.commit();
 
@@ -153,7 +198,6 @@ async function getNotify() {
     //=== ดึงข้อมูล Task ที่ถึงกำหนดการแจ้งเตือน เพื่อทำส่ง Line Notify
 
     return await taskDao.getNotify(conn);
-
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
@@ -169,15 +213,14 @@ async function updateNotifyFlag(taskId) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-    
     await taskDao.updateNotifyFlag(conn, taskId);
 
     conn.commit();
 
-    return true
+    return true;
   } catch (e) {
     conn.rollback();
-    return false
+    return false;
   } finally {
     conn.release();
   }

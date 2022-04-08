@@ -10,7 +10,13 @@ export class CustomerService {
   getByMobile(mobile) {
     let criteria = {
       mobile: mobile,
+      userAgents: this.authService.getUser().userAgents,
     };
+
+    if (this.authService.getUser().business.businessType == "H") {
+      criteria.userAgents.unshift({ id: 1, name: "HQ" });
+    }
+
     return this.http
       .post(environment.apiUrl + "/customer/getByMobile", criteria)
       .toPromise();

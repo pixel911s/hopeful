@@ -244,4 +244,12 @@ export class ProductDetailComponent extends BaseComponent implements OnInit {
       }
     });
   }
+
+  changeQty(item, qty) {
+    item.qty += qty;
+
+    if (item.qty < 1) {
+      item.qty = 1;
+    }
+  }
 }

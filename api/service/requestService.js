@@ -103,7 +103,6 @@ async function approve(req, res) {
       (requestModel.requestType == "CREATE_USER" ||
         requestModel.requestType == "UPDATE_USER")
     ) {
-      console.log(userService);
       await userService.saveUserData(conn, requestModel.data);
     }
 

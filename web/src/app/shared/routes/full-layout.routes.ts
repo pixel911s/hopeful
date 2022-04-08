@@ -33,9 +33,27 @@ export const Full_ROUTES: Routes = [
       import("../../product/product.module").then((m) => m.ProductModule),
   },
   {
+    path: "agent-product",
+    loadChildren: () =>
+      import("../../agent-product/agent-product.module").then(
+        (m) => m.AgentProductModule
+      ),
+  },
+  {
     path: "order",
     loadChildren: () =>
       import("../../order/order.module").then((m) => m.OrderModule),
+  },
+  {
+    path: "upload-order",
+    loadChildren: () =>
+      import("../../upload/upload-order.module").then(
+        (m) => m.UploadOrderModule
+      ),
+  },
+  {
+    path: "sms",
+    loadChildren: () => import("../../sms/sms.module").then((m) => m.SMSModule),
   },
   {
     path: "setting",

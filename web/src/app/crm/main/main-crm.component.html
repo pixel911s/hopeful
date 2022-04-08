@@ -18,7 +18,7 @@
           </div>
           <div class="col-12" *ngIf="customer">
             <h6 class="d-inline">
-              <i
+              <!-- <i
                 class="fab fa-line"
                 style="color: #00b900; width: 30px"
                 *ngIf="customer.channel == 'LINE'"
@@ -32,11 +32,34 @@
                 class="far fa-address-card"
                 style="width: 30px"
                 *ngIf="customer.channel == 'SYSTEM'"
+              ></i> -->
+
+              <i
+                class="far fa-address-card"
+                style="width: 30px"
+                *ngIf="!customer.sex"
+              ></i>
+
+              <i
+                style="width: 30px"
+                class="fas fa-mars text-info"
+                *ngIf="customer.sex == 'M'"
+              ></i>
+
+              <i
+                style="width: 30px"
+                class="fas fa-venus text-danger"
+                *ngIf="customer.sex == 'F'"
               ></i>
 
               <span>{{ customer.name }}</span>
+
+              <span class="float-right" *ngIf="customer && customer.age"
+                >อายุ {{ customer.age }} ปี</span
+              >
             </h6>
           </div>
+
           <div class="col-12" *ngIf="customer">
             <h6 class="d-inline">
               <i class="fas fa-phone-square-alt" style="width: 30px"></i>
@@ -160,7 +183,7 @@
             </div>
           </div>
           <div class="col-12">
-            <drag-scroll [scrollbar-hidden]="true" style="height: 27px">
+            <drag-scroll>
               <button
                 drag-scroll-item
                 *ngFor="let item of master.activityDate; let index = index"
@@ -172,7 +195,14 @@
                   'btn-outline-primary': index != criteria.selectBtnIndex
                 }"
               >
-                <small>{{ item.display }} ({{ item.qty }})</small>
+                <small
+                  >{{ item.display }}
+                  <span *ngIf="showLoadingLoadActivityDate"
+                    ><i class="fas fa-spinner"></i></span
+                  ><span *ngIf="!showLoadingLoadActivityDate"
+                    >({{ item.qty }})</span
+                  ></small
+                >
               </button>
             </drag-scroll>
           </div>
@@ -198,7 +228,15 @@
                     <div class="col-5 text-right">
                       {{ item.dueDate | date: "dd/MM/yyyy" }}
                     </div>
-                    <div class="col-12">{{ item.description }}</div>
+                    <div class="col-7">{{ item.description }}</div>
+                    <div class="col-5 text-right">
+                      <span class="text-danger" *ngIf="isOverdue(item)"
+                        >ใช้หมดแล้ว</span
+                      >
+                      <span class="text-success" *ngIf="!isOverdue(item)"
+                        >ยังใช้ไม่หมด</span
+                      >
+                    </div>
                     <div class="col-6">{{ item.agentName }}</div>
                     <div class="col-6 text-right">
                       <span
@@ -249,43 +287,75 @@
     </div>
   </div>
   <div class="col-12 col-md-5" [ngClass]="{ 'col-md-8': isASCollapsed }">
-    <div class="card m-b-20">
+    <div class="card m-b-20" *ngIf="selectedActivity">
       <div class="card-body">
         <div class="row">
           <div class="col-12">
             <h5 class="d-inline">Activity ที่เลือก</h5>
-            <span
-              class="badge bg-info m-l-10"
-              *ngIf="
-                customer.activityOwner != null &&
-                customer.activityOwner == user.username
-              "
-              >ท่านเป็นผู้ดูแล</span
-            >
-            <span
-              class="badge bg-danger m-l-10"
-              *ngIf="
-                customer.activityOwner != null &&
-                customer.activityOwner != user.username
-              "
-              >ท่านไม่ใช่ผู้ดูแล</span
-            >
-            <span
-              class="badge bg-warning m-l-10 poiter"
-              *ngIf="customer.activityOwner == null"
-              (click)="assignActivityOwner()"
-              >คลิกเพื่อดูแลลูกค้า</span
-            >
+
             <a
               class="float-right"
               type="button"
               (click)="isASCollapsed = !isASCollapsed"
               [attr.aria-expanded]="!isASCollapsed"
               aria-controls="isASCollapsed"
+              style="padding-left: 20px"
             >
               <i class="fas fa-chevron-left" *ngIf="isASCollapsed"></i>
               <i class="fas fa-chevron-right" *ngIf="!isASCollapsed"></i>
             </a>
+          </div>
+          <div class="col-6">
+            <span
+              class="badge bg-info"
+              *ngIf="
+                selectedActivity.ownerUser != null &&
+                selectedActivity.ownerUser == user.username
+              "
+              >ท่านเป็นผู้ดูแล</span
+            >
+            <span
+              class="badge bg-danger"
+              *ngIf="
+                selectedActivity.ownerUser != null &&
+                selectedActivity.ownerUser != user.username
+              "
+              >ท่านไม่ใช่ผู้ดูแล</span
+            >
+            <span
+              class="badge bg-warning poiter"
+              *ngIf="selectedActivity.ownerUser == null"
+              (click)="assignActivityOwner()"
+              >คลิกเพื่อดูแลลูกค้า</span
+            >
+          </div>
+          <div class="col-6 text-right">
+            <div ngbDropdown *ngIf="selectedActivity">
+              <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                ><b><small>ตัวจัดการ</small></b></a
+              >
+              <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                <button
+                  class="w-100"
+                  (click)="assignActivityOwner2()"
+                  ngbDropdownItem
+                  *ngIf="user.function.SUPERVISOR"
+                >
+                  เปลี่ยนผู้รับผิดชอบ
+                </button>
+
+                <button
+                  class="w-100"
+                  (click)="assignActivityOwner()"
+                  ngbDropdownItem
+                  *ngIf="selectedActivity.ownerUser == null"
+                >
+                  ดูแลลูกค้า
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
             <hr />
           </div>
           <div class="col-12 text-center" *ngIf="loadingActivity">
@@ -293,28 +363,41 @@
           </div>
           <div class="col-12" *ngIf="selectedActivity">
             <h6 class="d-inline">{{ selectedActivity.code }}</h6>
-            <span class="float-right">{{
-              selectedActivity.dueDate | date: "dd/MM/yyyy"
-            }}</span>
+            <span class="float-right"
+              >ต้องติดตามภายใน :
+              {{ selectedActivity.dueDate | date: "dd/MM/yyyy" }}</span
+            >
           </div>
           <div class="col-12 m-b-20" *ngIf="selectedActivity">
             {{ selectedActivity.description }}
+
+            <span
+              (click)="changeEndOfDose()"
+              [ngClass]="{
+                'text-success': !isOverdue(selectedActivity),
+                'text-danger': isOverdue(selectedActivity)
+              }"
+              class="float-right poiter"
+              >ใช้สินค้าหมด :
+              {{ selectedActivity.endOfDose | date: "dd/MM/yyyy" }}
+              <span>✏️</span></span
+            >
           </div>
           <div class="col-12 text-center" *ngIf="selectedActivity">
             <ul id="breadcrumbs-two">
-              <li><a (click)="updateStatus(0)" class="pass">รอดำเนินการ</a></li>
+              <li><a (click)="updateStatus(0)" class="pass">รายชื่อ</a></li>
               <li>
                 <a
                   (click)="updateStatus(1)"
                   [ngClass]="{ pass: selectedActivity.activityStatusId >= 1 }"
-                  >ดำเนินการ</a
+                  >โทร</a
                 >
               </li>
               <li>
                 <a
                   (click)="updateStatus(2)"
                   [ngClass]="{ pass: selectedActivity.activityStatusId >= 2 }"
-                  >เสนอราคา</a
+                  >คุย</a
                 >
               </li>
               <li>
@@ -600,6 +683,85 @@
           </div>
 
           <div class="col-12 m-t-20">
+            <h5 class="d-inline">บันทึก CRM</h5>
+            <a
+              class="float-right"
+              type="button"
+              (click)="isHistoryCollapsed = !isHistoryCollapsed"
+              [attr.aria-expanded]="!isHistoryCollapsed"
+              aria-controls="isHistoryCollapsed"
+            >
+              <i class="fas fa-plus" *ngIf="isHistoryCollapsed"></i>
+              <i class="fas fa-minus" *ngIf="!isHistoryCollapsed"></i>
+            </a>
+            <hr />
+          </div>
+
+          <div
+            class="col-12"
+            id="isHistoryCollapsed"
+            [collapse]="isHistoryCollapsed"
+            [isAnimated]="true"
+            *ngIf="histories"
+          >
+            <div class="text-center" *ngIf="loadingHistory">
+              <div class="loader"></div>
+            </div>
+            <div
+              class="transactionHistory"
+              *ngFor="let item of histories.data"
+              style="zoom: 90%"
+            >
+              <div class="row">
+                <div class="col-12">
+                  <b>{{ item.action }}</b>
+                </div>
+                <div class="col-12" *ngIf="item.activityCode">
+                  <b>Activity : {{ item.activityCode }}</b>
+                </div>
+                <div class="col-12">
+                  {{ item.description }}
+                </div>
+                <div class="col-6 text-left">
+                  <small>{{ item.createUser }}</small>
+                </div>
+                <div class="col-6 text-right">
+                  <small>{{
+                    item.createDttm | date: "dd/MM/yyyy HH:mm"
+                  }}</small>
+                </div>
+              </div>
+            </div>
+            <div
+              *ngIf="
+                !loadingHistory &&
+                histories.data &&
+                histories.totalRecord > historyCriteria.size
+              "
+            >
+              <ngb-pagination
+                class="float-right"
+                [(page)]="historyCriteria.page"
+                [pageSize]="historyCriteria.size"
+                [maxSize]="5"
+                [collectionSize]="histories.totalRecord"
+                (pageChange)="loadHistories()"
+              ></ngb-pagination>
+            </div>
+          </div>
+          <div
+            class="col-12"
+            *ngIf="!loadingHistory && (!histories || !histories.data)"
+          >
+            <div
+              style="border: 1px solid #e3e3e3; padding: 20px"
+              class="text-center"
+            >
+              ไม่มีบันทึก CRM
+            </div>
+          </div>
+
+          <div class="col-12 m-t-20">
             <h5 class="d-inline">ประวัติการสั่งซื้อ</h5>
             <a
               class="float-right"
@@ -629,7 +791,7 @@
               *ngFor="let item of customer.orders.data"
             >
               <div class="row">
-                <div class="col-12 text-right">
+                <div class="col-8">
                   <a
                     class="text-info poiter"
                     [routerLink]="['/order/view/' + item.id]"
@@ -638,11 +800,17 @@
                   >
                 </div>
 
-                <div class="col-12 text-right">
+                <div class="col-4 text-right">
                   <small>{{ item.orderDate | date: "dd/MM/yyyy" }}</small>
                 </div>
 
-                <div class="col-12 text-right">
+                <div class="col-12" *ngFor="let detail of item.orderDetail">
+                  <small
+                    >- {{ detail.name }} {{ detail.qty }} {{ detail.unit }}
+                  </small>
+                </div>
+
+                <div class="col-12">
                   <small>{{ item.businessName }} : {{ item.createBy }}</small>
                 </div>
                 <div class="col-12 text-right">
@@ -669,7 +837,10 @@
           </div>
           <div
             class="col-12"
-            *ngIf="!loadingOrder && (!customer || !customer.orders.data)"
+            *ngIf="
+              !loadingOrder &&
+              (!customer || !customer.orders || !customer.orders.data)
+            "
           >
             <div
               style="border: 1px solid #e3e3e3; padding: 20px"

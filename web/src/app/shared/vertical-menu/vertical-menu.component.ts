@@ -89,6 +89,17 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
+    if (this.user.function.UPLOAD_ORDER) {
+      this.menuItems.push({
+        path: "/upload-order",
+        title: "ประวัติการอัพโหลดออเดอร์",
+        icon: "ft-upload",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
+
     if (this.user.function.CREATE_USER || this.user.function.VIEW_USER) {
       this.menuItems.push({
         path: "/user",
@@ -122,6 +133,20 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
+    if (
+      this.user.function.SUPERVISOR &&
+      this.user.business.businessType == "A"
+    ) {
+      this.menuItems.push({
+        path: "/agent-product",
+        title: "ข้อมูลสินค้า",
+        icon: "ft-box",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
+
     this.menuItems.push({
       path: "/request",
       title: "ข้อมูลคำขอ",
@@ -131,7 +156,7 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       submenu: [],
     });
 
-    this.menuItems.push({
+    let setupMenu = {
       path: "",
       title: "ตั้งค่าเพิ่มเติม",
       icon: "ft-settings",
@@ -149,7 +174,33 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
           submenu: [],
         },
       ],
-    });
+    };
+
+    if (this.user.function.SUPERVISOR) {
+      setupMenu.submenu.push({
+        path: "/setting/agent",
+        title: "ตั้งค่าตัวแทนจำหน่าย",
+        icon: "ft-arrow-right submenu-icon",
+        class: "",
+        badge: "",
+        badgeClass: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
+
+    this.menuItems.push(setupMenu);
+
+    if (this.user.function.SENDSMS) {
+      this.menuItems.push({
+        path: "/sms",
+        title: "SMS",
+        icon: "ft-pocket",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
   }
 
   ngAfterViewInit() {

@@ -1,0 +1,91 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="card" *ngIf="user">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <h5 class="d-inline">ประวัติการอัพโหลดข้อมูล</h5>
+
+        <hr />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12 text-right">
+        ข้อมูลทั้งหมด {{ data.totalRecord | number: ".0" }} รายการ
+      </div>
+    </div>
+    <div class="row" *ngIf="data.totalRecord > 0">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover custom-table" id="tblData">
+            <thead>
+              <tr>
+                <th class="text-left">ผู้อัพโหลด</th>
+                <th class="text-center">วันที่อัพโหลด</th>
+                <th class="text-right">จำนวนออเดอร์</th>
+                <th style="width: 70px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data.data; let i = index">
+                <td class="text-left">
+                  <span>{{ item.uploadBy }}</span>
+                </td>
+                <td class="text-center">
+                  {{ item.uploadDttm | date: "dd/MM/yyyy HH:mm:ss" }}
+                </td>
+                <td class="text-right">
+                  {{ item.item | number: ".0" }}
+                </td>
+
+                <td class="text-center" style="width: 120px">
+                  <div ngbDropdown container="body">
+                    <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                      ><b><small>ตัวจัดการ</small></b></a
+                    >
+                    <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                      <button
+                        class="w-100"
+                        (click)="remove(item)"
+                        ngbDropdownItem
+                        *ngIf="user.function.CREATE_ORDER && item.status != 'C'"
+                      >
+                        ลบข้อมูลออเดอร์
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <select
+            (change)="criteria.page = 1; search()"
+            [(ngModel)]="criteria.size"
+            class="form-control form-control-sm"
+            id="status"
+            style="width: auto"
+          >
+            <option [ngValue]="5">แสดงผล 5 รายการ</option>
+            <option [ngValue]="20">แสดงผล 20 รายการ</option>
+            <option [ngValue]="100">แสดงผล 100 รายการ</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <ngb-pagination
+          class="float-right"
+          [(page)]="criteria.page"
+          [pageSize]="criteria.size"
+          [maxSize]="10"
+          [collectionSize]="data.totalRecord"
+          (pageChange)="search()"
+        ></ngb-pagination>
+      </div>
+    </div>
+  </div>
+</div>

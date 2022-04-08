@@ -1,0 +1,18 @@
+<app-nav-bar></app-nav-bar>
+
+<app-agent-detail
+  *ngIf="data"
+  [isEdit]="isEdit"
+  [isSetup]="true"
+  [data]="data"
+  [formGroup]="formGroup"
+  [header]="'ตั้งค่าตัวแทนจำหน่าย'"
+></app-agent-detail>
+
+<div class="row m-b-20">
+  <div class="col-12 text-right">
+    <button (click)="save()" type="button" class="btn btn-primary m-l-10">
+      Save
+    </button>
+  </div>
+</div>

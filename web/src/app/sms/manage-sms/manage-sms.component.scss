@@ -1,0 +1,23 @@
+.form-control[readonly] {
+  background-color: #ffffff;
+  opacity: 1;
+}
+
+.btn-menu-custom-danger {
+  color: white !important;
+  background-color: #3f51b5 !important;
+}
+
+.btn-menu-custom-default {
+  padding-top: 5px !important;
+  padding-right: 10px !important;
+  padding-left: 10px !important;
+  color: #6c757d;
+  background-color: white;
+  border-radius: 0px;
+  text-align: center;
+  padding: 4px;
+  display: inline-block;
+  cursor: pointer;
+  margin-right: 5px;;
+}

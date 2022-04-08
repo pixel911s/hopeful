@@ -48,6 +48,18 @@
               </div>
               <div class="col-md-3">
                 <div class="form-group">
+                  <label for="tel">เบอร์โทรศัพท์</label>
+                  <input
+                    (keyup.enter)="criteria.page = 1; advanceSearch()"
+                    autocomplete="off"
+                    [(ngModel)]="criteria.tel"
+                    class="form-control form-control-sm"
+                    id="tel"
+                  />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
                   <label for="owner">ผู้ดูแล</label>
                   <input
                     (keyup.enter)="criteria.page = 1; advanceSearch()"
@@ -62,7 +74,7 @@
                 <div class="form-group">
                   <label for="agent">ตัวแทนจำหน่าย</label>
                   <select
-                    (change)="criteria.page = 1; search()"
+                    (change)="criteria.page = 1; advanceSearch()"
                     [(ngModel)]="criteria.agent"
                     class="form-control form-control-sm"
                     id="agent"
@@ -91,6 +103,21 @@
                   </ng-multiselect-dropdown>
                 </div>
               </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="eod">วันที่ของจะหมด</label>
+                  <select
+                    (change)="criteria.page = 1; advanceSearch()"
+                    [(ngModel)]="criteria.eod"
+                    class="form-control form-control-sm"
+                    id="eod"
+                  >
+                    <option [ngValue]="undefined">ทั้งหมด</option>
+                    <option [ngValue]="1">ของหมดแล้ว</option>
+                    <option [ngValue]="0">ของยังไม่หมด</option>
+                  </select>
+                </div>
+              </div>
               <div class="col-12 m-b-20">
                 <button
                   id="btnSearch"
@@ -103,8 +130,48 @@
               </div>
             </div>
           </div>
+
           <div class="col-12">
-            <drag-scroll [scrollbar-hidden]="true" style="height: 27px">
+            <div ngbDropdown container="body">
+              <!-- <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle
+                ><b><small>ตัวจัดการ</small></b></a
+              > -->
+              <button
+                ngbDropdownToggle
+                id="btnControl"
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+              >
+                ฟังก์ชั่นเพิ่มเติม
+              </button>
+              <div ngbDropdownMenu aria-labelledby="btnControl">
+                <button
+                  *ngIf="user.function.SUPERVISOR"
+                  class="w-100"
+                  (click)="assignActivityOwners()"
+                  ngbDropdownItem
+                >
+                  เปลี่ยนผู้รับผิดชอบ
+                </button>
+                <button
+                  *ngIf="user.function.SUPERVISOR"
+                  class="w-100"
+                  (click)="createTasks()"
+                  ngbDropdownItem
+                >
+                  สร้าง Task จาก Activity ที่เลือก
+                </button>
+                <!-- <button class="w-100" (click)="view(item)" ngbDropdownItem>
+                  ดูข้อมูล
+                </button> -->
+              </div>
+            </div>
+
+            <hr />
+          </div>
+
+          <div class="col-12">
+            <drag-scroll>
               <button
                 drag-scroll-item
                 *ngFor="let item of master.activityDate; let index = index"
@@ -116,7 +183,14 @@
                   'btn-outline-primary': index != criteria.selectBtnIndex
                 }"
               >
-                <small>{{ item.display }} ({{ item.qty }})</small>
+                <small
+                  >{{ item.display }}
+                  <span *ngIf="showLoadingLoadActivityDate"
+                    ><i class="fas fa-spinner"></i></span
+                  ><span *ngIf="!showLoadingLoadActivityDate"
+                    >({{ item.qty }})</span
+                  ></small
+                >
               </button>
             </drag-scroll>
           </div>
@@ -129,17 +203,37 @@
             <table class="table table-hover custom-table" id="tblData">
               <thead>
                 <tr>
+                  <th class="text-center"></th>
                   <th class="text-left">ชื่อลูกค้า</th>
                   <th class="text-left">สินค้า</th>
                   <th class="text-center">ผู้ดูแล</th>
                   <th class="text-center">วันที่ต้องติดตาม</th>
+                  <th class="text-center">วันที่ของจะหมด</th>
                   <th style="width: 70px"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let item of data.data">
+                  <td class="text-center">
+                    <div
+                      class="form-check"
+                      *ngIf="
+                        user.function.SUPERVISOR ||
+                        user.username == item.ownerUser
+                      "
+                    >
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="item.selected"
+                      />
+                    </div>
+                  </td>
                   <td class="text-left">
                     <div>{{ item.customerName }}</div>
+                    <div>
+                      <small>{{ item.mobile }}</small>
+                    </div>
                     <small>{{ item.code }}</small>
                   </td>
                   <td class="text-left">
@@ -173,6 +267,14 @@
                         >{{ item.status }}</span
                       >
                     </small>
+                  </td>
+                  <td class="text-center">
+                    <div class="text-danger" *ngIf="isOverdue(item)">
+                      {{ item.endOfDose | date: "dd/MM/yyyy" }}
+                    </div>
+                    <div class="text-success" *ngIf="!isOverdue(item)">
+                      {{ item.endOfDose | date: "dd/MM/yyyy" }}
+                    </div>
                   </td>
                   <td class="text-left">
                     <div ngbDropdown container="body">
@@ -270,6 +372,12 @@
             [isAnimated]="true"
             class="m-b-20"
           >
+            <div class="col-12 text-center" *ngIf="loadOpenTask">
+              <div class="task-box">
+                <div class="loader"></div>
+              </div>
+            </div>
+
             <div
               class="col-12 m-b-5"
               *ngFor="let item of openTasks; let index = index"
@@ -341,6 +449,12 @@
             [collapse]="isTodoCollapsed2"
             [isAnimated]="true"
           >
+            <div class="col-12 text-center" *ngIf="loadCloseTask">
+              <div class="task-box">
+                <div class="loader"></div>
+              </div>
+            </div>
+
             <div class="col-12 m-b-5" *ngFor="let item of closeTasks">
               <div class="task-box">
                 <div class="row">

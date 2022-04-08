@@ -1,20 +1,28 @@
 "use strict";
 
+const fileUtil = require("../utils/fileUtil");
+
 var util = require("../utils/responseUtils");
 var encypt = require("../utils/encypt");
 var orderDao = require("../dao/orderDao");
+var agentDao = require("../dao/agentDao");
 var productDao = require("../dao/productDao");
 var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
 var activityDao = require("../dao/activityDao");
+var noteDao = require("../dao/noteDao");
 
 var auditLogDao = require("../dao/auditLogDao");
+
+var lineService = require("./lineService");
 
 const config = require("config");
 const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
 
 const ExcelJS = require("exceljs");
+
+const moment = require("moment-timezone");
 
 module.exports = {
   get,
@@ -25,7 +33,99 @@ module.exports = {
   upload,
 
   exportTemplate,
+  exportKerry,
+  exportFlashTransaction,
+  exportJTTransaction,
+  exportOrder,
+  exportOrderStatusTemplate,
+
+  searchUpload,
+  deleteByUpload,
+
+  updateStatus,
 };
+
+async function updateStatus(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    let model = req.body;
+
+    for (let index = 0; index < model.items.length; index++) {
+      const item = model.items[index];
+      item.username = model.username;
+      await orderDao.updateStatus(conn, item);
+    }
+
+    let orderLog = {
+      logType: "update-order",
+      logDesc: JSON.stringify(model.items),
+      logBy: model.username,
+    };
+    await auditLogDao.save(conn, orderLog);
+
+    const agent = await agentDao.getById(conn, model.ownerId);
+
+    if (agent && agent.lineNotifyToken) {
+      let msg = "อัพเดทสถานะการสั่งซื้อ " + model.items.length + " รายการ";
+      msg += "\nโดย " + model.username;
+
+      await lineService.notify(agent.lineNotifyToken, msg);
+    }
+
+    return res.send(
+      util.callbackSuccess("ทำการลบข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function deleteByUpload(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    let model = req.body;
+
+    await orderDao.deleteByUpload(conn, model.uploadBy, model.uploadDttm);
+
+    return res.send(
+      util.callbackSuccess("ทำการลบข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function searchUpload(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+    let result = null;
+
+    let totalRecord = await orderDao.countUpload(conn, criteria);
+
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
+    }
+
+    if (totalRecord > 0) {
+      result = await orderDao.searchUpload(conn, criteria);
+    }
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function get(req, res) {
   const conn = await pool.getConnection();
@@ -88,6 +188,13 @@ async function search(req, res) {
       result = await orderDao.search(conn, criteria);
     }
 
+    if (criteria.loadDetails) {
+      for (let index = 0; index < result.length; index++) {
+        const order = result[index];
+        order.orderDetail = await orderDao.getDetail(conn, order.id);
+      }
+    }
+
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {
     console.error(e);
@@ -103,9 +210,100 @@ async function create(req, res) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-    let model = req.body;
+    let model = JSON.parse(req.body.data);
+    // let model = req.body;
+    let files = req.files;
+    let inputFile = config.path.slip_file_input;
+    let outputFile = config.path.slip_file_output;
 
-    await addOrder(model, conn);
+    if (files) {
+      let img = files["image"];
+
+      if (img) {
+        model.imageUrl = await fileUtil.uploadImg(
+          inputFile,
+          outputFile,
+          "1",
+          img
+        );
+      }
+    }
+
+    let saveModel = await addOrder(model, conn);
+
+    console.log("=== " + saveModel.orderNo + " is save ===");
+    console.log("=== ownerId is  " + model.ownerId + " ===");
+
+    const agent = await agentDao.getById(conn, model.ownerId);
+
+    if (agent)
+      console.log("=== lineNotifyToken is  " + agent.lineNotifyToken + " ===");
+
+    if (agent && agent.lineNotifyToken) {
+      let totalRecord = await orderDao.countFromCustomer(
+        conn,
+        model.customerId
+      );
+
+      let msg = "รายการสั่งซื้อใหม่";
+      msg += "\nเลขคำสั่งซื้อ " + saveModel.orderNo;
+      msg += "\nวิธีการชำระเงิน " + model.paymentType;
+      msg += "\nสั่งซื้อครั้งที่ " + totalRecord;
+      msg += "\nChannel : " + model.saleChannel;
+
+      if (model.saleChannelName) {
+        msg += " : " + model.saleChannelName;
+      }
+
+      msg += "\n\n" + model.socialName;
+      msg += "\n" + model.deliveryName;
+      msg += "\n" + model.deliveryAddressInfo;
+      msg += "\n" + model.deliveryDistrict + " " + model.deliverySubDistrict;
+      msg += "\n" + model.deliveryProvince + " " + model.deliveryZipcode;
+      msg += "\nโทร " + model.deliveryContact;
+
+      msg += "\n\n";
+
+      for (let index = 0; index < model.orderDetail.length; index++) {
+        let orderItem = model.orderDetail[index];
+
+        msg += "(" + orderItem.code + " x " + orderItem.qty + ")";
+
+        if (index + 1 < model.orderDetail.length) {
+          msg += " + ";
+        }
+      }
+
+      msg += " = " + model.netAmount;
+
+      msg += "\n=================";
+
+      msg += "\nผู้ทำรายการ : " + model.createBy;
+
+      msg +=
+        "\nวันที่ในใบสั่งซื้อ" +
+        " : " +
+        moment(saveModel.transactionDttm)
+          .tz("Asia/Bangkok")
+          .format("DD/MM/yyyy");
+
+      msg +=
+        "\nวันที่สร้างรายการ" +
+        " : " +
+        moment().tz("Asia/Bangkok").format("DD/MM/yyyy HH:mm:ss");
+
+      if (model.remark) {
+        msg += "\nหมายเหตุ : " + model.remark;
+      }
+
+      if (model.imageUrl) {
+        msg += "\nลิงค์ SLIP : " + model.imageUrl;
+      }
+
+      await lineService.notify(agent.lineNotifyToken, msg);
+
+      console.log("=== SEND LINE SUCCESS ===");
+    }
 
     conn.commit();
 
@@ -125,29 +323,46 @@ async function upload(req, res) {
   console.log("UPLOAD ORDER");
 
   let body = req.body;
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
 
-  for (let index = 0; index < body.items.length; index++) {
-    const conn = await pool.getConnection();
-    try {
-      conn.beginTransaction();
+  body.uploadDttm = new Date();
+
+  try {
+    for (let index = 0; index < body.items.length; index++) {
       const model = body.items[index];
       model.ownerId = body.ownerId;
-      model.username = body.username;
+      model.username = model.sale ? model.sale : body.username;
       model.status = "O";
+      model.userAgents = body.userAgents;
+      model.uploadBy = body.username;
+      model.uploadDttm = body.uploadDttm;
       await addOrder(model, conn);
-      conn.commit();
-    } catch (e) {
-      console.log(e);
-      conn.rollback();
-      return res.status(500).send(e.message);
-    } finally {
-      conn.release();
     }
-  }
 
-  return res.send(
-    util.callbackSuccess("อัพโหลดข้อมูลออเดอร์เสร็จสมบูรณ์", true)
-  );
+    conn.commit();
+
+    const agent = await agentDao.getById(conn, body.ownerId);
+    if (agent && agent.lineNotifyToken) {
+      await lineService.notify(
+        agent.lineNotifyToken,
+        "อัพโหลดรายการสั่งซื้อ " +
+          body.items.length +
+          " รายการ \nโดย: " +
+          body.username
+      );
+    }
+
+    return res.send(
+      util.callbackSuccess("อัพโหลดข้อมูลออเดอร์เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }
 
 async function addOrder(model, conn) {
@@ -168,7 +383,12 @@ async function addOrder(model, conn) {
   console.log("ORDER NO : ", model.orderNo);
 
   //CHECK CUSTOMER
-  let customer = await customerDao.getByMobileNo(conn, model.deliveryContact);
+
+  let customerCriteria = {
+    mobile: model.deliveryContact,
+    userAgents: model.userAgents,
+  };
+  let customer = await customerDao.getByMobileNo(conn, customerCriteria);
 
   if (customer != undefined) {
     //OLD CUSTOMER
@@ -214,6 +434,10 @@ async function addOrder(model, conn) {
     }
 
     await customerDao.addAddress(conn, address);
+
+    customer.socialName = model.socialName;
+
+    await customerDao.save(conn, customer);
   } else {
     //NEW CUSTOMER
     customer = {
@@ -221,6 +445,7 @@ async function addOrder(model, conn) {
       name: model.deliveryName,
       mobile: model.deliveryContact,
       username: model.username,
+      socialName: model.socialName,
     };
 
     let customerId = await customerDao.save(conn, customer);
@@ -243,7 +468,24 @@ async function addOrder(model, conn) {
     model.customerId = customerId;
   }
 
+  model.orderCount = await orderDao.countFromCustomer(conn, model.customerId);
+
+  model.orderCount++;
+
   let _orderId = await orderDao.save(conn, model);
+
+  //==== Add Audit Log ========================================
+
+  let orderLog = {
+    logType: "order",
+    logDesc: "Create Order : OrderNo -->" + model.orderNo,
+    logBy: model.username,
+    refTable: "order",
+    refId: _orderId,
+  };
+  await auditLogDao.save(conn, orderLog);
+
+  //===========================================================
 
   console.log("RET ORDER ID : ", _orderId);
 
@@ -253,9 +495,18 @@ async function addOrder(model, conn) {
     conn,
     model.customerId
   );
-  console.log("OWNER CUSTOMER : ", _activityOwnerObj);
 
   let _activityOwner = _activityOwnerObj.activityOwner;
+
+  if (_activityOwner == undefined && model.crmOwner) {
+    _activityOwner = model.crmOwner.toLowerCase();
+
+    let customerUpdateOwnerMOdel = {
+      id: model.customerId,
+      activityOwner: _activityOwner,
+    };
+    await customerDao.updateOwner(conn, customerUpdateOwnerMOdel);
+  }
 
   //=================================================
 
@@ -308,10 +559,11 @@ async function addOrder(model, conn) {
       productId: product.id,
       remainingDay: _remainingDay,
       dueDate: _dueDate,
+      endOfDose: _dueDate,
       agentId: model.ownerId,
       customerId: model.customerId,
       ownerUser: _activityOwner,
-      activityStatusId: 0,
+      activityStatusId: model.activityStatus ? model.activityStatus : 0,
       refOrderId: _orderId,
       refOrderItemId: _orderItemId,
       username: model.username,
@@ -337,16 +589,105 @@ async function addOrder(model, conn) {
     //===========================================================
   }
 
-  return true;
+  if (model.note) {
+    let noteObj = {
+      customerId: model.customerId,
+      description: model.note,
+      username: model.username,
+    };
+
+    await noteDao.save(conn, noteObj);
+  }
+
+  return model;
 }
 
 async function update(req, res) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
-    let model = req.body;
+    let model = JSON.parse(req.body.data);
+    // let model = req.body;
+    let files = req.files;
+    let inputFile = config.path.slip_file_input;
+    let outputFile = config.path.slip_file_output;
+
+    if (files) {
+      let img = files["image"];
+
+      if (img) {
+        model.imageUrl = await fileUtil.uploadImg(
+          inputFile,
+          outputFile,
+          "1",
+          img
+        );
+      }
+    }
 
     model = await orderDao.calculateOrder(model);
+
+    let order = await orderDao.get(conn, model.id);
+
+    if (model.status != order.status) {
+      model.updateStatusDate = new Date();
+    }
+
+    if (
+      model.paymentStatus != order.paymentStatus &&
+      model.paymentStatus == "S"
+    ) {
+      model.updateCODDate = new Date();
+    } else if (model.paymentStatus == "W") {
+      model.updateCODDate = null;
+    }
+
+    if (order.lineNotifyToken && model.status != order.status) {
+      let statusChangeText = null;
+      let paymentStatusChangeText = null;
+
+      let msg = "อัพเดทสถานะการสั่งซื้อ";
+
+      if (model.status == "O") {
+        statusChangeText = "สั่งซื้อใหม่";
+      } else if (model.status == "W") {
+        statusChangeText = "ยืนยันออเดอร์";
+      } else if (model.status == "S") {
+        statusChangeText = "จัดส่งแล้ว";
+      } else if (model.status == "R") {
+        statusChangeText = "จัดส่งแล้ว";
+      } else if (model.status == "C") {
+        statusChangeText = "ยกเลิกรายการ";
+      }
+
+      if (model.paymentStatus == "S") {
+        paymentStatusChangeText = "ชำระแล้ว";
+      } else {
+        paymentStatusChangeText = "รอชำระ";
+      }
+
+      msg += "\nเลขคำสั่งซื้อ : " + order.orderNo;
+      msg += "\nยอดสั่งซื้อ : " + order.netAmount;
+      msg += "\nเปลี่ยนสถานะเป็น : " + statusChangeText;
+      msg += "\nสถานะการชำระเงิน : " + paymentStatusChangeText;
+      msg += "\nโดย : " + model.username;
+
+      if (model.remark) {
+        msg += "\nหมายเหตุ : " + model.remark;
+      }
+
+      await lineService.notify(order.lineNotifyToken, msg);
+    }
+
+    if (order.lineNotifyToken && model.imageUrl != order.imageUrl) {
+      let msg = "อัพเดทรูป Slip ใหม่";
+      msg += "\nเลขคำสั่งซื้อ : " + order.orderNo;
+      msg += "\nยอดสั่งซื้อ : " + order.netAmount;
+      msg += "\nลิงค์ SLIP : " + model.imageUrl;
+
+      msg += "\nโดย : " + model.username;
+      await lineService.notify(order.lineNotifyToken, msg);
+    }
 
     await orderDao.save(conn, model);
 
@@ -386,6 +727,13 @@ async function deleteOrder(req, res) {
     await activityDao.cancelActivityByOrderId(conn, model.id);
     //======================================
 
+    if (order.lineNotifyToken) {
+      let msg = "ยกเลิกรายการสั่งซื้อ";
+      msg += "\nเลขคำสั่งซื้อ " + order.orderNo;
+      msg += "\nโดย " + model.username;
+      await lineService.notify(order.lineNotifyToken, msg);
+    }
+
     conn.commit();
 
     return res.send(
@@ -393,6 +741,24 @@ async function deleteOrder(req, res) {
     );
   } catch (e) {
     conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportOrderStatusTemplate(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/ORDER_STATUS_TEMPLATE.xlsx");
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
     return res.status(500).send(e.message);
   } finally {
     conn.release();
@@ -419,22 +785,456 @@ async function exportTemplate(req, res) {
     for (let index = 0; index < products.length; index++) {
       const product = products[index];
 
-      const row = worksheet.getRow(index + 1);
+      const row = worksheet.getRow(index + 2);
       row.getCell(1).value = product.code;
       row.getCell(2).value = product.name;
+      row.getCell(3).value = product.description;
+      row.getCell(4).value = product.sellPrice;
 
       productIds.push(product.code);
     }
 
-    const worksheet1 = workbook.getWorksheet("DATA");
-    let joineddropdownlist = '"' + productIds.join(",") + '"';
-    for (let i = 2; i < 5; i++) {
-      worksheet1.getCell("L" + i).dataValidation = {
-        type: "list",
-        allowBlank: true,
-        operator: "equal",
-        formulae: [joineddropdownlist],
-      };
+    // const worksheet1 = workbook.getWorksheet("DATA");
+    // let joineddropdownlist = '"' + productIds.join(",") + '"';
+    // for (let i = 2; i < 5; i++) {
+    //   worksheet1.getCell("L" + i).dataValidation = {
+    //     type: "list",
+    //     allowBlank: true,
+    //     operator: "equal",
+    //     formulae: [joineddropdownlist],
+    //   };
+    // }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportKerry(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    req.body.page = undefined;
+
+    var xl = require("excel4node");
+
+    var wb = new xl.Workbook({
+      defaultFont: {
+        size: 12,
+        name: "AngsanaUPC",
+      },
+      dateFormat: "dd/MM/yyyy hh:mm:ss",
+    });
+
+    var ws = wb.addWorksheet("Sheet 1");
+
+    var borderStyle = {
+      bottom: {
+        style: "thin",
+      },
+      top: {
+        style: "thin",
+      },
+      left: {
+        style: "thin",
+      },
+      right: {
+        style: "thin",
+      },
+    };
+
+    var header = wb.createStyle({
+      border: borderStyle,
+      font: {
+        bold: true,
+      },
+      alignment: {
+        horizontal: "center",
+      },
+    });
+
+    var bodyCenter = wb.createStyle({
+      border: borderStyle,
+      alignment: {
+        horizontal: "center",
+      },
+    });
+
+    var bodyLeft = wb.createStyle({
+      border: borderStyle,
+      alignment: {
+        horizontal: "left",
+      },
+    });
+
+    var bodyRight = wb.createStyle({
+      border: borderStyle,
+      alignment: {
+        horizontal: "right",
+      },
+    });
+
+    ws.cell(8, 1).string("No").style(header);
+
+    ws.cell(8, 2).string("ชื่อลูกค้า").style(header);
+
+    ws.cell(8, 3).string("เบอร์โทรศัพท์").style(header);
+
+    ws.cell(8, 4).string("Email").style(header);
+
+    ws.cell(8, 5).string("ที่อยู่1").style(header);
+
+    ws.cell(8, 6).string("ที่อยู่2").style(header);
+
+    ws.cell(8, 7).string("รหัสไปรษณีย์").style(header);
+
+    ws.cell(8, 8).string("ยอด COD").style(header);
+
+    ws.cell(8, 9).string("Remark").style(header);
+
+    ws.cell(8, 10).string("Ref #1").style(header);
+
+    ws.cell(8, 11).string("Ref #2").style(header);
+
+    let criteria = req.body;
+
+    let result = await orderDao.search(conn, criteria);
+
+    let row = 9;
+
+    var dateFormat = require("dateformat");
+
+    for (let index = 0; index < result.length; index++) {
+      const transasction = result[index];
+
+      ws.cell(row, 1)
+        .number(index + 1)
+        .style(bodyLeft);
+
+      ws.cell(row, 2).string(transasction.deliveryName).style(bodyLeft);
+
+      ws.cell(row, 3).string(transasction.deliveryContact).style(bodyLeft);
+
+      ws.cell(row, 4).string("").style(bodyLeft);
+
+      let address = "";
+      if (transasction.deliveryProvince.includes("กรุงเทพ")) {
+        address +=
+          "แขวง" +
+          transasction.deliverySubDistrict +
+          " เขต" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      } else {
+        address +=
+          "ตำบล" +
+          transasction.deliverySubDistrict +
+          " อำเภอ" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      }
+
+      ws.cell(row, 5).string(transasction.deliveryAddressInfo).style(bodyLeft);
+
+      ws.cell(row, 6).string(address).style(bodyLeft);
+
+      ws.cell(row, 7).string(transasction.deliveryZipcode).style(bodyLeft);
+
+      let codAmt = 0;
+
+      if (transasction.paymentType == "COD") {
+        codAmt = transasction.netAmount;
+      }
+
+      ws.cell(row, 8).number(codAmt).style(bodyRight);
+
+      let productDesc = "";
+
+      // for (let index = 0; index < transasction.details.length; index++) {
+      //     const detail = transasction.details[index];
+
+      //     if (index > 0) {
+      //         productDesc += '-------------------\n';
+      //     }
+
+      //     if (!detail.attr1 && !detail.attr2) {
+      //         productDesc += detail.name + '   จำนวน ' + detail.qty + '\n';
+      //     }
+
+      //     if (detail.attr1 && !detail.attr2) {
+      //         productDesc += detail.name + '\n';
+      //         productDesc += detail.attr1name + ' : ' + detail.attr1 + '   จำนวน ' + detail.qty + '\n';
+      //     }
+
+      //     if (detail.attr1 && detail.attr2) {
+      //         productDesc += detail.name + '\n';
+      //         productDesc += detail.attr1name + ' : ' + detail.attr1 + '\n';
+      //         productDesc += detail.attr2name + ' : ' + detail.attr2 + '   จำนวน ' + detail.qty + '\n';
+      //     }
+      // }
+
+      ws.cell(row, 9).string(transasction.remark).style(bodyLeft);
+
+      ws.cell(row, 10).string(transasction.orderNo).style(bodyLeft);
+
+      ws.cell(row, 11).string("").style(bodyLeft);
+
+      row++;
+    }
+
+    console.log("END");
+
+    // ws.cell(1, 1).number(100);
+    // // หมายถึงใส่ค่าตัวเลข 100 ลงไปที่ cell A1
+    // ws.cell(1, 2).string('some text');
+    // //หมายถึงใส่ค่าตัวอักษร some text ลงใน cell B1
+    // ws.cell(1, 3).formula('A1+A2');
+    // //หมายถึงใส่สูตร A1+A2 ใน cell C1
+    // ws.cell(1, 4).bool(true);
+    // //หมายถึงใส่ค่า boolean true ใน cell D1
+
+    ws.column(1).setWidth(5);
+    ws.column(2).setWidth(30);
+    ws.column(3).setWidth(15);
+    ws.column(4).setWidth(15);
+    ws.column(5).setWidth(40);
+    ws.column(6).setWidth(40);
+    ws.column(7).setWidth(10);
+    ws.column(8).setWidth(15);
+    ws.column(9).setWidth(15);
+    ws.column(10).setWidth(15);
+
+    wb.write("ExcelFile.xlsx", res);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportFlashTransaction(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/flash_template.xlsx");
+    const worksheet = workbook.getWorksheet(1);
+
+    req.body.page = undefined;
+
+    let criteria = req.body;
+
+    let result = await orderDao.search(conn, criteria);
+
+    for (let index = 0; index < result.length; index++) {
+      const transasction = result[index];
+
+      let address = transasction.deliveryAddressInfo;
+
+      if (transasction.deliveryProvince.includes("กรุงเทพ")) {
+        address +=
+          "แขวง" +
+          transasction.deliverySubDistrict +
+          " เขต" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      } else {
+        address +=
+          "ตำบล" +
+          transasction.deliverySubDistrict +
+          " อำเภอ" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      }
+
+      const row = worksheet.getRow(index + 2);
+      row.getCell(1).value = transasction.orderNo;
+      row.getCell(2).value = transasction.deliveryName;
+      row.getCell(3).value = address;
+      row.getCell(4).value = transasction.deliveryZipcode;
+      row.getCell(5).value = transasction.deliveryContact;
+
+      if (transasction.paymentType == "COD") {
+        const codAmt = parseInt(transasction.netAmount.toString(), 10);
+        row.getCell(7).value = codAmt;
+      }
+
+      row.getCell(8).value = transasction.weightKg;
+
+      // transasction.details = await transactionDao.getDetails(
+      //   conn,
+      //   transasction.id
+      // );
+
+      let remark = transasction.remark;
+
+      // for (let index = 0; index < transasction.details.length; index++) {
+      //   const item = transasction.details[index];
+
+      //   remark += item.sku + "=" + item.qty + " ,";
+      // }
+
+      // remark += "-";
+
+      row.getCell(15).value = remark;
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportJTTransaction(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/jt_template2.xlsx");
+    const worksheet = workbook.getWorksheet(1);
+
+    req.body.page = undefined;
+
+    let criteria = req.body;
+
+    let result = await orderDao.search(conn, criteria);
+
+    for (let index = 0; index < result.length; index++) {
+      const transasction = result[index];
+
+      let address = transasction.deliveryAddressInfo;
+      let district = transasction.deliveryDistrict;
+      if (transasction.deliveryProvince.includes("กรุงเทพ")) {
+        district = "เขต " + transasction.deliveryDistrict;
+      }
+
+      const row = worksheet.getRow(index + 2);
+      row.getCell(2).value = transasction.orderNo;
+      row.getCell(3).value = transasction.weightKg;
+      row.getCell(4).value = transasction.deliveryName;
+      row.getCell(5).value = transasction.deliveryContact;
+      row.getCell(6).value = transasction.deliveryProvince;
+      row.getCell(7).value = district;
+      row.getCell(8).value = transasction.deliverySubDistrict;
+      row.getCell(9).value = transasction.deliveryZipcode;
+      row.getCell(10).value = address;
+      row.getCell(11).value = 3;
+      row.getCell(12).value = transasction.netAmount;
+
+      if (transasction.paymentType == "COD") {
+        row.getCell(14).value = transasction.netAmount;
+      }
+
+      // transasction.details = await transactionDao.getDetails(
+      //   conn,
+      //   transasction.id
+      // );
+
+      let remark = transasction.remark;
+
+      // for (let index = 0; index < transasction.details.length; index++) {
+      //   const item = transasction.details[index];
+
+      //   remark += item.name + " : " + item.qty + " ,";
+      // }
+
+      // remark += "-";
+
+      row.getCell(13).value = remark;
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function exportOrder(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/EXPORT_TEMPLATE.xlsx");
+    const worksheet = workbook.getWorksheet("sheet1");
+
+    req.body.page = undefined;
+
+    let criteria = req.body;
+
+    let result = await orderDao.exportOrder(conn, criteria);
+
+    for (let index = 0; index < result.length; index++) {
+      const transasction = result[index];
+
+      var dd = moment(transasction.orderDate)
+        .tz("Asia/Bangkok")
+        .format("DD/MM/yyyy");
+
+      const row = worksheet.getRow(index + 2);
+      row.getCell(1).value = index + 1;
+      row.getCell(2).value = transasction.orderNo;
+      row.getCell(3).value = dd;
+      row.getCell(4).value = transasction.paymentType;
+      row.getCell(5).value = transasction.deliveryContact;
+      row.getCell(6).value = transasction.deliveryName;
+      row.getCell(7).value = transasction.deliveryAddressInfo;
+      row.getCell(8).value = transasction.deliveryDistrict;
+      row.getCell(9).value = transasction.deliverySubDistrict;
+      row.getCell(10).value = transasction.deliveryProvince;
+      row.getCell(11).value = transasction.deliveryZipcode;
+      row.getCell(12).value = transasction.remark;
+
+      transasction.orderitem = JSON.parse(transasction.orderitem);
+
+      let orderItem = "";
+      for (let index2 = 0; index2 < transasction.orderitem.length; index2++) {
+        const item = transasction.orderitem[index2];
+        orderItem += item.sku + "=" + item.qty;
+        if (index2 + 1 < transasction.orderitem.length) {
+          orderItem += " , ";
+        }
+      }
+
+      row.getCell(13).value = orderItem;
+
+      row.getCell(14).value = transasction.deliveryPrice;
+      row.getCell(15).value =
+        transasction.itemDiscountAmount + transasction.billDiscountAmount;
+      row.getCell(16).value = transasction.netAmount;
+
+      row.getCell(17).value = transasction.createBy;
+      row.getCell(18).value = transasction.activityOwner;
+
+      row.getCell(19).value = transasction.saleChannel;
+      row.getCell(20).value = transasction.saleChannelName;
+
+      row.getCell(21).value = transasction.agentCode;
+      row.getCell(22).value = transasction.agentName;
+      row.getCell(23).value = transasction.orderCount;
+
+      row.getCell(24).value = transasction.status;
+      row.getCell(25).value = transasction.paymentStatus;
     }
 
     const buffer = await workbook.xlsx.writeBuffer();

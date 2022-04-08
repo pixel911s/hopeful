@@ -1,3 +1,4 @@
+import { ThrowStmt } from "@angular/compiler";
 import { OnInit, Component } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -16,6 +17,8 @@ import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.c
 import { IDropdownSettings } from "ng-multiselect-dropdown";
 import { NgxSpinnerService } from "ngx-spinner";
 import { ToastrService } from "ngx-toastr";
+import { ChangeEndDoseComponent } from "../includes/change-end-dose/change-end-dose.component";
+import { ChangeOwnerComponent } from "../includes/change-owner/change-owner.component";
 import { CreateNoteComponent } from "../includes/create-note/create-notecomponent";
 import { ManageTodoComponent } from "../includes/manage-todo/manage-todo.component";
 import { UpdateCustomerComponent } from "../includes/update-customer/update-customer.component";
@@ -43,6 +46,11 @@ export class MainCRMComponent implements OnInit {
     size: 5,
   };
 
+  public historyCriteria: any = {
+    page: 1,
+    size: 5,
+  };
+
   public master: any = {
     agents: [],
     activityDate: [],
@@ -51,6 +59,7 @@ export class MainCRMComponent implements OnInit {
   user;
   customer;
   notes: any = {};
+  histories: any = {};
   selectedActivity: any = null;
   date = new Date();
 
@@ -63,6 +72,7 @@ export class MainCRMComponent implements OnInit {
   isAdvanceCollapsed = true;
   isNoteCollapsed = false;
   isTransactionCollapsed = false;
+  isHistoryCollapsed = true;
 
   loadingCustomer = false;
   loadingActivitiesList = false;
@@ -70,13 +80,16 @@ export class MainCRMComponent implements OnInit {
   loadingActivity = false;
   loadingNote = false;
 
+  loadingHistory = false;
+  showLoadingLoadActivityDate = false;
+
   dropdownSettings: IDropdownSettings = {
     singleSelection: false,
     idField: "id",
     textField: "status",
     selectAllText: "เลือกทั้งหมด",
     unSelectAllText: "นำออกทั้งหมด",
-    itemsShowLimit: 3,
+    itemsShowLimit: 5,
     allowSearchFilter: false,
   };
 
@@ -93,13 +106,14 @@ export class MainCRMComponent implements OnInit {
     private toastr: ToastrService,
     protected dialog: MatDialog,
     private noteService: NoteService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private userConfigService: UserConfigService
   ) {
     translate.use(this.authService.getUser().lang);
   }
 
   async ngOnInit(): Promise<void> {
-    this.user = this.authService.getUser();
+    this.user = await this.authService.getUserWithLoadAgents();
 
     let session = JSON.parse(sessionStorage.getItem("HOPEFUL_CRITERIA"));
 
@@ -111,20 +125,48 @@ export class MainCRMComponent implements OnInit {
     }
 
     this.criteria.size = 10;
-    this.orderCriteria.customerId = this.activeRoute.snapshot.params.id;
-    this.orderCriteria.userAgents = this.criteria.userAgents;
 
     await this.loadCustomer(this.criteria.customerId);
-    await this.loadOrderHistories();
 
     await this.loadAgents();
     await this.loadStatus();
+
+    await this.getDateTab();
+
     await this.loadActivityDate();
     // await this.search();
-    await this.loadTasks();
+
     await this.searchDate(this.criteria.selectBtnIndex);
     await this.loadActivity();
+    await this.loadTasks();
+    await this.loadHistories();
     await this.loadNote();
+
+    this.orderCriteria.customerId = this.activeRoute.snapshot.params.id;
+    this.orderCriteria.userAgents = this.criteria.userAgents;
+    await this.loadOrderHistories();
+  }
+
+  async getDateTab() {
+    this.master.activityDate = [
+      {
+        id: 0,
+        fillterType: 1,
+        condition: 0,
+        display: "วันนี้",
+        qty: 0,
+      },
+    ];
+
+    let res: any =
+      await this.userConfigService.getActivityDateConfigByUsername();
+
+    for (let index = 0; index < res.data.length; index++) {
+      const data = res.data[index];
+      data.fillterType = 4;
+      data.qty = 0;
+      this.master.activityDate.push(data);
+    }
   }
 
   async loadCustomer(id) {
@@ -136,6 +178,8 @@ export class MainCRMComponent implements OnInit {
 
   async loadOrderHistories() {
     this.loadingOrder = true;
+
+    this.orderCriteria.loadDetails = true;
 
     let res: any = await this.orderService.search(this.orderCriteria);
     this.customer.orders = res;
@@ -151,6 +195,20 @@ export class MainCRMComponent implements OnInit {
     );
     this.selectedActivity = res.data;
     this.loadingActivity = false;
+  }
+
+  async loadHistories() {
+    this.loadingHistory = true;
+
+    this.historyCriteria.customerId = this.criteria.customerId;
+
+    let res: any = await this.activityService.searchHistories(
+      this.historyCriteria
+    );
+
+    this.histories = res;
+
+    this.loadingHistory = false;
   }
 
   async loadNote() {
@@ -183,11 +241,14 @@ export class MainCRMComponent implements OnInit {
     let res: any = await this.masterService.getActivityStatus();
     this.master.status = res.data;
 
-    this.criteria.status = [
-      this.master.status[0],
-      this.master.status[1],
-      this.master.status[2],
-    ];
+    if (this.criteria.status && this.criteria.status.length > 1) {
+      let selected = [];
+      for (let index = 0; index < this.criteria.status.length; index++) {
+        const status = this.criteria.status[index];
+        selected.push(this.master.status[status.id]);
+      }
+      this.criteria.status = selected;
+    }
     this.spinner.hide();
   }
 
@@ -208,18 +269,16 @@ export class MainCRMComponent implements OnInit {
   }
 
   async loadActivityDate() {
-    this.spinner.show();
+    this.showLoadingLoadActivityDate = true;
+    this.criteria.activityDates = this.master.activityDate;
 
     let res2: any = await this.activityService.getSummaryActivityCount(
       this.criteria
     );
 
-    // let res: any = await this.configService.getActivityDateConfigByUsername();
     this.master.activityDate = res2.data;
 
-    // await this.searchDate(0);
-
-    this.spinner.hide();
+    this.showLoadingLoadActivityDate = false;
   }
 
   async advanceSearch() {
@@ -229,7 +288,7 @@ export class MainCRMComponent implements OnInit {
 
   async searchDate(index) {
     this.criteria.fillterType = this.master.activityDate[index].fillterType;
-    this.criteria.dayCondition = this.master.activityDate[index].dayCondition;
+    this.criteria.dayCondition = this.master.activityDate[index].condition;
     this.criteria.selectBtnIndex = index;
     await this.search();
   }
@@ -256,11 +315,13 @@ export class MainCRMComponent implements OnInit {
   async close(item) {
     await this.taskService.closeTask(item.id);
     await this.loadTasks();
+    await this.loadHistories();
   }
 
   async reopen(item) {
     await this.taskService.recallTask(item.id);
     await this.loadTasks();
+    await this.loadHistories();
   }
 
   async deleteNote(item) {
@@ -277,6 +338,7 @@ export class MainCRMComponent implements OnInit {
   async selectActivity(id) {
     this.criteria.selectedActivityId = id;
     await this.loadActivity();
+    await this.loadHistories();
   }
 
   async updateStatus(status) {
@@ -310,6 +372,8 @@ export class MainCRMComponent implements OnInit {
         await this.search();
 
         await this.loadTasks();
+
+        await this.loadHistories();
 
         this.spinner.hide();
 
@@ -429,7 +493,7 @@ export class MainCRMComponent implements OnInit {
 
         await this.taskService.save(result);
         await this.loadTasks();
-
+        await this.loadHistories();
         this.spinner.hide();
 
         this.toastr.show(this.translate.instant("success.save-complete"));
@@ -458,7 +522,71 @@ export class MainCRMComponent implements OnInit {
 
         await this.activityService.assignActivityOwner(data);
         await this.loadCustomer(this.customer.id);
+        await this.loadActivity();
         await this.loadOrderHistories();
+        await this.loadHistories();
+
+        this.spinner.hide();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  assignActivityOwner2() {
+    const dialogRef = this.dialog.open(ChangeOwnerComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        agentId: this.user.businessId,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        let data = {
+          activityId: this.selectedActivity.id,
+          ownerUser: result.username,
+          customerId: this.selectedActivity.customerId,
+        };
+        this.spinner.show();
+        await this.activityService.assignActivityOwner(data);
+        await this.loadCustomer(this.customer.id);
+        await this.loadActivity();
+        await this.loadOrderHistories();
+        await this.loadHistories();
+        this.spinner.hide();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
+  isOverdue(item) {
+    let endOfDose = new Date(item.endOfDose);
+    let date = new Date();
+    return date.getTime() > endOfDose.getTime();
+  }
+
+  changeEndOfDose() {
+    const dialogRef = this.dialog.open(ChangeEndDoseComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        endOfDose: this.selectedActivity.endOfDose,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        this.selectedActivity.endOfDose = result;
+
+        this.spinner.show();
+
+        await this.activityService.updateEndOfDose(this.selectedActivity);
+
+        // await this.loadCustomer(this.customer.id);
+        // await this.loadActivity();
+        await this.advanceSearch();
+        await this.loadHistories();
 
         this.spinner.hide();
         this.toastr.show(this.translate.instant("success.save-complete"));

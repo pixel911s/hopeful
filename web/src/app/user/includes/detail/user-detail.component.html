@@ -301,6 +301,58 @@
             </div>
           </div>
 
+          <div class="col-12">
+            <hr />
+          </div>
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>นำเข้า Excel</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="importExcel"
+                formControlName="importExcel"
+                [(ngModel)]="data.importExcel"
+              />
+              <label class="custom-control-label" for="importExcel"
+                >นำเข้าออเดอร์</label
+              >
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 m-b-20">
+            <div>
+              <h6>ส่งออก Excel</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="exportExcel"
+                formControlName="exportExcel"
+                [(ngModel)]="data.exportExcel"
+              />
+              <label class="custom-control-label" for="exportExcel"
+                >นำออกไฟล์Excel</label
+              >
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="exportTransport"
+                formControlName="exportTransport"
+                [(ngModel)]="data.exportTransport"
+              />
+              <label class="custom-control-label" for="exportTransport"
+                >นำออกไปขนส่ง</label
+              >
+            </div>
+          </div>
+
           <div class="col-12" *ngIf="data.businessType == 'H'">
             <hr />
           </div>
@@ -361,6 +413,24 @@
               />
               <label class="custom-control-label" for="selectCreateProduct"
                 >สร้าง / แก้ไขข้อมูล</label
+              >
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 m-b-20" *ngIf="data.businessType == 'H'">
+            <div>
+              <h6>จัดการ SMS</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectSendSMS"
+                formControlName="selectSendSMS"
+                [(ngModel)]="data.selectSendSMS"
+              />
+              <label class="custom-control-label" for="selectSendSMS"
+                >ส่งข้อมูล SMS</label
               >
             </div>
           </div>

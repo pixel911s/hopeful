@@ -1,0 +1,292 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="row m-b-20">
+  <div class="col-md-6">
+    <div class="card" [formGroup]="formGroup">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">ส่ง SMS</h5>
+            <b class="float-right"
+              >เครดิตคงเหลือ : {{ credit | number: ".0" }}</b
+            >
+            <hr />
+          </div>
+          <div class="col-12 m-b-10">
+            <div class="form-group">
+              <label for="sender">ชื่อผู้ส่ง</label>
+              <input
+                class="form-control form-control-sm"
+                [(ngModel)]="sender"
+                formControlName="sender"
+              />
+            </div>
+          </div>
+          <div class="col-12 m-b-10">
+            <div
+              class="form-group"
+              [ngClass]="{ 'is-invalid': f.tel.touched && f.tel.errors }"
+            >
+              <label for="tel">เบอร์โทรศัพท์ *</label>
+              <ngx-tags-input
+                class="form-control form-control-sm"
+                id="tel"
+                (onTagsChanged)="onTagsChanged($event)"
+                [removeLastOnBackspace]="true"
+                [(ngModel)]="data.tels"
+                formControlName="tel"
+                [displayField]="'value'"
+                [minLengthBeforeOptions]="5"
+              ></ngx-tags-input>
+              <small class="poiter float-left text-info"
+                >* กด Enter ทุกครั้งหลังใส่เบอร์โทรศัพท์เรียบร้อยแล้ว</small
+              >
+              <small
+                class="poiter float-right text-danger"
+                (click)="data.tels = []"
+                >ล้างข้อมูล</small
+              >
+            </div>
+          </div>
+          <div class="col-12 m-b-20">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.message.touched && f.message.errors
+              }"
+            >
+              <label for="message">ข้อความ *</label>
+              <textarea
+                style="resize: none; height: 150px"
+                autocomplete="off"
+                maxlength="500"
+                id="message"
+                class="form-control form-control-sm"
+                formControlName="message"
+                [(ngModel)]="data.message"
+              >
+              </textarea>
+              <small class="float-left"
+                >จำนวน {{ data.tels.length | number: ".0" }} เบอร์</small
+              >
+              <small class="float-right">{{
+                messageDisplay(data.message)
+              }}</small>
+            </div>
+          </div>
+          <div class="col-12 text-right m-b-10">
+            <button
+              id="btnSearch"
+              type="button"
+              class="btn btn-primary"
+              (click)="sendSms()"
+            >
+              ส่งข้อความ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5>นำเข้าเบอร์โทรศัพท์ด้วย Excel File</h5>
+            * หากยังไม่มีเทมเพจให้
+            <a
+              href="https://prosalepage.com/assets/images/download/mobile-template.xlsx"
+              target="_blank"
+              class="text-info"
+              >ดาวน์โหลดเทมเพจ</a
+            >
+            <hr />
+          </div>
+          <div class="col-12 m-b-20">
+            <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
+              <ng4-files-click
+                class="upload"
+                (filesSelect)="filesSelect($event)"
+              >
+                <div class="upload-box">
+                  <div class="upload-icon">
+                    <i class="far fa-file-excel"></i>
+                  </div>
+                  <p>คลิก หรือ ลากวาง เพื่ออัพโหลด Excel</p>
+                </div>
+              </ng4-files-click>
+            </ng4-files-drop>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <div class="row m-b-20">
+          <div class="col-12">
+            <h5 class="d-inline">ปริมาณการส่งข้อมูล</h5>
+            <hr />
+          </div>
+
+          <div class="col-12 m-b-20">
+            <div
+              (change)="searchCharts()"
+              class="custom-control custom-radio custom-control-inline"
+            >
+              <input
+                type="radio"
+                id="customRadioInline3"
+                class="custom-control-input"
+                [value]="0"
+                [(ngModel)]="criteria3.type"
+              />
+              <label class="custom-control-label" for="customRadioInline3"
+                >ย้อนหลัง 12 วัน</label
+              >
+            </div>
+            <div
+              (change)="searchCharts()"
+              class="custom-control custom-radio custom-control-inline"
+            >
+              <input
+                type="radio"
+                id="customRadioInline4"
+                class="custom-control-input"
+                [value]="1"
+                [(ngModel)]="criteria3.type"
+              />
+              <label class="custom-control-label" for="customRadioInline4"
+                >รายปี</label
+              >
+            </div>
+          </div>
+
+          <div class="col-12">
+            <canvas
+              baseChart
+              [data]="barChartData"
+              [options]="barChartOptions"
+              [type]="barChartType"
+            >
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>รายการส่ง SMS</h5>
+        <hr />
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="dates">วันที่ส่ง SMS</label>
+              <input
+                readonly
+                autocomplete="off"
+                [(ngModel)]="criteria2.dates"
+                [bsValue]="criteria2.dates"
+                class="form-control form-control-sm"
+                id="dates"
+                bsDaterangepicker
+                [bsConfig]="{
+                  rangeInputFormat: 'DD/MM/YYYY',
+                  dateInputFormat: 'DD/MM/YYYY',
+                  showWeekNumbers: false,
+                  ranges: ranges
+                }"
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <button
+              style="margin-top: 23px"
+              id="btnSearch"
+              type="button"
+              class="btn btn-sm btn-secondary"
+              (click)="criteria.page = 1; searchTransaction()"
+            >
+              ค้นหา
+            </button>
+          </div>
+        </div>
+
+        <div class="row" *ngIf="smsLog.totalRecord == 0">
+          <div class="col-12">
+            <div class="bd-callout bd-callout-info text-center">
+              <h5>- ไม่พบข้อมูลการส่ง SMS -</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" *ngIf="smsLog.totalRecord > 0">
+          <div class="col-12">
+            <small class="text-primary text-right d-block"
+              >ทั้งหมด {{ smsLog.totalRecord }} รายการ</small
+            >
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData">
+                <thead>
+                  <tr>
+                    <th class="text-left">เบอร์โทรศัพท์</th>
+                    <th class="text-right">เครดิตที่ใช้</th>
+                    <th class="text-center">วันที่ส่ง</th>
+                    <th class="text-center">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of smsLog.data; let index = index"
+                    class="poiter"
+                  >
+                    <td class="text-left">
+                      <span *ngIf="item.mobile != 'multi'">{{
+                        item.mobile
+                      }}</span>
+                      <span
+                        class="text-primary"
+                        (click)="viewDetail(item)"
+                        *ngIf="item.mobile == 'multi'"
+                        >{{ item.mobile }} <i class="fas fa-search"></i
+                      ></span>
+                    </td>
+                    <td class="text-right">
+                      {{ item.sms | number: ".0" }}
+                    </td>
+                    <td class="text-center">
+                      {{ item.sendDttm | date: "dd/MM/yyyy HH:mm:ss" }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge badge-success">SUCCESS</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-12">
+            <ngb-pagination
+              class="float-right"
+              [(page)]="criteria2.page"
+              [pageSize]="criteria2.size"
+              [maxSize]="10"
+              [collectionSize]="smsLog.totalRecord"
+              (pageChange)="searchTransaction()"
+            ></ngb-pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

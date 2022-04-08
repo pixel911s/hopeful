@@ -16,6 +16,7 @@ import { ToastrService } from "ngx-toastr";
 import * as XLSX from "xlsx";
 import { OrderService } from "app/shared/services/order.service";
 import { ProductService } from "app/shared/services/product.service";
+import { UserService } from "app/shared/services/user.service";
 
 @Component({
   selector: "app-import-order",
@@ -24,6 +25,7 @@ import { ProductService } from "app/shared/services/product.service";
 })
 export class ImportOrderComponent extends BaseComponent implements OnInit {
   public productLists = [];
+  public unknowProducct = [];
 
   displayType = 0;
 
@@ -33,11 +35,14 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
   };
 
   public displayData: any = [];
+  public displayDatas: any = [];
 
   public criteria: any = {
     page: 1,
     size: 10,
   };
+
+  public users = [];
 
   constructor(
     public dialogRef: MatDialogRef<ImportOrderComponent>,
@@ -45,13 +50,17 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
     private authService: AuthService,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    private productService: ProductService
+    private productService: ProductService,
+    private userService: UserService
   ) {
     super();
     translate.use(this.authService.getUser().lang);
   }
 
-  async ngOnInit(): Promise<void> {}
+  async ngOnInit(): Promise<void> {
+    let res: any = await this.userService.getAllUsername();
+    this.users = res.data;
+  }
 
   onNoClick(): void {
     this.dialogRef.close();
@@ -59,13 +68,13 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
 
   submit(): void {
     if (this.data.items.length == 0) {
-      this.toastr.show("กรุณาอัพโหลดไฟล์ Excel.");
+      this.toastr.show("❌ กรุณาอัพโหลดไฟล์ Excel. ❌");
       return;
     }
 
     if (this.data.items.filter((item) => item.error.length > 0).length > 0) {
       this.toastr.show(
-        "พบข้อมูลบน Excel ผิดพลาดอยู่ กรุณาแก้ไขให้ถูกต้องและอัพโหลดอีกครั้ง."
+        "❌❌ พบข้อมูลบน Excel ผิดพลาดอยู่ กรุณาแก้ไขให้ถูกต้องและอัพโหลดอีกครั้ง. ❌❌"
       );
       return;
     }
@@ -81,20 +90,23 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
 
     this.displayData = [];
 
-    let displayDatas = this.data.items;
+    this.displayDatas = this.data.items;
 
     if (this.displayType == 1) {
-      displayDatas = this.data.items.filter((data) => data.error.length > 0);
+      this.displayDatas = this.data.items.filter(
+        (data) => data.error.length > 0
+      );
     }
 
     const startIndex = (this.criteria.page - 1) * this.criteria.size;
-    this.displayData = displayDatas.slice(
+    this.displayData = this.displayDatas.slice(
       startIndex,
       startIndex + this.criteria.size
     );
   }
 
   public async filesSelect(selectedFiles: Ng4FilesSelected) {
+    this.spinner.show();
     this.criteria.page = 1;
 
     if (selectedFiles.files.length == 0) return;
@@ -136,141 +148,221 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
 
       this.data.items = [];
 
-      for (let index = 0; index < jsonData[0].length; index++) {
-        const item = jsonData[0][index];
-        let data: any = {
-          totalItems: 0,
-          billDiscountAmount: 0,
-          deliveryPrice: 0,
-          netAmount: 0,
-          error: [],
-          orderDetail: [],
-        };
-        console.log(item);
+      try {
+        this.unknowProducct = [];
 
-        if (item["ลำดับออเดอร์"]) {
-          data.orderNo = item["ลำดับออเดอร์"];
-          data.deliveryName = item["ชื่อลูกค้า"]
-            ? item["ชื่อลูกค้า"].trim()
-            : null;
-          data.deliveryAddressInfo = item["ที่อยู่จัดส่ง"]
-            ? item["ที่อยู่จัดส่ง"].trim()
-            : null;
-          data.deliverySubDistrict = item["แขวง / ตำบล"]
-            ? item["แขวง / ตำบล"].trim()
-            : null;
-          data.deliveryDistrict = item["เขต / อำเภอ"]
-            ? item["เขต / อำเภอ"].trim()
-            : null;
-          data.deliveryProvince = item["จังหวัด"]
-            ? item["จังหวัด"].trim()
-            : null;
-          data.deliveryZipcode = item["รหัสไปรษณีย์"]
-            ? item["รหัสไปรษณีย์"] + ""
-            : null;
-          data.deliveryContact = item["เบอร์โทรศัพท์"]
-            ? item["เบอร์โทรศัพท์"].trim()
-            : null;
+        for (let index = 0; index < jsonData[0].length; index++) {
+          const item = jsonData[0][index];
+          let data: any = {
+            totalItems: 0,
+            billDiscountAmount: 0,
+            deliveryPrice: 0,
+            netAmount: 0,
+            error: [],
+            orderDetail: [],
+          };
+          console.log(item);
 
-          data.remark = item["หมายเหตุ"] ? item["หมายเหตุ"].trim() : "";
-          data.orderDate = item["วันที่ทำรายการ"]
-            ? item["วันที่ทำรายการ"]
-            : null;
-          data.paymentType = item["วิธีการชำระเงิน"]
-            ? item["วิธีการชำระเงิน"].trim()
-            : null;
+          if (item["ลำดับออเดอร์"]) {
+            data.orderNo = item["ลำดับออเดอร์"];
+            data.deliveryName = item["ชื่อลูกค้า"]
+              ? item["ชื่อลูกค้า"] + "".trim()
+              : null;
+            data.deliveryAddressInfo = item["ที่อยู่จัดส่ง"]
+              ? item["ที่อยู่จัดส่ง"] + "".trim()
+              : null;
+            data.deliverySubDistrict = item["แขวง / ตำบล"]
+              ? item["แขวง / ตำบล"] + "".trim()
+              : null;
+            data.deliveryDistrict = item["เขต / อำเภอ"]
+              ? item["เขต / อำเภอ"] + "".trim()
+              : null;
+            data.deliveryProvince = item["จังหวัด"]
+              ? item["จังหวัด"] + "".trim()
+              : null;
+            data.deliveryZipcode = item["รหัสไปรษณีย์"]
+              ? item["รหัสไปรษณีย์"] + ""
+              : null;
 
-          if (
-            this.data.items.filter((item) => item.orderNo == data.orderNo)
-              .length > 0
-          ) {
-            data.error.push("ลำดับออเดอร์ไม่ถูกต้อง.");
-          }
+            console.log(item["เบอร์โทรศัพท์"]);
 
-          if (!data.orderDate) {
-            data.error.push("วันที่ทำรายการบังคับกรอก.");
+            data.deliveryContact = item["เบอร์โทรศัพท์"]
+              ? item["เบอร์โทรศัพท์"] + "".trim()
+              : null;
+
+            data.saleChannel = item["ช่องทาง"]
+              ? item["ช่องทาง"] + "".trim()
+              : null;
+
+            data.saleChannelName = item["ชื่อช่องทาง"]
+              ? item["ชื่อช่องทาง"] + "".trim()
+              : null;
+
+            data.sale = item["เซลส์"] ? item["เซลส์"] + "".trim() : null;
+
+            data.crmOwner = item["คนดูแล"] ? item["คนดูแล"] + "".trim() : null;
+
+            data.remark = item["หมายเหตุ"] ? item["หมายเหตุ"] + "".trim() : "";
+
+            data.activityStatus = item["activityStatus"]
+              ? item["activityStatus"]
+              : 0;
+            data.note = item["note"] ? item["note"] + "".trim() : "";
+
+            data.orderDate = item["วันที่ทำรายการ"]
+              ? item["วันที่ทำรายการ"]
+              : null;
+
+            data.paymentType = item["วิธีการชำระเงิน"]
+              ? item["วิธีการชำระเงิน"] + "".trim()
+              : null;
+
+            if (
+              this.data.items.filter((item) => item.orderNo == data.orderNo)
+                .length > 0
+            ) {
+              data.error.push("ลำดับออเดอร์ไม่ถูกต้อง.");
+            }
+
+            if (!data.orderDate) {
+              data.error.push("วันที่ทำรายการบังคับกรอก.");
+            } else {
+              console.log(data.orderDate);
+              if (!(data.orderDate instanceof Date)) {
+                data.error.push("วันที่ทำรายการผิด format.");
+              } else {
+                data.orderDate.setDate(data.orderDate.getDate() + 1);
+                data.orderDate.setHours(0, 0, 0);
+              }
+            }
+
+            if (!data.paymentType) {
+              data.error.push("วิธีการชำระเงินบังคับกรอก.");
+            } else {
+              if (data.paymentType != "COD" && data.paymentType != "TRANSFER") {
+                data.error.push("วิธีการชำระเงินไม่ถูกต้อง.");
+              }
+            }
+
+            if (!data.deliveryName) {
+              data.error.push("ชื่อลูกค้าบังคับกรอก.");
+            }
+
+            if (!data.deliveryAddressInfo) {
+              data.error.push("ที่อยู่จัดส่งบังคับกรอก.");
+            }
+
+            if (!data.deliverySubDistrict) {
+              data.error.push("แขวง / ตำบลบังคับกรอก.");
+            }
+
+            if (!data.deliveryDistrict) {
+              data.error.push("เขต / อำเภอบังคับกรอก.");
+            }
+
+            if (!data.deliveryProvince) {
+              data.error.push("จังหวัดบังคับกรอก.");
+            }
+
+            if (!data.deliveryZipcode) {
+              data.error.push("รหัสไปรษณีย์บังคับกรอก.");
+            }
+
+            if (!data.deliveryContact) {
+              data.error.push("เบอร์โทรศัพท์บังคับกรอก.");
+            }
+
+            if (!data.saleChannel) {
+              data.error.push("ช่องทางบังคับกรอก.");
+            } else if (
+              data.saleChannel.toUpperCase() != "Facebook".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "CRM".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "LineAd".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "Inbcall".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "WEB".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "Shopee".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "Lazada".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "Tiktok".toUpperCase() &&
+              data.saleChannel != "แนะนำ" &&
+              data.saleChannel != "สวัสดิการ"
+            ) {
+              data.error.push(
+                "ช่องทางต้องใส่ Facebook , CRM , LineAd , Inbcall , WEB , Shopee , Lazada , Tiktok , แนะนำ , สวัสดิการ  เท่านั้น."
+              );
+            }
+
+            if (
+              data.sale &&
+              !this.users.find((user) => {
+                return data.sale == user.username;
+              })
+            ) {
+              data.error.push("ไม่พบ username ของเซลส์ในระบบ.");
+            }
+
+            if (
+              data.crmOwner &&
+              !this.users.find((user) => {
+                return data.crmOwner == user.username;
+              })
+            ) {
+              data.error.push("ไม่พบ username ของคนดูแลในระบบ.");
+            }
+
+            // data.deliveryPrice = item["ค่าส่ง"] ? item["ค่าส่ง"] : 0;
+
+            this.data.items.push(data);
           } else {
-            console.log(data.orderDate);
-            data.orderDate.setDate(data.orderDate.getDate() + 1);
-            data.orderDate.setHours(0, 0, 0);
-          }
-
-          if (!data.paymentType) {
-            data.error.push("วิธีการชำระเงินบังคับกรอก.");
-          } else {
-            if (data.paymentType != "COD" && data.paymentType != "TRANSFER") {
-              data.error.push("วิธีการชำระเงินไม่ถูกต้อง.");
+            if (this.data.items.length > 0) {
+              data = this.data.items[this.data.items.length - 1];
+            } else {
+              data.error.push("ลำดับออเดอร์บังคับกรอก.");
+              this.data.items.push(data);
             }
           }
 
-          if (!data.deliveryName) {
-            data.error.push("ชื่อลูกค้าบังคับกรอก.");
+          let orderDetail: any = {};
+
+          orderDetail.qty = item["จำนวน"];
+          orderDetail.barcode = item["สินค้า"];
+          orderDetail.discount = 0;
+
+          if (!orderDetail.qty) {
+            orderDetail.qty = 0;
+            data.error.push("จำนวนสินค้าบังคับกรอก.");
           }
 
-          if (!data.deliveryAddressInfo) {
-            data.error.push("ที่อยู่จัดส่งบังคับกรอก.");
-          }
-
-          if (!data.deliverySubDistrict) {
-            data.error.push("แขวง / ตำบลบังคับกรอก.");
-          }
-
-          if (!data.deliveryDistrict) {
-            data.error.push("เขต / อำเภอบังคับกรอก.");
-          }
-
-          if (!data.deliveryProvince) {
-            data.error.push("จังหวัดบังคับกรอก.");
-          }
-
-          if (!data.deliveryZipcode) {
-            data.error.push("รหัสไปรษณีย์บังคับกรอก.");
-          }
-
-          if (!data.deliveryContact) {
-            data.error.push("เบอร์โทรศัพท์บังคับกรอก.");
-          }
-
-          // data.deliveryPrice = item["ค่าส่ง"] ? item["ค่าส่ง"] : 0;
-
-          this.data.items.push(data);
-        } else {
-          if (this.data.items.length > 0) {
-            data = this.data.items[this.data.items.length - 1];
+          if (!orderDetail.barcode) {
+            orderDetail.barcode = "UNDEFINED";
+            data.error.push("สินค้าบังคับกรอก.");
           } else {
-            data.error.push("ลำดับออเดอร์บังคับกรอก.");
-            this.data.items.push(data);
+            await this.checkBarcode(data, orderDetail);
           }
+
+          data.orderDetail.push(orderDetail);
+
+          data.totalItems += orderDetail.qty;
+          data.billDiscountAmount += item["ส่วนลด"]
+            ? !isNaN(item["ส่วนลด"])
+              ? item["ส่วนลด"]
+              : 0
+            : 0;
+          data.deliveryPrice += item["ค่าส่ง"]
+            ? !isNaN(item["ค่าส่ง"])
+              ? item["ค่าส่ง"]
+              : 0
+            : 0;
+
+          data.expended = false;
         }
 
-        let orderDetail: any = {};
-
-        orderDetail.qty = item["จำนวน"];
-        orderDetail.barcode = item["สินค้า"];
-        orderDetail.discount = 0;
-
-        if (!orderDetail.qty) {
-          data.error.push("จำนวนสินค้าบังคับกรอก.");
-        }
-
-        if (!orderDetail.barcode) {
-          data.error.push("สินค้าบังคับกรอก.");
-        }
-
-        await this.checkBarcode(data, orderDetail);
-
-        data.orderDetail.push(orderDetail);
-
-        data.totalItems += orderDetail.qty;
-        data.billDiscountAmount += item["ส่วนลด"] ? item["ส่วนลด"] : 0;
-        data.deliveryPrice += item["ค่าส่ง"] ? item["ค่าส่ง"] : 0;
-
-        data.expended = false;
+        this.calDisplay(0);
+      } catch (e) {
+        console.log(e.message);
+        this.toastr.show(e.message, "❌❌ พบข้อผิดพลาดในการอัพโหลด ❌❌");
+      } finally {
+        this.spinner.hide();
       }
-
-      console.log(this.data);
-
-      this.calDisplay(0);
     };
   }
 
@@ -280,9 +372,25 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
     if (products.length > 0) {
       product = Object.assign({}, products[0]);
     } else {
-      let res: any = await this.productService.getByBarcode(item.barcode);
-      product = res.data;
-      if (product) this.productLists.push(product);
+      let unknow = this.unknowProducct.find((p) => p == item.barcode);
+
+      if (!unknow) {
+        let res: any = await this.productService.getByBarcode(item.barcode);
+        product = res.data;
+        if (product) {
+          this.productLists.push(product);
+        } else {
+          this.unknowProducct.push(item.barcode);
+
+          if (this.unknowProducct.length > 5) {
+            throw new Error(
+              "ไม่พบสินค้ามากกว่า 5 รายการ กรุณาตรวจบาร์โค้ดสินค้าทั้งหมดอีกครั้ง"
+            );
+          }
+        }
+      }
+
+      console.log(this.unknowProducct);
     }
 
     if (product) {

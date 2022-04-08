@@ -140,7 +140,7 @@ ul {
 }
 
 .section-task {
-  height: calc(100vh - 411px);
+  height: calc(100vh - 435px);
   overflow: auto;
 }
 
@@ -153,21 +153,21 @@ ul {
   background-color: #f3f3f3;
 }
 
-.loader {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #ed1c24;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 2s linear infinite;
-  display: inline-block;
-}
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+drag-scroll {
+  ::ng-deep .drag-scroll-content::-webkit-scrollbar {
+    display: none !important;
+  }
+  ::ng-deep .drag-scroll-content {
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
   }
 }

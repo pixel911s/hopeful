@@ -5,6 +5,7 @@ import firebase from "firebase/app";
 import { Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "environments/environment";
+import { UserService } from "../services/user.service";
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,7 @@ export class AuthService {
   logout() {
     sessionStorage.removeItem("NAV");
     localStorage.removeItem("hopeful-auth");
+    sessionStorage.removeItem("USERLOGIN");
     this.router.navigate(["/pages/login"]);
   }
 
@@ -49,6 +51,34 @@ export class AuthService {
   }
 
   getUser() {
-    return JSON.parse(sessionStorage.getItem("USERLOGIN"));
+    let user = JSON.parse(sessionStorage.getItem("USERLOGIN"));
+    if (!user) {
+      sessionStorage.removeItem("NAV");
+      this.router.navigate(["/pages/login"]);
+    } else {
+      return user;
+    }
+  }
+
+  async getUserWithLoadAgents() {
+    let user = JSON.parse(sessionStorage.getItem("USERLOGIN"));
+    if (!user) {
+      sessionStorage.removeItem("NAV");
+      this.router.navigate(["/pages/login"]);
+    } else {
+      let res: any = await this.getAgentsByUser(user.username);
+      user.userAgents = res.data;
+      sessionStorage.setItem("USERLOGIN", JSON.stringify(user));
+      return user;
+    }
+  }
+
+  getAgentsByUser(username) {
+    let criteria = {
+      username: username,
+    };
+    return this.http
+      .post(environment.apiUrl + "/user/getAgentsByUser", criteria)
+      .toPromise();
   }
 }

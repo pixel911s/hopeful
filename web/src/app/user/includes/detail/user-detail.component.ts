@@ -79,7 +79,7 @@ export class UserDetailComponent implements OnInit {
       "username",
       new FormControl({ value: "", disabled: this.isReadOnly || this.isEdit }, [
         Validators.required,
-        Validators.pattern("^[a-zA-Z0-9]*$"),
+        Validators.pattern("^[a-zA-Z0-9_]*$"),
         Validators.minLength(6),
         Validators.maxLength(20),
       ])
@@ -147,7 +147,27 @@ export class UserDetailComponent implements OnInit {
     );
 
     this.formGroup.addControl(
+      "selectSendSMS",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
       "lineNotifyToken",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "exportExcel",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "importExcel",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "exportTransport",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
 

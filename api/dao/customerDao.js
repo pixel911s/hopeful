@@ -11,10 +11,25 @@ module.exports = {
   updateOwner,
 };
 
-async function getByMobileNo(conn, mobileNo) {
+async function getByMobileNo(conn, criteria) {
   try {
     let sql = "select * from business where businessType = 'C' and mobile = ?";
-    const result = await conn.query(sql, [mobileNo]);
+
+    let params = [];
+
+    params.push(criteria.mobile);
+
+    if (criteria.userAgents.length > 0) {
+      let userAgents = [];
+      for (let index = 0; index < criteria.userAgents.length; index++) {
+        const element = criteria.userAgents[index];
+        userAgents.push(element.id);
+      }
+      sql += " and ownerId in (?)";
+      params.push(userAgents);
+    }
+
+    const result = await conn.query(sql, params);
 
     return result[0];
   } catch (err) {
@@ -38,7 +53,8 @@ async function updateOwner(conn, model) {
     if (model.id) {
       let params = [];
 
-      let sql = "UPDATE `business` SET `activityOwner` = ? WHERE `id` = ?";
+      let sql =
+        "UPDATE `business` SET `activityOwner` = ? ,unlockDate = date_add(NOW(),interval 1 minute) WHERE `id` = ?";
 
       params.push(model.activityOwner);
       params.push(model.id);
@@ -65,13 +81,17 @@ async function save(conn, model) {
       let params = [];
 
       let sql =
-        "UPDATE `business` SET `name` = ?, `mobile` = ?, `contactName` = ?, `email` = ?, `memo` = ?, `updateBy` = ?, `updateDate` = ? WHERE `id` = ?";
+        "UPDATE `business` SET socialName = ?,`name` = ?, `mobile` = ?, `contactName` = ?, `email` = ?, `memo` = ?, `sex` = ?, `age` = ?, `dob` = ?, `updateBy` = ?, `updateDate` = ? WHERE `id` = ?";
 
+      params.push(model.socialName ? model.socialName.trim() : null);
       params.push(model.name.trim());
       params.push(model.mobile.trim());
       params.push(model.contactName ? model.contactName.trim() : "");
       params.push(model.email ? model.email.trim() : "");
       params.push(model.memo ? model.memo.trim() : "");
+      params.push(model.sex);
+      params.push(model.age);
+      params.push(model.dob ? new Date(model.dob) : null);
       params.push(model.username);
       params.push(new Date());
       params.push(model.id);
@@ -80,10 +100,11 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `business` (`businessType`,`ownerId`,`name`,`mobile`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
-      sql += "  VALUES (?,?,?,?,?,?,?,?)";
+        "INSERT INTO `business` (socialName,`businessType`,`ownerId`,`name`,`mobile`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?)";
 
       let _result = await conn.query(sql, [
+        model.socialName ? model.socialName.trim() : null,
         "C",
         model.ownerId,
         model.name.trim(),

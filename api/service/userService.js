@@ -19,7 +19,42 @@ module.exports = {
 
   saveUserData,
   getUseragent,
+
+  getAgentsByUser,
+  getAllUsername,
 };
+
+async function getAllUsername(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await userDao.getUseragent(conn, criteria.agentId);
+
+    return res.send(util.callbackSuccess("", result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getAgentsByUser(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await userDao.getAgentObj(conn, criteria.username);
+
+    return res.send(util.callbackSuccess("", result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function getUseragent(req, res) {
   const conn = await pool.getConnection();
@@ -153,6 +188,22 @@ async function get(req, res) {
       if ("SUPERVISOR" == f.functionCode) {
         result.supervisor = true;
       }
+
+      if ("SENDSMS" == f.functionCode) {
+        result.selectSendSMS = true;
+      }
+
+      if ("UPLOAD_ORDER" == f.functionCode) {
+        result.importExcel = true;
+      }
+
+      if ("EXPORT_TRANSPORT" == f.functionCode) {
+        result.exportTransport = true;
+      }
+
+      if ("EXPORT_ORDER" == f.functionCode) {
+        result.exportExcel = true;
+      }
     });
 
     result.id = result.username;
@@ -198,6 +249,9 @@ async function save(req, res) {
   conn.beginTransaction();
   try {
     let model = req.body;
+
+    model.username = model.username.toLowerCase();
+
     let successageMsg = "บันทึกข้อมูลผู้ใช้งานเสร็จสมบูรณ์";
 
     let updateUser = await userDao.get(conn, model.updateUser);

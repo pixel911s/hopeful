@@ -43,7 +43,7 @@ async function count(conn, criteria) {
       params.push("%" + criteria.name + "%");
     }
 
-    if (criteria.status) {
+    if (criteria.status != undefined) {
       sql += " and status = ?";
       params.push(criteria.status);
     }
@@ -91,7 +91,7 @@ async function search(conn, criteria) {
       params.push("%" + criteria.name + "%");
     }
 
-    if (criteria.status) {
+    if (criteria.status != undefined) {
       sql += " and status = ?";
       params.push(criteria.status);
     }
@@ -127,7 +127,6 @@ async function save(conn, model) {
   try {
     let _id = 0;
 
-    console.log(model);
     if (!model.isSet) {
       model.itemInSet = [];
     }
@@ -251,7 +250,7 @@ async function addAgentPrice(conn, model) {
   try {
     //insert
     let sql =
-      "insert into agentPrice (`productId`,`qty`,`price`,`createBy`, `createDate`)";
+      "insert into agentprice (`productId`,`qty`,`price`,`createBy`, `createDate`)";
     sql += "  VALUES (?,?,?,?,?)";
 
     await conn.query(sql, [
@@ -272,7 +271,7 @@ async function addAgentPrice(conn, model) {
 async function deleteAgentPrice(conn, productId) {
   try {
     //delete
-    let sql = "delete from agentPrice where productId = ?";
+    let sql = "delete from agentprice where productId = ?";
 
     await conn.query(sql, [productId]);
 
@@ -285,7 +284,7 @@ async function deleteAgentPrice(conn, productId) {
 
 async function getAgentPrice(conn, productId) {
   try {
-    let sql = "select * from agentPrice where productId=?";
+    let sql = "select * from agentprice where productId=?";
     sql += " order by qty";
 
     let result = await conn.query(sql, [productId]);
@@ -299,13 +298,17 @@ async function getAgentPrice(conn, productId) {
 
 async function getByBarcode(conn, barcode) {
   try {
+    console.log("LOAD BAR = " + barcode);
     let sql = "select * from product where code=?";
 
     let result = await conn.query(sql, [barcode]);
 
-    result[0].itemInSet = JSON.parse(result[0].itemInSet);
+    let sku = result[0];
 
-    return result[0];
+    if (sku && sku.isSet && sku.itemInSet)
+      sku.itemInSet = JSON.parse(sku.itemInSet);
+
+    return sku;
   } catch (e) {
     console.log("ERROR : ", e);
     throw e;

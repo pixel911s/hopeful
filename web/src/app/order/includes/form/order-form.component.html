@@ -1,10 +1,13 @@
 <div class="row m-b-20" *ngIf="data">
   <div class="col-12 col-md-6 m-b-20">
-    <div class="card">
+    <div class="card m-b-20">
       <div class="card-body">
         <div class="row">
           <div class="col-12">
-            <h5>รายละเอียดสินค้า</h5>
+            <h5 class="d-inline">รายละเอียดสินค้า</h5>
+            <h5 class="d-inline float-right">{{ data.orderNo }}</h5>
+          </div>
+          <div class="col-12">
             <small>
               <div class="row">
                 <div class="col-12" *ngIf="isEdit || isReadOnly">
@@ -19,6 +22,14 @@
                 <div class="col-12">
                   วันที่สร้างใบสั่งซื้อ :
                   {{ data.createDate | date: "dd/MM/yyyy HH:mm:ss" }}
+                </div>
+                <div class="col-12 col-md-6">
+                  วันที่อัพเดทสถานะ :
+                  {{ data.updateStatusDate | date: "dd/MM/yyyy" }}
+                </div>
+                <div class="col-12 col-md-6 text-right">
+                  วันที่ตรวจสอบรับชำระ :
+                  {{ data.updateCODDate | date: "dd/MM/yyyy" }}
                 </div>
               </div>
             </small>
@@ -169,6 +180,48 @@
         </div>
       </div>
     </div>
+
+    <div class="card" *ngIf="!isReadOnly || data.imageUrl">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5>รูปสลิป</h5>
+            <hr />
+          </div>
+
+          <div class="col-12 m-b-20" *ngIf="isReadOnly && data.imageUrl">
+            <div class="upload-box" *ngIf="data.imageUrl">
+              <a [href]="data.imageUrl" target="_blank"
+                ><img class="img-fluid2" [src]="data.imageUrl"
+              /></a>
+            </div>
+          </div>
+          <div class="col-12 m-b-20" *ngIf="!isReadOnly">
+            <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
+              <ng4-files-click
+                class="upload"
+                (filesSelect)="filesSelect($event)"
+              >
+                <div
+                  [ngClass]="{ invalid: data.imgInvalid }"
+                  class="upload-box"
+                  *ngIf="!data.imageUrl"
+                >
+                  <div class="upload-icon">
+                    <i class="ft-image"></i>
+                  </div>
+                  <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปสลิป (ถ้ามี)</p>
+                </div>
+                <div class="upload-box" *ngIf="data.imageUrl">
+                  <img class="img-fluid2" [src]="data.imageUrl" />
+                  <p>คลิก หรือ ลากวาง เพื่ออัพโหลดรูปสลิปใหม่</p>
+                </div>
+              </ng4-files-click>
+            </ng4-files-drop>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="col-12 col-md-6 m-b-20" [formGroup]="formGroup">
@@ -206,9 +259,18 @@
           </div>
           <div class="col-12 text-right">
             <button
+              (click)="selectAddress()"
+              type="button"
+              class="btn btn-info"
+              *ngIf="data.customer"
+            >
+              เลือกที่อยู่
+            </button>
+
+            <button
               (click)="checkMobile()"
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-secondary m-l-10"
             >
               ค้นหา
             </button>
@@ -278,6 +340,7 @@
                     type="radio"
                     id="customRadioInline1"
                     class="custom-control-input"
+                    (change)="changePaymentType()"
                   />
                   <label class="custom-control-label" for="customRadioInline1"
                     >เก็บเงินปลายทาง</label
@@ -292,6 +355,7 @@
                     type="radio"
                     id="customRadioInline2"
                     class="custom-control-input"
+                    (change)="changePaymentType()"
                   />
                   <label class="custom-control-label" for="customRadioInline2"
                     >โอนเงิน</label
@@ -307,12 +371,113 @@
               </div>
             </div>
           </div>
+
+          <div class="col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.saleChannel.touched && f.saleChannel.errors
+              }"
+            >
+              <label for="saleChannel">ช่องทาง *</label>
+
+              <select
+                formControlName="saleChannel"
+                [(ngModel)]="data.saleChannel"
+                class="form-control form-control-sm"
+                id="saleChannel"
+                [ngClass]="{
+                  'is-invalid': f.saleChannel.touched && f.saleChannel.errors,
+                  'is-valid': f.saleChannel.touched && !f.saleChannel.errors
+                }"
+              >
+                <option [ngValue]="undefined">โปรดเลือก</option>
+                <option [ngValue]="'FACEBOOK'">FACEBOOK</option>
+                <option [ngValue]="'CRM'">CRM</option>
+                <option [ngValue]="'LINEAD'">LINEAD</option>
+                <option [ngValue]="'INBCALL'">INBCALL</option>
+                <option [ngValue]="'WEB'">WEB</option>
+
+                <option [ngValue]="'SHOPEE'">SHOPEE</option>
+                <option [ngValue]="'LAZADA'">LAZADA</option>
+                <option [ngValue]="'TIKTOK'">TIKTOK</option>
+                <option [ngValue]="'แนะนำ'">แนะนำ</option>
+                <option [ngValue]="'สวัสดิการ'">สวัสดิการ</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.saleChannel.touched && f.saleChannel.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid':
+                  f.saleChannelName.touched && f.saleChannelName.errors
+              }"
+            >
+              <label for="saleChannelName">ชื่อช่องทาง</label>
+              <input
+                autocomplete="off"
+                id="saleChannelName"
+                class="form-control form-control-sm"
+                formControlName="saleChannelName"
+                [(ngModel)]="data.saleChannelName"
+                [ngClass]="{
+                  'is-invalid':
+                    f.saleChannelName.touched && f.saleChannelName.errors,
+                  'is-valid':
+                    f.saleChannelName.touched && !f.saleChannelName.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.saleChannelName.touched &&
+                  f.saleChannelName.errors?.required
+                "
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.socialName.touched && f.socialName.errors
+              }"
+            >
+              <label for="socialName">ชื่อในโซเชียลมีเดีย</label>
+              <input
+                autocomplete="off"
+                id="socialName"
+                class="form-control form-control-sm"
+                formControlName="socialName"
+                [(ngModel)]="data.socialName"
+                [ngClass]="{
+                  'is-invalid': f.socialName.touched && f.socialName.errors,
+                  'is-valid': f.socialName.touched && !f.socialName.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="f.socialName.touched && f.socialName.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
           <div class="col-md-12">
             <div
               class="form-group"
               [ngClass]="{ 'is-invalid': f.name.touched && f.name.errors }"
             >
-              <label for="name">ชื่อลูกค้า *</label>
+              <label for="name">ชื่อ - นามสกุล *</label>
               <input
                 autocomplete="off"
                 id="name"
@@ -346,6 +511,7 @@
                 class="form-control form-control-sm"
                 formControlName="address"
                 [(ngModel)]="data.deliveryAddressInfo"
+                (keyup)="splitAddress($event)"
                 rows="3"
                 [ngClass]="{
                   'is-invalid': f.address.touched && f.address.errors,
@@ -496,6 +662,135 @@
               <small
                 class="text-danger"
                 *ngIf="f.tel.touched && f.tel.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-12">
+            <hr />
+          </div>
+
+          <div class="col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.status.touched && f.status.errors
+              }"
+            >
+              <label for="status">สถานะ *</label>
+
+              <select
+                formControlName="status"
+                [(ngModel)]="data.status"
+                class="form-control form-control-sm"
+                id="status"
+                [ngClass]="{
+                  'is-invalid': f.status.touched && f.status.errors,
+                  'is-valid': f.status.touched && !f.status.errors
+                }"
+              >
+                <option [ngValue]="undefined">โปรดเลือก</option>
+                <option [ngValue]="'O'">สั่งซื้อใหม่</option>
+                <option [ngValue]="'W'">ยืนยันออเดอร์</option>
+                <option [ngValue]="'S'">จัดส่งแล้ว</option>
+                <option [ngValue]="'R'">ตีกลับสินค้า</option>
+                <option [ngValue]="'C'">ยกเลิก</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.status.touched && f.status.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-md-4" *ngIf="data.status == 'S'">
+            <div class="form-group">
+              <label for="vendor">ขนส่ง</label>
+              <select
+                class="form-control form-control-sm"
+                id="vendor"
+                formControlName="vendor"
+                [(ngModel)]="data.vendor"
+              >
+                <option [ngValue]="null">
+                  {{ "common.please-select" | translate }}
+                </option>
+
+                <option [ngValue]="'ไปรษณีย์ไทย'">ไปรษณีย์ไทย</option>
+                <option [ngValue]="'Ninja Van'">Ninja Van</option>
+                <option [ngValue]="'J&T Express'">J&T Express</option>
+                <option [ngValue]="'Kerry Express'">Kerry Express</option>
+                <option [ngValue]="'อื่นๆ'">อื่นๆ</option>
+                <!-- <option [ngValue]="'Alpha Fast'">Alpha Fast</option>
+                <option [ngValue]="'Best Express'">Best Express</option>
+                <option [ngValue]="'Deliveree'">Deliveree</option>
+                <option [ngValue]="'DHL Express'">DHL Express</option>
+                <option [ngValue]="'Flash Express'">Flash Express</option>
+                <option [ngValue]="'Giztix'">Giztix</option>
+                <option [ngValue]="'Grab Express'">Grab Express</option>
+                <option [ngValue]="'Inter Express Logistics'">
+                  Inter Express Logistics
+                </option>
+                <option [ngValue]="'I.T. TRANSPORT.CO.,LTD'">
+                  I.T. TRANSPORT.CO.,LTD
+                </option>
+
+                <option [ngValue]="'Lalamove'">Lalamove</option>
+                <option [ngValue]="'Lineman'">Lineman</option>
+                <option [ngValue]="'Niko’s Logistics'">Niko’s Logistics</option>
+                <option [ngValue]="'Nim Express'">Nim Express</option>
+
+                <option [ngValue]="'SCG Express'">SCG Express</option>
+                <option [ngValue]="'Skootar'">Skootar</option>
+                <option [ngValue]="'TNT'">TNT</option> -->
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-4" *ngIf="data.status == 'S'">
+            <div class="form-group">
+              <label for="trackingNo">Tracking No</label>
+              <input
+                autocomplete="off"
+                id="trackingNo"
+                class="form-control form-control-sm"
+                formControlName="trackingNo"
+                [(ngModel)]="data.trackingNo"
+              />
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid': f.paymentStatus.touched && f.paymentStatus.errors
+              }"
+            >
+              <label for="paymentStatus">สถานะการชำระเงิน *</label>
+
+              <select
+                formControlName="paymentStatus"
+                [(ngModel)]="data.paymentStatus"
+                class="form-control form-control-sm"
+                id="paymentStatus"
+                [ngClass]="{
+                  'is-invalid':
+                    f.paymentStatus.touched && f.paymentStatus.errors,
+                  'is-valid': f.paymentStatus.touched && !f.paymentStatus.errors
+                }"
+              >
+                <option [ngValue]="undefined">โปรดเลือก</option>
+                <option [ngValue]="'W'">รอชำระ</option>
+                <option [ngValue]="'S'">ชำระแล้ว</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.paymentStatus.touched && f.paymentStatus.errors?.required
+                "
                 >{{ "error.required" | translate }}</small
               >
             </div>

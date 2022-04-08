@@ -88,6 +88,22 @@ export class UserService {
       data.functions.push("SUPERVISOR");
     }
 
+    if (data.selectSendSMS) {
+      data.functions.push("SENDSMS");
+    }
+
+    if (data.exportExcel) {
+      data.functions.push("EXPORT_ORDER");
+    }
+
+    if (data.exportTransport) {
+      data.functions.push("EXPORT_TRANSPORT");
+    }
+
+    if (data.importExcel) {
+      data.functions.push("UPLOAD_ORDER");
+    }
+
     return this.http.post(environment.apiUrl + "/user/save", data).toPromise();
   }
 
@@ -103,6 +119,13 @@ export class UserService {
       .get(
         environment.apiUrl + "/product/forDropDown" + "?compcode=" + compCode
       )
+      .toPromise();
+  }
+
+  getAllUsername() {
+    let criteria = { agentId: this.authService.getUser().businessId };
+    return this.http
+      .post(environment.apiUrl + "/user/getAllUsername", criteria)
       .toPromise();
   }
 }

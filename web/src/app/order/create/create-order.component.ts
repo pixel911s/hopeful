@@ -17,8 +17,10 @@ export class CreateOrderComponent extends BaseComponent implements OnInit {
   public data: any = {
     paymentType: "COD",
     status: "O",
+    paymentStatus: "W",
     createDate: new Date(),
     orderDate: new Date(),
+    updateStatusDate: new Date(),
   };
 
   public formGroup: FormGroup;

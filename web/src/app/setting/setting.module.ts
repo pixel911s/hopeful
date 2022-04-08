@@ -7,6 +7,7 @@ import { ManageActivityDateComponent } from "./manage-activity-date/search/manag
 import { ActivityDateConfigDetailComponent } from "./manage-activity-date/includes/detail.component";
 import { CreateActivityDateConfigComponent } from "./manage-activity-date/create/create.component";
 import { UpdateActivityDateConfigComponent } from "./manage-activity-date/update/update.component";
+import { SetupAgentComponent } from "app/agent/setup/setup-agent.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, SettingRoutingModule],
@@ -15,6 +16,7 @@ import { UpdateActivityDateConfigComponent } from "./manage-activity-date/update
     ActivityDateConfigDetailComponent,
     CreateActivityDateConfigComponent,
     UpdateActivityDateConfigComponent,
+    SetupAgentComponent,
   ],
   entryComponents: [],
 })

@@ -11,6 +11,9 @@ module.exports = {
   inquiry,
   getActivityDateConfig,
   updateOwner,
+  clearOwner,
+  updateDueDate,
+  updateEndOfDose,
 };
 
 async function get(conn, id) {
@@ -18,13 +21,13 @@ async function get(conn, id) {
     let sql = "select a.* ";
     sql += ",b.code as productCode, b.name as productName";
     sql += ",c.code as agentCode, c.name as agentName";
-    sql += ",d.code as customerCode, d.name as customerName";
+    sql += ",d.code as customerCode, d.name as customerName, d.activityOwner";
     sql += ",e.status";
     sql += " from activity a ";
     sql += " left join product b on a.productId=b.id";
     sql += " left join business c on a.agentId=c.id";
     sql += " left join business d on a.customerId=d.id";
-    sql += " left join activityStatus e on a.activityStatusId=e.id";
+    sql += " left join activitystatus e on a.activityStatusId=e.id";
     sql += " where a.id = ?";
     const result = await conn.query(sql, [id]);
 
@@ -64,8 +67,8 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `activity` (`code`,`description`,`productId`,`remainingDay`,`dueDate`,`agentId`,`customerId`,`ownerUser`,`activityStatusId`,`refOrderId`,`refOrderItemId`, `createBy`, `createDate`,`statusDate0`) ";
-      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO `activity` (`code`,`description`,`productId`,`remainingDay`,`dueDate`,endOfDose,`agentId`,`customerId`,`ownerUser`,`activityStatusId`,`refOrderId`,`refOrderItemId`, `createBy`, `createDate`,`statusDate0`) ";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
       let _result = await conn.query(sql, [
         model.code,
@@ -73,6 +76,7 @@ async function save(conn, model) {
         model.productId,
         model.remainingDay,
         model.dueDate ? new Date(model.dueDate) : null,
+        model.endOfDose ? new Date(model.endOfDose) : null,
         model.agentId,
         model.customerId,
         model.ownerUser,
@@ -169,20 +173,26 @@ async function inquiry(conn, criteria) {
     let params = [];
 
     let sql = "select count(a.id) as qty from activity a ";
+
     if (criteria.isCount == false) {
       sql = "select a.* ";
       sql += ",b.code as productCode, b.name as productName";
       sql += ",c.code as agentCode, c.name as agentName";
-      sql += ",d.code as customerCode, d.name as customerName";
+      sql += ",d.code as customerCode, d.name as customerName, d.mobile";
       sql += ",e.status";
       sql += " from activity a ";
 
       sql += " left join product b on a.productId=b.id";
-      sql += " left join activityStatus e on a.activityStatusId=e.id";
+      sql += " left join activitystatus e on a.activityStatusId=e.id";
     }
 
-    sql += " left join business c on a.agentId=c.id";
-    sql += " left join business d on a.customerId=d.id";
+    if (criteria.isCount == false) {
+      sql += " left join business c on a.agentId=c.id";
+    }
+
+    if (criteria.isCount == false || criteria.customerName || criteria.tel) {
+      sql += " left join business d on a.customerId=d.id";
+    }
 
     sql += " where 1=1 ";
 
@@ -230,6 +240,11 @@ async function inquiry(conn, criteria) {
       params.push(criteria.customerId);
     }
 
+    if (criteria.tel != null && criteria.tel != "") {
+      sql += " and d.mobile like ?";
+      params.push("%" + criteria.tel + "%");
+    }
+
     if (criteria.owner != null && criteria.owner != "") {
       sql += " and a.ownerUser like ?";
       params.push("%" + criteria.owner + "%");
@@ -243,6 +258,12 @@ async function inquiry(conn, criteria) {
     if (criteria.customerName != null && criteria.customerName != "") {
       sql += " and d.name like ?";
       params.push("%" + criteria.customerName + "%");
+    }
+
+    if (criteria.eod == 1) {
+      sql += " and a.endOfDose < NOW()";
+    } else if (criteria.eod == 0) {
+      sql += " and a.endOfDose > NOW()";
     }
 
     if (criteria.status && criteria.status.length > 0) {
@@ -280,7 +301,7 @@ async function inquiry(conn, criteria) {
 
 async function getActivityDateConfig(conn, username) {
   try {
-    let sql = "select * from activityDateConfig where username=?";
+    let sql = "select * from activitydateconfig where username=?";
     const result = await conn.query(sql, [username]);
     return result;
   } catch (err) {
@@ -295,6 +316,50 @@ async function updateOwner(conn, customerId, ownerUser, username) {
       "update activity set `ownerUser`=?, `updateBy`=?, `updateDate`=? where customerId = ? and activityStatusId != 3 and activityStatusId != 4";
 
     await conn.query(sql, [ownerUser, username, new Date(), customerId]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function updateDueDate(conn, customerId, dueDate) {
+  try {
+    //Update Activity Status
+    let sql =
+      "update activity set `dueDate`= NOW() + INTERVAL ? DAY where customerId = ? and activityStatusId != 3 and activityStatusId != 4 and NOW() > dueDate + INTERVAL ? DAY";
+
+    await conn.query(sql, [dueDate, customerId, dueDate]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function updateEndOfDose(conn, id, dueDate) {
+  try {
+    //Update Activity Status
+    let sql = "update activity set `endOfDose`= ? where id = ? ";
+
+    await conn.query(sql, [new Date(dueDate), id]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function clearOwner(conn, date) {
+  try {
+    //Update Activity Status
+    let sql =
+      "update activity set `ownerUser`= null, `updateBy`= 'SYSTEM', `updateDate`= NOW() where NOW() > dueDate + INTERVAL ? DAY";
+
+    await conn.query(sql, [date]);
 
     return true;
   } catch (e) {

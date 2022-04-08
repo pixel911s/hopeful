@@ -10,6 +10,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { AgentService } from "app/shared/services/agent.service";
 import { ProductService } from "app/shared/services/product.service";
 import { OrderService } from "app/shared/services/order.service";
+import { Location } from "@angular/common";
 
 @Component({
   selector: "app-view-order",
@@ -29,7 +30,8 @@ export class ViewOrderComponent extends BaseComponent implements OnInit {
     private cdRef: ChangeDetectorRef,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private _location: Location
   ) {
     super();
   }
@@ -46,5 +48,9 @@ export class ViewOrderComponent extends BaseComponent implements OnInit {
 
   ngAfterViewChecked() {
     this.cdRef.detectChanges();
+  }
+
+  back() {
+    this._location.back();
   }
 }

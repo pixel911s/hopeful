@@ -26,6 +26,9 @@ export class AgentDetailComponent implements OnInit {
   isEdit: boolean = false;
 
   @Input()
+  isSetup: boolean = false;
+
+  @Input()
   isReadOnly: any;
 
   constructor(private authService: AuthService, translate: TranslateService) {
@@ -43,9 +46,20 @@ export class AgentDetailComponent implements OnInit {
   prepareFormGroup() {
     this.formGroup.addControl(
       "name",
-      new FormControl({ value: "", disabled: this.isReadOnly }, [
-        Validators.required,
-      ])
+      new FormControl(
+        { value: "", disabled: this.isReadOnly || this.isSetup },
+        [Validators.required]
+      )
+    );
+
+    this.formGroup.addControl(
+      "lineNotifyToken",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "clearActivityDay",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
 
     this.formGroup.addControl(

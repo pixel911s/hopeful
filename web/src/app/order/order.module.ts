@@ -10,6 +10,8 @@ import { OrderFormComponent } from "./includes/form/order-form.component";
 import { UpdateOrderComponent } from "./update/update-order.component";
 import { ViewOrderComponent } from "./view/view-order.component";
 import { ImportOrderComponent } from "./includes/import-order/import-order.component";
+import { SelectAddressComponent } from "./includes/select-address/select-address.component";
+import { ImportStatusComponent } from "./includes/import-status/import-status.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, OrderRoutingModule],
@@ -20,7 +22,13 @@ import { ImportOrderComponent } from "./includes/import-order/import-order.compo
     UpdateOrderComponent,
     ViewOrderComponent,
     ImportOrderComponent,
+    SelectAddressComponent,
+    ImportStatusComponent,
   ],
-  entryComponents: [ImportOrderComponent],
+  entryComponents: [
+    ImportOrderComponent,
+    SelectAddressComponent,
+    ImportStatusComponent,
+  ],
 })
 export class OrderModule {}

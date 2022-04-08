@@ -37,7 +37,7 @@ export class SearchUserComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.user = this.authService.getUser();
+    this.user = await this.authService.getUserWithLoadAgents();
 
     this.master.agents = this.user.userAgents;
 

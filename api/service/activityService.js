@@ -1,12 +1,16 @@
 "use strict";
 
 var util = require("../utils/responseUtils");
+var dateUtil = require("../utils/dateUtil");
 const fileUtil = require("../utils/fileUtil");
 var activityDao = require("../dao/activityDao");
 var taskDao = require("../dao/taskDao");
 var userDao = require("../dao/userDao");
+var agentDao = require("../dao/agentDao");
 var customerDao = require("../dao/customerDao");
 var auditLogDao = require("../dao/auditLogDao");
+var crmHistoryDao = require("../dao/crmHistoryDao");
+var configDao = require("../dao/configDao");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -15,11 +19,39 @@ const pool = mysql.createPool(config.mysql);
 module.exports = {
   get,
   save,
+  updateEndOfDose,
   updateActivityStatus,
   getSummaryActivityCount,
   searchList,
   assignActivityOwner,
+  searchHistories,
 };
+
+async function searchHistories(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+    let result = null;
+
+    let totalRecord = await crmHistoryDao.count(conn, criteria);
+
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
+    }
+
+    if (totalRecord > 0) {
+      result = await crmHistoryDao.search(conn, criteria);
+    }
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function get(req, res) {
   const conn = await pool.getConnection();
@@ -32,6 +64,44 @@ async function get(req, res) {
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function updateEndOfDose(req, res) {
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
+
+    await activityDao.updateEndOfDose(conn, model.id, model.endOfDose);
+
+    let history = {
+      customerId: model.customerId,
+      activityCode: model.code,
+      activityId: model.id,
+      action: "UPDATE ACTIVITY",
+      description:
+        "เปลี่ยนวันที่ใช้สินค้าหมดเป็น " + dateUtil.getDateSql(model.endOfDose),
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูล Activity เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
+    if (e.code == "ER_DUP_ENTRY") {
+      return res.status(401).send("มีข้อมูล Activity นี้แล้วในระบบ");
+    } else {
+      return res.status(500).send(e.message);
+    }
   } finally {
     conn.release();
   }
@@ -82,6 +152,12 @@ async function updateActivityStatus(req, res) {
     let model = req.body;
 
     let _activity = await activityDao.get(conn, model.id);
+
+    if (_activity.activityOwner != model.username) {
+      return res
+        .status(401)
+        .send("❌ ไม่สามารถดำเนินการได้ เนื่องจากไม่ใช่ผู้ดูแล");
+    }
 
     let _date0 = _activity.statusDate0;
     let _date1 = _activity.statusDate1;
@@ -135,11 +211,13 @@ async function updateActivityStatus(req, res) {
 
     let _logDesc =
       "Update Activity Status : Activity Code-->" +
-        _activity.code +
-        " : New Status-->" +
-        model.activityStatusId +
-        " : Old Status-->" +
-        _activity.activityStatusId ?? 0;
+      _activity.code +
+      " : New Status-->" +
+      model.activityStatusId +
+      " : Old Status-->" +
+      _activity.activityStatusId
+        ? _activity.activityStatusId
+        : 0;
 
     let _auditLog = {
       logType: "activity",
@@ -150,6 +228,17 @@ async function updateActivityStatus(req, res) {
     };
 
     await auditLogDao.save(conn, _auditLog);
+
+    let history = {
+      customerId: _activity.customerId,
+      activityCode: _activity.code,
+      activityId: _activity.id,
+      action: "CHANGE ACTIVITY STATUS",
+      description: "เปลี่ยนสถานะเป็น " + getStatusText(model.activityStatusId),
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
 
     conn.commit();
 
@@ -189,7 +278,6 @@ async function getSummaryActivityCount(req, res) {
 
     let isSupervisor = false;
     let userFunctions = await userDao.getUserFunction(conn, criteria.username);
-    console.log("user Functions : ", userFunctions);
 
     for (let index = 0; index < userFunctions.length; index++) {
       if (userFunctions[index].functionCode == "SUPERVISOR") {
@@ -197,12 +285,12 @@ async function getSummaryActivityCount(req, res) {
       }
     }
 
-    let button1 = {
-      fillterType: 1,
-      dayCondition: 0,
-      display: "วันนี้",
-      qty: 0,
-    };
+    // let button1 = {
+    //   fillterType: 1,
+    //   dayCondition: 0,
+    //   display: "วันนี้",
+    //   qty: 0,
+    // };
 
     criteria.fillterType = 1;
     criteria.dayCondition = 0;
@@ -211,68 +299,61 @@ async function getSummaryActivityCount(req, res) {
     criteria.customerId = criteria.customerId;
     criteria.isCount = true;
 
-    let resultOnDue = await activityDao.inquiry(conn, criteria);
+    // let resultOnDue = await activityDao.inquiry(conn, criteria);
 
-    if (resultOnDue.length > 0) {
-      button1.qty = resultOnDue[0].qty;
-    }
-    buttons.push(button1);
+    // if (resultOnDue.length > 0) {
+    //   button1.qty = resultOnDue[0].qty;
+    // }
+    // buttons.push(button1);
 
-    let button2 = {
-      fillterType: 2,
-      dayCondition: 0,
-      display: "เกินกำหนด",
-      qty: 0,
-    };
+    // let button2 = {
+    //   fillterType: 2,
+    //   dayCondition: 0,
+    //   display: "เกินกำหนด",
+    //   qty: 0,
+    // };
 
-    criteria.fillterType = 2;
+    // criteria.fillterType = 2;
 
-    let resultOverDue = await activityDao.inquiry(conn, criteria);
-    if (resultOverDue.length > 0) {
-      button2.qty = resultOverDue[0].qty;
-    }
-    buttons.push(button2);
+    // let resultOverDue = await activityDao.inquiry(conn, criteria);
+    // if (resultOverDue.length > 0) {
+    //   button2.qty = resultOverDue[0].qty;
+    // }
+    // buttons.push(button2);
 
-    let button3 = {
-      fillterType: 3,
-      dayCondition: 0,
-      display: "ยังไม่ถึงกำหนด",
-      qty: 0,
-    };
+    // let button3 = {
+    //   fillterType: 3,
+    //   dayCondition: 0,
+    //   display: "ยังไม่ถึงกำหนด",
+    //   qty: 0,
+    // };
 
-    criteria.fillterType = 3;
+    // criteria.fillterType = 3;
 
-    let resultIncoming = await activityDao.inquiry(conn, criteria);
-    if (resultIncoming.length > 0) {
-      button3.qty = resultIncoming[0].qty;
-    }
-    buttons.push(button3);
+    // let resultIncoming = await activityDao.inquiry(conn, criteria);
+    // if (resultIncoming.length > 0) {
+    //   button3.qty = resultIncoming[0].qty;
+    // }
+    // buttons.push(button3);
 
-    let activitDateConfigs = await activityDao.getActivityDateConfig(
-      conn,
-      criteria.username
-    );
-    if (activitDateConfigs.length > 0) {
-      for (let index = 0; index < activitDateConfigs.length; index++) {
-        let data = {
-          fillterType: 4,
-          dayCondition: activitDateConfigs[index].condition,
-          display: activitDateConfigs[index].display,
-          qty: 0,
-        };
+    // let activitDateConfigs = await activityDao.getActivityDateConfig(
+    //   conn,
+    //   criteria.username
+    // );
 
-        criteria.fillterType = 4;
-        criteria.dayCondition = activitDateConfigs[index].condition;
+    if (criteria.activityDates.length > 0) {
+      for (let index = 0; index < criteria.activityDates.length; index++) {
+        criteria.fillterType = criteria.activityDates[index].fillterType;
+        criteria.dayCondition = criteria.activityDates[index].condition;
 
         let resultCustom = await activityDao.inquiry(conn, criteria);
         if (resultCustom.length > 0) {
-          data.qty = resultCustom[0].qty;
+          criteria.activityDates[index].qty = resultCustom[0].qty;
         }
-        buttons.push(data);
       }
     }
 
-    return res.send(util.callbackSuccess(null, buttons));
+    return res.send(util.callbackSuccess(null, criteria.activityDates));
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);
@@ -366,6 +447,18 @@ async function assignActivityOwner(req, res) {
     // let _activity = await activityDao.get(conn, model.activityId);
     let customer = await customerDao.get(conn, model.customerId);
 
+    let currentDate = new Date();
+
+    if (customer.unlockDate && new Date(customer.unlockDate) > currentDate) {
+      return res
+        .status(401)
+        .send(
+          "ไม่สามารถแก้ไขข้อมูลได้ กรุณารอ 1 นาที และทำรายการใหม่อีกครั้ง."
+        );
+    }
+
+    let agent = await agentDao.getById(conn, model.agentId);
+
     let _logDesc =
       "Assign Activity Owner : Customer ID-->" +
       model.customerId +
@@ -390,6 +483,12 @@ async function assignActivityOwner(req, res) {
       model.username
     );
 
+    await activityDao.updateDueDate(
+      conn,
+      model.customerId,
+      Number(agent.clearActivityDay)
+    );
+
     await taskDao.closeAllTask(conn, model.activityId, model.username);
 
     let updateOwner = {
@@ -398,6 +497,16 @@ async function assignActivityOwner(req, res) {
     };
 
     await customerDao.updateOwner(conn, updateOwner);
+
+    let history = {
+      customerId: model.customerId,
+      activityCode: "",
+      action: "CUSTOMER ASSIGN",
+      description: model.username + "เข้าเป็นผู้ดูแลลูกค้า",
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
 
     await auditLogDao.save(conn, _auditLog);
 
@@ -413,4 +522,34 @@ async function assignActivityOwner(req, res) {
   } finally {
     conn.release();
   }
+}
+
+function getStatusText(id) {
+  //=== 0 : รอดำเนินงาน
+  //=== 1 : อยู่ระหว่างดำเนินงาน
+  //=== 2 : เสนอราคา
+  //=== 3 : ปิดการขาย
+  //=== 4 : ยกเลิก
+
+  if (id == 0) {
+    return "รายชื่อ";
+  }
+
+  if (id == 1) {
+    return "โทร";
+  }
+
+  if (id == 2) {
+    return "คุย";
+  }
+
+  if (id == 3) {
+    return "ปิดการขาย";
+  }
+
+  if (id == 4) {
+    return "ยกเลิก";
+  }
+
+  return "";
 }

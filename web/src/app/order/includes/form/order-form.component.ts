@@ -7,6 +7,9 @@ import { BaseComponent } from "app/base/base.component";
 import { AuthService } from "app/shared/auth/auth.service";
 import { MasterService } from "app/shared/services/master.service";
 import { CustomerService } from "app/shared/services/customer.service";
+import { ToastrService } from "ngx-toastr";
+import { Ng4FilesSelected } from "app/shared/ng4-files";
+import { SelectAddressComponent } from "../select-address/select-address.component";
 
 @Component({
   selector: "app-hf-order-form",
@@ -43,7 +46,8 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     private masterService: MasterService,
     protected dialog: MatDialog,
     private customerService: CustomerService,
-    private cdf: ChangeDetectorRef
+    private cdf: ChangeDetectorRef,
+    private toastr: ToastrService
   ) {
     super();
     translate.use(this.authService.getUser().lang);
@@ -74,6 +78,8 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     }
 
     this.checkMobile();
+
+    this.data.updateStatusDate = new Date(this.data.updateStatusDate);
   }
 
   prepareFormGroup() {
@@ -85,6 +91,24 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
         { value: "", disabled: this.isReadOnly },
         Validators.required
       )
+    );
+
+    this.formGroup.addControl(
+      "saleChannel",
+      new FormControl(
+        { value: "", disabled: this.isReadOnly },
+        Validators.required
+      )
+    );
+
+    this.formGroup.addControl(
+      "saleChannelName",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
+
+    this.formGroup.addControl(
+      "socialName",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
 
     this.formGroup.addControl(
@@ -148,6 +172,14 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
       "vendor",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
+
+    this.formGroup.addControl(
+      "paymentStatus",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [
+        Validators.required,
+      ])
+    );
+
     this.formGroup.addControl(
       "sendSmsFlag",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
@@ -257,10 +289,27 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
         this.data.totalQty += product.qty;
       }
 
+    // this.changePaymentType();
+
     this.data.netAmount =
       this.data.totalAmount -
       this.data.billDiscountAmount +
       this.data.deliveryPrice;
+  }
+
+  changePaymentType() {
+    if (!this.isEdit) {
+      if (
+        this.data.orderDetail.length > 0 &&
+        this.data.paymentType == "TRANSFER"
+      ) {
+        this.data.billDiscountAmount = 100 * this.data.orderDetail.length;
+      } else {
+        this.data.billDiscountAmount = 0;
+      }
+
+      this.calPrice();
+    }
   }
 
   async checkMobile() {
@@ -271,8 +320,28 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     this.data.deliveryDistrict = undefined;
     this.data.deliveryProvince = undefined;
     this.data.deliveryZipcode = undefined;
+    this.data.socialName = undefined;
 
     await this.getCustomer(this.data.deliveryContact);
+  }
+
+  async selectAddress() {
+    const dialogRef = this.dialog.open(SelectAddressComponent, {
+      maxWidth: "600px",
+      minWidth: "300px",
+      data: this.data.customer.addresses,
+    });
+
+    dialogRef.afterClosed().subscribe((address) => {
+      if (address) {
+        this.data.deliveryName = address.name;
+        this.data.deliveryAddressInfo = address.info;
+        this.data.deliverySubDistrict = address.subDistrict;
+        this.data.deliveryDistrict = address.district;
+        this.data.deliveryProvince = address.province;
+        this.data.deliveryZipcode = address.zipcode;
+      }
+    });
   }
 
   async getCustomer(mobile) {
@@ -280,6 +349,7 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     console.log(res);
     if (res.data) {
       this.data.customer = res.data;
+
       let address = this.data.customer.addresses[0];
       this.data.deliveryName = address.name;
       this.data.deliveryAddressInfo = address.info;
@@ -287,16 +357,56 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
       this.data.deliveryDistrict = address.district;
       this.data.deliveryProvince = address.province;
       this.data.deliveryZipcode = address.zipcode;
+      this.data.socialName = this.data.customer.socialName;
 
-      let res2: any = await this.masterService.getDistricts(
-        this.data.deliveryProvince
-      );
-      this.districts = res2.data;
+      // let res2: any = await this.masterService.getDistricts(
+      //   this.data.deliveryProvince
+      // );
+      // this.districts = res2.data;
 
-      let res3: any = await this.masterService.getSubDistricts(
-        this.data.deliveryDistrict
-      );
-      this.subdistricts = res3.data;
+      // let res3: any = await this.masterService.getSubDistricts(
+      //   this.data.deliveryDistrict
+      // );
+      // this.subdistricts = res3.data;
+    }
+  }
+
+  public async filesSelect(selectedFiles: Ng4FilesSelected) {
+    if (selectedFiles.files.length == 0) return;
+    let file = selectedFiles.files[0];
+    let maxSize = 10 * 1024 * 2014;
+    let fileType = file.type.split("/")[0];
+
+    if (file.size > maxSize) {
+      let title = "";
+      this.translate
+        .get("err.file-large")
+        .subscribe((result) => (title = result));
+      this.toastr.show(title);
+      return;
+    }
+
+    if (fileType.toLowerCase() != "image") {
+      this.toastr.show("❌ อัปโหลดได้เฉพาะไฟล์รูปภาพเท่านั้น");
+      return;
+    }
+
+    let reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event: any) => {
+      let image = new Image();
+      image.src = event.target.result;
+      image.onload = () => {
+        this.data.imageUrl = event.target.result;
+        this.data.newImageFlag = true;
+        this.data.tmpNewImage = file;
+      };
+    };
+  }
+
+  splitAddress(event) {
+    if ((event.ctrlKey || event.metaKey) && event.keyCode == 86) {
+      console.log(this.data.deliveryAddressInfo);
     }
   }
 }

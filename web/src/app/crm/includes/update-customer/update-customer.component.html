@@ -16,10 +16,55 @@
       <div
         class="form-group"
         [ngClass]="{
+          'is-invalid': f.sex.touched && f.sex.errors
+        }"
+      >
+        <label for="name">เพศ *</label>
+        <div>
+          <div class="custom-control custom-radio custom-control-inline">
+            <input
+              [value]="'M'"
+              formControlName="sex"
+              [(ngModel)]="data.sex"
+              type="radio"
+              id="customRadioInline1"
+              class="custom-control-input"
+            />
+            <label class="custom-control-label" for="customRadioInline1"
+              >ชาย</label
+            >
+          </div>
+
+          <div class="custom-control custom-radio custom-control-inline">
+            <input
+              [value]="'F'"
+              formControlName="sex"
+              [(ngModel)]="data.sex"
+              type="radio"
+              id="customRadioInline2"
+              class="custom-control-input"
+            />
+            <label class="custom-control-label" for="customRadioInline2"
+              >หญิง</label
+            >
+          </div>
+          <small
+            class="text-danger"
+            *ngIf="f.sex.touched && f.sex.errors?.required"
+            >{{ "error.required" | translate }}</small
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
           'is-invalid': f.name.touched && f.name.errors?.required
         }"
       >
-        <label for="name">ชื่อลูกค้า</label>
+        <label for="name">ชื่อลูกค้า *</label>
         <input
           autocomplete="off"
           id="name"
@@ -47,7 +92,7 @@
           'is-invalid': f.mobile.touched && f.mobile.errors?.required
         }"
       >
-        <label for="mobile">เบอร์ติดต่อ</label>
+        <label for="mobile">เบอร์ติดต่อ *</label>
         <input
           autocomplete="off"
           id="mobile"
@@ -77,6 +122,20 @@
           class="form-control form-control-sm"
           formControlName="email"
           [(ngModel)]="data.email"
+        />
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="form-group">
+        <label for="age">อายุ</label>
+        <input
+          autocomplete="off"
+          type="number"
+          maxlength="3"
+          class="form-control form-control-sm"
+          formControlName="age"
+          [(ngModel)]="data.age"
         />
       </div>
     </div>

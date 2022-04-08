@@ -1,6 +1,6 @@
 <app-nav-bar></app-nav-bar>
 
-<div class="card">
+<div class="card" *ngIf="user">
   <div class="card-body">
     <div class="row">
       <div class="col-12">
@@ -46,25 +46,25 @@
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="uuid">รหัสสั่งซื้อ</label>
+          <label for="orderNo">รหัสสั่งซื้อ</label>
           <input
             (keyup.enter)="criteria.page = 1; search()"
             autocomplete="off"
-            [(ngModel)]="criteria.uuid"
+            [(ngModel)]="criteria.orderNo"
             class="form-control form-control-sm"
-            id="uuid"
+            id="orderNo"
           />
         </div>
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="name">ชื่อลูกค้า</label>
+          <label for="deliveryName">ชื่อลูกค้า</label>
           <input
             (keyup.enter)="criteria.page = 1; search()"
             autocomplete="off"
-            [(ngModel)]="criteria.name"
+            [(ngModel)]="criteria.deliveryName"
             class="form-control form-control-sm"
-            id="name"
+            id="deliveryName"
           />
         </div>
       </div>
@@ -97,19 +97,31 @@
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="status">สถานะ</label>
+          <label for="status">สถานะชำระเงิน</label>
           <select
             (change)="criteria.page = 1; search()"
-            [(ngModel)]="criteria.status"
+            [(ngModel)]="criteria.paymentStatus"
             class="form-control form-control-sm"
             id="status"
           >
             <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="'O'">สั่งซื้อใหม่</option>
-            <!-- <option [ngValue]="'Pack'">แพคสินค้าแล้ว</option>
-            <option [ngValue]="'Send'">ส่งสินค้าแล้ว</option> -->
-            <option [ngValue]="'C'">ยกเลิกรายการ</option>
+            <option [ngValue]="'W'">รอชำระเงิน</option>
+            <option [ngValue]="'S'">ชำระแล้ว</option>
           </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">สถานะ</label>
+          <ng-multiselect-dropdown
+            [placeholder]="'ทั้งหมด'"
+            [settings]="dropdownSettings"
+            [data]="master.status"
+            [(ngModel)]="criteria.status2"
+            (onSelect)="criteria.page = 1; search()"
+            (onSelectAll)="criteria.page = 1; search()"
+          >
+          </ng-multiselect-dropdown>
         </div>
       </div>
 
@@ -135,12 +147,18 @@
         </button>
       </div>
       <div class="col-12">
-        <hr />
-        <div ngbDropdown container="body">
+        <hr
+          *ngIf="
+            user.function.UPLOAD_ORDER ||
+            user.function.EXPORT_TRANSPORT ||
+            user.function.EXPORT_ORDER
+          "
+        />
+        <div ngbDropdown container="body" class="d-inline">
           <button
             type="button"
             class="btn btn-outline-success"
-            *ngIf="user.function.CREATE_ORDER"
+            *ngIf="user.function.UPLOAD_ORDER"
             id="exportMenu"
             ngbDropdownToggle
           >
@@ -149,7 +167,10 @@
 
           <div ngbDropdownMenu aria-labelledby="exportMenu">
             <button class="w-100" ngbDropdownItem (click)="upload()">
-              อัพโหลด
+              อัพโหลดออเดอร์
+            </button>
+            <button class="w-100" ngbDropdownItem (click)="uploadStatus()">
+              อัพโหลดสถานะออเดอร์
             </button>
             <a
               type="button"
@@ -157,10 +178,53 @@
               (click)="exportTemplate()"
               ngbDropdownItem
             >
-              ดาวน์โหลด
+              ดาวน์โหลดเทมเพจออเดอร์
+            </a>
+            <a
+              type="button"
+              class="w-100"
+              (click)="exportOrderStatusTemplate()"
+              ngbDropdownItem
+            >
+              ดาวน์โหลดเทมเพจอัพเดทสถานะออเดอร์
             </a>
           </div>
         </div>
+
+        <button
+          type="button"
+          class="btn btn-outline-warning d-inline"
+          (click)="exportKerry()"
+          *ngIf="user.function.EXPORT_TRANSPORT"
+        >
+          นำออกไป Kerry Esyship
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-danger d-inline"
+          (click)="exportKA()"
+          *ngIf="user.function.EXPORT_TRANSPORT"
+        >
+          นำออกไป KA System
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-outline-info d-inline"
+          (click)="exportJT()"
+          *ngIf="user.function.EXPORT_TRANSPORT"
+        >
+          นำออกไป JT
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-outline-success d-inline"
+          (click)="exportOrder()"
+          *ngIf="user.function.EXPORT_ORDER"
+        >
+          นำออก Excel
+        </button>
       </div>
     </div>
 
@@ -178,9 +242,10 @@
               <tr>
                 <th class="text-left">รหัสสั่งซื้อ</th>
                 <th class="text-left">ชื่อลูกค้า</th>
-                <th class="text-center">สาขา</th>
+                <th class="text-center">ตัวแทนจำหน่าย</th>
                 <th class="text-right">ยอดชำระ</th>
                 <th class="text-center">การชำระเงิน</th>
+                <th class="text-center">สถานะการชำระเงิน</th>
                 <th class="text-center" style="width: 70px">สถานะ</th>
                 <th style="width: 70px"></th>
               </tr>
@@ -216,12 +281,36 @@
                 </td>
                 <td class="text-right">{{ item.netAmount | number: ".2" }}</td>
                 <td class="text-center">
-                  <span *ngIf="item.paymentType == 'COD'">เก็บเงินปลายทาง</span>
+                  <span *ngIf="item.paymentType == 'COD'">COD</span>
                   <span *ngIf="item.paymentType == 'TRANSFER'">โอนเงิน</span>
+                </td>
+                <td class="text-center">
+                  <span
+                    *ngIf="item.paymentStatus == 'W'"
+                    class="badge badge-warning"
+                    >รอชำระ</span
+                  >
+                  <span
+                    *ngIf="item.paymentStatus == 'S'"
+                    class="badge badge-success"
+                    >ชำระแล้ว</span
+                  >
                 </td>
                 <td class="text-center">
                   <span *ngIf="item.status == 'O'" class="badge badge-warning"
                     >สั่งซื้อใหม่</span
+                  >
+
+                  <span *ngIf="item.status == 'W'" class="badge badge-secondary"
+                    >ยืนยันออเดอร์</span
+                  >
+
+                  <span *ngIf="item.status == 'S'" class="badge badge-success"
+                    >จัดส่งแล้ว</span
+                  >
+
+                  <span *ngIf="item.status == 'R'" class="badge badge-danger"
+                    >ตีกลับสินค้า</span
                   >
 
                   <span *ngIf="item.status == 'C'" class="badge badge-danger"

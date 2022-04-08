@@ -1,7 +1,7 @@
 "use strict";
 
 var lineService = require("./service/lineService");
-var taskService = require("./service/taskService")
+var taskService = require("./service/taskService");
 
 var express = require("express"),
   expressValidator = require("express-validator"),
@@ -71,47 +71,16 @@ app.use("/api", require("./route"));
 let server = app.listen(port, function () {
   // log.info(app.get('env'));
   // log.info("Starting server listening on port %d in %s mode", port, app.settings.env);
+
   console.log(
     "Starting server listening on port " +
-    port +
-    " in " +
-    app.settings.env +
-    " mode"
+      port +
+      " in " +
+      app.settings.env +
+      " mode"
   );
-
-  console.log("Start Schedule : Line Notify");
-
-  var cron = require('node-cron');
-  cron.schedule('* * * * *', function () {
-    console.log('LINE Notify');
-
-    runNotify();
-
-  });
-
 });
 
 app.get("/", function (req, res) {
   res.send("Hello Api!!");
 });
-
-async function runNotify() {
-  let tasks = await taskService.getNotify();
-  console.log("Tasks: ", tasks)
-
-  if (tasks.length > 0) {
-
-    for (let index = 0; index < tasks.length; index++) {
-      const element = tasks[index];
-
-      let _msg = element.createBy + " : Activity: " + element.activityCode + " : " + element.description + " " + element.scheduleDate + " " + element.scheduleTime;
-
-      lineService.notify(element.lineNotifyToken, _msg);
-
-      taskService.updateNotifyFlag(element.taskId);
-
-    }
-  }
-
-
-}

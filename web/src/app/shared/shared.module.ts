@@ -47,6 +47,9 @@ import { DragScrollModule } from "ngx-drag-scroll";
 import { NgMultiSelectDropDownModule } from "ng-multiselect-dropdown";
 import { TimepickerModule } from "ngx-bootstrap/timepicker";
 import { SelectProductComponent } from "app/order/includes/select-product/select-product.component";
+import { NgxTagsInputModule } from "ngx-tags-input";
+import { NgChartsModule } from "ng2-charts";
+import { AgentDetailComponent } from "app/agent/includes/agent-detail.component";
 
 @NgModule({
   exports: [
@@ -75,6 +78,9 @@ import { SelectProductComponent } from "app/order/includes/select-product/select
     DragScrollModule,
     NgMultiSelectDropDownModule,
     TimepickerModule,
+    NgxTagsInputModule,
+    NgChartsModule,
+    AgentDetailComponent,
   ],
   imports: [
     RouterModule,
@@ -104,6 +110,8 @@ import { SelectProductComponent } from "app/order/includes/select-product/select
     DragScrollModule,
     NgMultiSelectDropDownModule,
     TimepickerModule.forRoot(),
+    NgxTagsInputModule,
+    NgChartsModule,
   ],
   declarations: [
     FooterComponent,
@@ -125,6 +133,7 @@ import { SelectProductComponent } from "app/order/includes/select-product/select
     PopupConfirmComponent,
     UserDetailComponent,
     SelectProductComponent,
+    AgentDetailComponent,
   ],
   entryComponents: [PopupConfirmComponent, SelectProductComponent],
   providers: [

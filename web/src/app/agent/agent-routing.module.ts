@@ -4,6 +4,7 @@ import { AuthGuard } from "app/shared/auth/auth-guard.service";
 import { CreateAgentComponent } from "./create/create-agent.component";
 import { UpdateAgentComponent } from "./update/update-agent.component";
 import { ViewAgentComponent } from "./view/view-agent.component";
+import { SetupAgentComponent } from "./setup/setup-agent.component";
 
 const routes: Routes = [
   {

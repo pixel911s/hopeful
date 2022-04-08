@@ -1,0 +1,187 @@
+<div mat-dialog-content class="m-b-20">
+  <div class="row">
+    <div class="col-12 m-b-20">
+      <h5 class="d-inline">อัพเดทสถานะออเดอร์</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+    <div class="col-12 m-b-20" *ngIf="data.items.length == 0">
+      <ng4-files-drop (filesSelect)="filesSelect($event)" mat-line>
+        <ng4-files-click class="upload" (filesSelect)="filesSelect($event)">
+          <div class="upload-box">
+            <div class="upload-icon">
+              <i class="far fa-file-excel"></i>
+            </div>
+            <p>คลิก หรือ ลากวาง เพื่ออัพโหลด CSV</p>
+          </div>
+        </ng4-files-click>
+      </ng4-files-drop>
+    </div>
+    <div class="col-12" *ngIf="data.items.length > 0">
+      <button
+        type="button"
+        class="btn"
+        (click)="criteria.page = 1; calDisplay(0)"
+        [ngClass]="{
+          'btn-primary': displayType == 0,
+          'btn-outline-primary': displayType == 1
+        }"
+      >
+        ทั้งหมด
+      </button>
+      <button
+        type="button"
+        class="btn"
+        (click)="criteria.page = 1; calDisplay(1)"
+        [ngClass]="{
+          'btn-primary': displayType == 1,
+          'btn-outline-primary': displayType == 0
+        }"
+      >
+        เฉพาะรายการที่ผิด
+      </button>
+    </div>
+    <div class="col-12" *ngIf="data.items.length > 0" style="zoom: 90%">
+      <div class="table-responsive">
+        <table class="table table-hover custom-table" id="tblData">
+          <thead>
+            <tr>
+              <th
+                class="text-center"
+                colspan="5"
+                style="border-right: 1px solid #e0e0e0"
+              >
+                ข้อมูลออเดอร์
+              </th>
+              <th
+                class="text-center"
+                colspan="6"
+                style="
+                  border-right: 1px solid #e0e0e0;
+                  background-color: #fbf9af;
+                "
+              >
+                ข้อมูลที่ต้องการอัพเดท
+              </th>
+            </tr>
+            <tr>
+              <th class="text-center">รหัสสั่งซื้อ</th>
+              <th class="text-left">ลูกค้า</th>
+              <th class="text-center">เบอร์โทรศัพท์</th>
+              <th class="text-center">วันที่ทำรายการ</th>
+              <th class="text-center" style="border-right: 1px solid #e0e0e0">
+                วิธีการชำระเงิน
+              </th>
+              <th class="text-center" style="background-color: #fbf9af">
+                สถานะ
+              </th>
+              <th class="text-center" style="background-color: #fbf9af">
+                สถานะการชำระเงิน
+              </th>
+              <th class="text-center" style="background-color: #fbf9af">
+                ขนส่ง
+              </th>
+              <th
+                class="text-center"
+                style="
+                  background-color: #fbf9af;
+                  border-right: 1px solid #e0e0e0;
+                "
+              >
+                Tracking Order
+              </th>
+              <th
+                class="text-center"
+                style="
+                  background-color: #fbf9af;
+                  border-right: 1px solid #e0e0e0;
+                "
+              >
+                วันที่อัพเดทสถานะ
+              </th>
+
+              <th
+                class="text-center"
+                style="
+                  background-color: #fbf9af;
+                  border-right: 1px solid #e0e0e0;
+                "
+              >
+                วันที่อัพเดท COD
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            *ngFor="let item of displayData; let i = index"
+            [ngClass]="{ 'b-error': item.error.length > 0 }"
+          >
+            <tr class="poiter">
+              <td class="text-left">{{ item.orderNo }}</td>
+              <td class="text-left">{{ item.deliveryName }}</td>
+              <td class="text-center">{{ item.deliveryContact }}</td>
+              <td class="text-center">
+                {{ item.orderDate | date: "dd/MM/yyyy HH:mm:ss" }}
+              </td>
+              <td class="text-center">{{ item.paymentType }}</td>
+
+              <td class="text-center">
+                {{ item.status }}
+              </td>
+              <td class="text-center">
+                {{ item.paymentStatus }}
+              </td>
+              <td class="text-center">
+                {{ item.vendor }}
+              </td>
+              <td class="text-center">
+                {{ item.trackingNo }}
+              </td>
+              <td class="text-center">
+                {{ item.updateStatusDate | date: "dd/MM/yyyy" }}
+              </td>
+              <td class="text-center">
+                {{ item.updateCODDate | date: "dd/MM/yyyy" }}
+              </td>
+            </tr>
+            <tr *ngIf="item.error.length > 0">
+              <td colspan="11" style="border-top: none">
+                <span class="text-danger" *ngFor="let error of item.error">
+                  {{ error }} ,
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-12 text-right" *ngIf="displayDatas.length > 0">
+      <ngb-pagination
+        class="float-right"
+        [(page)]="criteria.page"
+        [pageSize]="criteria.size"
+        [maxSize]="10"
+        [collectionSize]="displayDatas.length"
+        (pageChange)="calDisplay(displayType)"
+      ></ngb-pagination>
+    </div>
+    <div class="col-12 text-right" *ngIf="data.items.length > 0">
+      <button
+        id="btnClear"
+        type="button"
+        class="btn btn-info"
+        (click)="clear()"
+      >
+        อัพโหลดใหม่อีกครั้ง
+      </button>
+
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary m-l-10"
+        (click)="submit()"
+      >
+        บันทึกข้อมูล
+      </button>
+    </div>
+  </div>
+</div>

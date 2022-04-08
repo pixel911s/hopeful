@@ -6,11 +6,26 @@ module.exports = {
   search,
   save,
   getByCode,
+  getById,
 };
+
+async function getById(conn, id) {
+  try {
+    let sql =
+      "select * from business where (businessType = 'A' || businessType = 'H') and id = ?";
+
+    const result = await conn.query(sql, [id]);
+
+    return result[0];
+  } catch (err) {
+    throw err;
+  }
+}
 
 async function getByCode(conn, code) {
   try {
-    let sql = "select * from business where businessType = 'A' and code = ?";
+    let sql =
+      "select * from business where (businessType = 'A' || businessType = 'H') and code = ?";
 
     const result = await conn.query(sql, [code.trim().toUpperCase()]);
 
@@ -91,6 +106,12 @@ async function save(conn, model) {
       sql += ", name = ? ";
       params.push(model.name.trim());
 
+      sql += ", clearActivityDay = ? ";
+      params.push(model.clearActivityDay ? model.clearActivityDay : 99999);
+
+      sql += ", lineNotifyToken = ? ";
+      params.push(model.lineNotifyToken ? model.lineNotifyToken.trim() : null);
+
       sql += ", updateBy = ? ";
       params.push(model.updateUser);
 
@@ -104,13 +125,15 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `business` (`businessType`,`code`,`name`, `createBy`, `createDate`, `updateBy`, `updateDate`)";
-      sql += "  VALUES (?,?,?,?,?,?,?)";
+        "INSERT INTO `business` (clearActivityDay, `businessType`,`code`,`name`, lineNotifyToken, `createBy`, `createDate`, `updateBy`, `updateDate`)";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?)";
 
       await conn.query(sql, [
+        model.clearActivityDay ? model.clearActivityDay : 99999,
         "A",
         model.code.trim().toUpperCase(),
         model.name.trim(),
+        model.lineNotifyToken ? model.lineNotifyToken.trim() : null,
         model.updateUser,
         new Date(),
         model.updateUser,

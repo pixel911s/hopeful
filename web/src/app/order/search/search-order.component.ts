@@ -9,6 +9,8 @@ import { OrderService } from "app/shared/services/order.service";
 import { PopupConfirmComponent } from "app/_common/popup-confirm/popup-confirm.component";
 import { ToastrService } from "ngx-toastr";
 import { ImportOrderComponent } from "../includes/import-order/import-order.component";
+import { ImportStatusComponent } from "../includes/import-status/import-status.component";
+import { IDropdownSettings } from "ng-multiselect-dropdown";
 
 @Component({
   selector: "app-search-order",
@@ -65,6 +67,16 @@ export class SearchOrderComponent implements OnInit {
 
   master: any = {};
 
+  dropdownSettings: IDropdownSettings = {
+    singleSelection: false,
+    idField: "id",
+    textField: "status",
+    selectAllText: "เลือกทั้งหมด",
+    unSelectAllText: "นำออกทั้งหมด",
+    itemsShowLimit: 5,
+    allowSearchFilter: false,
+  };
+
   constructor(
     private transactionService: OrderService,
     private router: Router,
@@ -78,7 +90,7 @@ export class SearchOrderComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.user = this.authService.getUser();
+    this.user = await this.authService.getUserWithLoadAgents();
 
     let sesion = JSON.parse(sessionStorage.getItem("HOPEFUL_CRITERIA"));
 
@@ -101,6 +113,14 @@ export class SearchOrderComponent implements OnInit {
     } else {
       this.master.agents.unshift({ id: 1, name: "HQ" });
     }
+
+    this.master.status = [
+      { id: "O", status: "สั่งซื้อใหม่" },
+      { id: "W", status: "ยืนยันออเดอร์" },
+      { id: "S", status: "จัดส่งแล้ว" },
+      { id: "R", status: "ตีกลับสินค้า" },
+      { id: "C", status: "ยกเลิกรายการ" },
+    ];
 
     await this.search();
   }
@@ -154,9 +174,32 @@ export class SearchOrderComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result) {
+        this.spinner.show();
         await this.transactionService.upload(result);
         await this.search();
         this.toastr.show("อัพโหลดรายการสำเร็จ.");
+        this.spinner.hide();
+      }
+    });
+  }
+
+  uploadStatus() {
+    const dialogRef = this.dialog.open(ImportStatusComponent, {
+      maxWidth: "1200px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการยกเลิกรายการ",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        this.spinner.show();
+        console.log(result);
+        await this.transactionService.updateStatus(result);
+        await this.search();
+        this.toastr.show("อัพโหลดสถานะสำเร็จ.");
+        this.spinner.hide();
       }
     });
   }
@@ -164,6 +207,36 @@ export class SearchOrderComponent implements OnInit {
   async exportTemplate() {
     this.spinner.show();
     await this.transactionService.exportTemplate();
+    this.spinner.hide();
+  }
+
+  async exportOrderStatusTemplate() {
+    this.spinner.show();
+    await this.transactionService.exportOrderStatusTemplate();
+    this.spinner.hide();
+  }
+
+  async exportKerry() {
+    this.spinner.show();
+    await this.transactionService.exportKerry(this.criteria);
+    this.spinner.hide();
+  }
+
+  async exportKA() {
+    this.spinner.show();
+    await this.transactionService.exportKA(this.criteria);
+    this.spinner.hide();
+  }
+
+  async exportJT() {
+    this.spinner.show();
+    await this.transactionService.exportJT(this.criteria);
+    this.spinner.hide();
+  }
+
+  async exportOrder() {
+    this.spinner.show();
+    await this.transactionService.exportOrder(this.criteria);
     this.spinner.hide();
   }
 }

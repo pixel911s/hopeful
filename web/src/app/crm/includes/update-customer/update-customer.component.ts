@@ -45,6 +45,13 @@ export class UpdateCustomerComponent extends BaseComponent implements OnInit {
       new FormControl({ value: "" }, [Validators.required])
     );
 
+    this.formGroup.addControl(
+      "sex",
+      new FormControl({ value: "" }, [Validators.required])
+    );
+
+    this.formGroup.addControl("age", new FormControl({ value: "" }, []));
+
     this.formGroup.addControl("email", new FormControl({ value: "" }, []));
   }
 
@@ -58,6 +65,8 @@ export class UpdateCustomerComponent extends BaseComponent implements OnInit {
       await this.markFormGroupTouched(this.formGroup);
       return;
     }
+
+    this.data.dob = new Date();
 
     this.dialogRef.close(this.data);
   }

@@ -63,8 +63,22 @@ export class ActivityService {
 
   assignActivityOwner(data) {
     data.username = this.authService.getUser().username;
+    data.agentId = this.authService.getUser().businessId;
     return this.http
       .post(environment.apiUrl + "/activity/assignActivityOwner", data)
+      .toPromise();
+  }
+
+  updateEndOfDose(data) {
+    data.username = this.authService.getUser().username;
+    return this.http
+      .post(environment.apiUrl + "/activity/updateEndOfDose", data)
+      .toPromise();
+  }
+
+  searchHistories(criteria) {
+    return this.http
+      .post(environment.apiUrl + "/activity/searchHistories", criteria)
       .toPromise();
   }
 }

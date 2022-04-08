@@ -19,7 +19,7 @@ export class CreateProductComponent extends BaseComponent implements OnInit {
     weight: 100,
     remainingDay: 0,
     agentPrices: [],
-    isSet: true,
+    isSet: 0,
   };
   public formGroup: FormGroup;
 

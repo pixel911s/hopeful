@@ -30,6 +30,13 @@ export class AuthGuard implements CanActivate {
     }
 
     if (
+      "SETUP_AGENT" == route.routeConfig.data.id &&
+      !this.authService.getUser().function.SUPERVISOR
+    ) {
+      this.authService.logout();
+    }
+
+    if (
       (("MANAGE_AGENT" == route.routeConfig.data.id ||
         "VIEW_AGENT" == route.routeConfig.data.id) &&
         !this.authService.getUser().function.CREATE_AGENT &&
@@ -65,6 +72,13 @@ export class AuthGuard implements CanActivate {
     if (
       "APPROVE_REQUEST" == route.routeConfig.data.id &&
       !this.authService.getUser().function.SUPERVISOR
+    ) {
+      this.authService.logout();
+    }
+
+    if (
+      "SENDSMS" == route.routeConfig.data.id &&
+      !this.authService.getUser().function.SENDSMS
     ) {
       this.authService.logout();
     }

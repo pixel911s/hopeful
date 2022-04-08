@@ -1,4 +1,5 @@
 import { Routes, RouterModule } from "@angular/router";
+import { SetupAgentComponent } from "app/agent/setup/setup-agent.component";
 import { AuthGuard } from "app/shared/auth/auth-guard.service";
 import { CreateActivityDateConfigComponent } from "./manage-activity-date/create/create.component";
 import { ManageActivityDateComponent } from "./manage-activity-date/search/manage-activity-date.component";
@@ -27,6 +28,12 @@ const routes: Routes = [
         path: "activity-date/update/:id",
         component: UpdateActivityDateConfigComponent,
         data: { name: "แก้ไขข้อมูลตัวแทนจำหน่าย", id: "UPDATE_ACTIVITY_DATE" },
+        canActivate: [AuthGuard],
+      },
+      {
+        path: "agent",
+        component: SetupAgentComponent,
+        data: { name: "ตั้งค่าตัวแทนจำหน่าย", id: "SETUP_AGENT" },
         canActivate: [AuthGuard],
       },
     ],

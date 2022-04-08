@@ -9,6 +9,7 @@ import { CreateNoteComponent } from "./includes/create-note/create-notecomponent
 import { ManageTodoComponent } from "./includes/manage-todo/manage-todo.component";
 import { UpdateCustomerComponent } from "./includes/update-customer/update-customer.component";
 import { ChangeOwnerComponent } from "./includes/change-owner/change-owner.component";
+import { ChangeEndDoseComponent } from "./includes/change-end-dose/change-end-dose.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, CRMRoutingModule],
@@ -19,12 +20,14 @@ import { ChangeOwnerComponent } from "./includes/change-owner/change-owner.compo
     ManageTodoComponent,
     UpdateCustomerComponent,
     ChangeOwnerComponent,
+    ChangeEndDoseComponent,
   ],
   entryComponents: [
     CreateNoteComponent,
     ManageTodoComponent,
     UpdateCustomerComponent,
     ChangeOwnerComponent,
+    ChangeEndDoseComponent,
   ],
 })
 export class CRMModule {}

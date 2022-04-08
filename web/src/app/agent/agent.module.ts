@@ -8,13 +8,13 @@ import { AgentDetailComponent } from "./includes/agent-detail.component";
 import { CreateAgentComponent } from "./create/create-agent.component";
 import { UpdateAgentComponent } from "./update/update-agent.component";
 import { ViewAgentComponent } from "./view/view-agent.component";
+import { SetupAgentComponent } from "./setup/setup-agent.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, AgentRoutingModule],
   declarations: [
     SearchAgentComponent,
     CreateAgentComponent,
-    AgentDetailComponent,
     ViewAgentComponent,
     UpdateAgentComponent,
   ],

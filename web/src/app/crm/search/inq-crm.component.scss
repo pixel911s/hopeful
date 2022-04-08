@@ -7,3 +7,13 @@
   padding: 20px;
   text-align: center;
 }
+
+drag-scroll {
+  ::ng-deep .drag-scroll-content::-webkit-scrollbar {
+    display: none !important;
+  }
+  ::ng-deep .drag-scroll-content {
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
+  }
+}

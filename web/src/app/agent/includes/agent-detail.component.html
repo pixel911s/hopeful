@@ -61,6 +61,76 @@
               >
             </div>
           </div>
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid':
+                  f.lineNotifyToken.touched && f.lineNotifyToken.errors
+              }"
+            >
+              <label for="lineNotifyToken">Line Notify Token</label>
+              <input
+                autocomplete="off"
+                maxlength="200"
+                id="lineNotifyToken"
+                class="form-control form-control-sm"
+                formControlName="lineNotifyToken"
+                [(ngModel)]="data.lineNotifyToken"
+                [ngClass]="{
+                  'is-invalid':
+                    f.lineNotifyToken.touched && f.lineNotifyToken.errors,
+                  'is-valid':
+                    f.lineNotifyToken.touched && !f.lineNotifyToken.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.lineNotifyToken.touched &&
+                  f.lineNotifyToken.errors?.required
+                "
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div
+              class="form-group"
+              [ngClass]="{
+                'is-invalid':
+                  f.clearActivityDay.touched && f.clearActivityDay.errors
+              }"
+            >
+              <label for="clearActivityDay"
+                >จำนวนวันสำหรับยกเลิกผู้ดูแลที่ปิดการขายไม่สำเร็จ *</label
+              >
+              <input
+                type="number"
+                autocomplete="off"
+                maxlength="5"
+                id="clearActivityDay"
+                class="form-control form-control-sm"
+                formControlName="clearActivityDay"
+                [(ngModel)]="data.clearActivityDay"
+                [ngClass]="{
+                  'is-invalid':
+                    f.clearActivityDay.touched && f.clearActivityDay.errors,
+                  'is-valid':
+                    f.clearActivityDay.touched && !f.clearActivityDay.errors
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="
+                  f.clearActivityDay.touched &&
+                  f.clearActivityDay.errors?.required
+                "
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
         </div>
       </div>
     </div>

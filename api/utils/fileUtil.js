@@ -40,6 +40,8 @@ module.exports.uploadImg = async function (
     let imgWebp =
       fullPath + "/" + _img.name.split(".").slice(0, -1).join(".") + ".webp";
 
+    imgWebp = imgWebp.replace(/ /g, "_");
+
     //upload image
 
     if (_img.mimetype == "image/gif") {
@@ -50,23 +52,19 @@ module.exports.uploadImg = async function (
       if (fs.existsSync(imgPath)) {
         fs.unlink(imgPath, function (err) {});
       }
-    } else if (_img.mimetype == "image/webp") {
-      await fs_writeFile(imgPath, _img.data);
     } else {
       const sharp = require("sharp");
+
+      if (fs.existsSync(imgWebp)) {
+        fs.unlink(imgWebp, function (err) {});
+      }
 
       await sharp(_img.data)
         .resize(1110, undefined, {
           withoutEnlargement: true,
         })
-        .jpeg({ quality: 100 })
-        .toFile(imgPath);
-
-      await webp.cwebp(imgPath, imgWebp, "-q 80", (logging = "-v"));
-
-      if (fs.existsSync(imgPath)) {
-        fs.unlink(imgPath, function (err) {});
-      }
+        .webp({ quality: 80 })
+        .toFile(imgWebp);
     }
 
     const d = new Date();
@@ -75,11 +73,15 @@ module.exports.uploadImg = async function (
       _outputPath +
       _subPath +
       "/" +
-      (_img.name.split(".").slice(0, -1).join(".") + ".webp") +
+      (_img.name.split(".").slice(0, -1).join(".") + ".webp").replace(
+        / /g,
+        "_"
+      ) +
       "?v=" +
       d.getTime()
     );
   } catch (e) {
+    console.log(e);
     throw e;
   }
 };
