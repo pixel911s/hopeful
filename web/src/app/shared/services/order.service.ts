@@ -153,6 +153,11 @@ export class OrderService {
     this.export(url, criteria, "JT.xlsx");
   }
 
+  public exportNinjaVan(criteria) {
+    const url = "/order/exportNinjaVanTransaction";
+    this.export(url, criteria, "NinjaVan.xlsx");
+  }
+
   public exportOrder(criteria) {
     const url = "/order/exportOrder";
     this.export(url, criteria, "ExportOrder.xlsx");

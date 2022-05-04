@@ -13,7 +13,60 @@ module.exports = {
   getByMobile,
   getAddress,
   updateProfile,
+
+  removeAddress,
+  createAddress,
+  updateAddress,
 };
+
+async function updateAddress(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let model = req.body;
+
+    if (model.isDefault == true) {
+      await customerDao.clearDefaultAddress(conn, model);
+    }
+
+    await customerDao.updateAddress(conn, model);
+
+    return res.send(util.callbackSuccess("บันทึกข้อมูลเสร็จสมบูรณ์", true));
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function createAddress(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let model = req.body;
+
+    await customerDao.addAddress(conn, model);
+
+    return res.send(util.callbackSuccess("บันทึกข้อมูลเสร็จสมบูรณ์", true));
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function removeAddress(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let model = req.body;
+
+    await customerDao.deleteAddress(conn, model.id);
+
+    return res.send(util.callbackSuccess("บันทึกข้อมูลเสร็จสมบูรณ์", true));
+  } catch (e) {
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function updateProfile(req, res) {
   const conn = await pool.getConnection();

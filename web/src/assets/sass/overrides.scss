@@ -268,3 +268,12 @@ hr {
   animation: spin 2s linear infinite;
   display: inline-block;
 }
+
+.m-t-10 {
+  margin-top: 10px;
+}
+
+.dropdown-menu {
+  max-height: 200px;
+  overflow-x: auto;
+}

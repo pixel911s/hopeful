@@ -11,6 +11,34 @@
             <div
               class="form-group"
               [ngClass]="{
+                'is-invalid': f.type.touched && f.type.errors
+              }"
+            >
+              <label for="display">ประเภท *</label>
+              <select
+                class="form-control form-control-sm"
+                id="type"
+                formControlName="type"
+                [(ngModel)]="data.type"
+                [ngClass]="{
+                  'is-invalid': f.type.touched && f.type.errors,
+                  'is-valid': f.type.touched && !f.type.errors
+                }"
+              >
+                <option [ngValue]="'ACTIVITY'">ACTIVITY</option>
+                <option [ngValue]="'TASK'">TASK</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="f.type.touched && f.type.errors?.required"
+                >{{ "error.required" | translate }}</small
+              >
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div
+              class="form-group"
+              [ngClass]="{
                 'is-invalid': f.display.touched && f.display.errors
               }"
             >

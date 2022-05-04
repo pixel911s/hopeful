@@ -14,14 +14,7 @@
   <div class="container-fluid navbar-wrapper">
     <div class="navbar-header d-flex">
       <div
-        class="
-          navbar-toggle
-          menu-toggle
-          d-xl-none d-block
-          float-left
-          align-items-center
-          justify-content-center
-        "
+        class="navbar-toggle menu-toggle d-xl-none d-block float-left align-items-center justify-content-center"
         data-toggle="collapse"
         (click)="toggleSidebar()"
       >
@@ -471,13 +464,7 @@
             ngbDropdown
           >
             <a
-              class="
-                nav-link
-                dropdown-toggle
-                user-dropdown
-                d-flex
-                align-items-end
-              "
+              class="nav-link dropdown-toggle user-dropdown d-flex align-items-end"
               id="dropdownBasic2"
               href="javascript:;"
               data-toggle="dropdown"
@@ -496,9 +483,14 @@
                 height="35"
                 width="35"
               /> -->
-              <div class="avatar text-center">
+              <div *ngIf="!getUser().displayImgUrl" class="avatar text-center">
                 {{ user.username.charAt(0).toUpperCase() }}
               </div>
+              <img
+                class="avatar avatar2"
+                *ngIf="getUser().displayImgUrl"
+                [src]="getUser().displayImgUrl"
+              />
             </a>
             <div
               class="dropdown-menu text-left dropdown-menu-right m-0 pb-0"
@@ -507,12 +499,22 @@
             >
               <a
                 class="dropdown-item"
+                [routerLink]="['/user-info']"
+                routerLinkActive="router-link-active"
+                (click)="beforRoute()"
+              >
+                <div class="d-flex align-items-center">
+                  <i class="ft-user mr-2"></i><span>ข้อมูลผู้ใช้งาน</span>
+                </div>
+              </a>
+              <a
+                class="dropdown-item"
                 [routerLink]="['/change-password']"
                 routerLinkActive="router-link-active"
                 (click)="beforRoute()"
               >
                 <div class="d-flex align-items-center">
-                  <i class="ft-edit mr-2"></i><span>Change Password</span>
+                  <i class="ft-edit mr-2"></i><span>เปลี่ยนรหัสผ่าน</span>
                 </div>
               </a>
               <div class="dropdown-divider"></div>

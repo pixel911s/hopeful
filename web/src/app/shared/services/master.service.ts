@@ -25,6 +25,12 @@ export class MasterService {
     return response;
   }
 
+  async getZipCode(id) {
+    let url = environment.apiUrl + "/master/searchZipCode";
+    let response = await this.http.post(url, { id: id }).toPromise();
+    return response;
+  }
+
   async getBranchs() {
     let url = environment.apiUrl + "/master/getBranchs";
     let response = await this.http.post(url, null).toPromise();

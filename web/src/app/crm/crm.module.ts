@@ -10,6 +10,8 @@ import { ManageTodoComponent } from "./includes/manage-todo/manage-todo.componen
 import { UpdateCustomerComponent } from "./includes/update-customer/update-customer.component";
 import { ChangeOwnerComponent } from "./includes/change-owner/change-owner.component";
 import { ChangeEndDoseComponent } from "./includes/change-end-dose/change-end-dose.component";
+import { ManageAddressComponent } from "./includes/manage-address/manage-address.component";
+import { FromAddressComponent } from "./includes/from-address/from-address.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, CRMRoutingModule],
@@ -21,6 +23,8 @@ import { ChangeEndDoseComponent } from "./includes/change-end-dose/change-end-do
     UpdateCustomerComponent,
     ChangeOwnerComponent,
     ChangeEndDoseComponent,
+    ManageAddressComponent,
+    FromAddressComponent,
   ],
   entryComponents: [
     CreateNoteComponent,
@@ -28,6 +32,8 @@ import { ChangeEndDoseComponent } from "./includes/change-end-dose/change-end-do
     UpdateCustomerComponent,
     ChangeOwnerComponent,
     ChangeEndDoseComponent,
+    ManageAddressComponent,
+    FromAddressComponent,
   ],
 })
 export class CRMModule {}

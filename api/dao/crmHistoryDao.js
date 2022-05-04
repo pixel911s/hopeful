@@ -53,14 +53,15 @@ async function search(conn, criteria) {
 
     let params = [];
 
-    let sql = "select * from `crmhistory` where 1=1";
+    let sql =
+      "select ch.* , u.nickName as createByNickName from `crmhistory` ch left join user u on ch.createUser = u.username where 1=1";
 
     if (criteria.customerId) {
-      sql += " and customerId = ?";
+      sql += " and ch.customerId = ?";
       params.push(criteria.customerId);
     }
 
-    sql += " order by createDttm desc";
+    sql += " order by ch.createDttm desc";
 
     sql += " limit " + startRecord + "," + criteria.size;
 

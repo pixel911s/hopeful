@@ -1,0 +1,229 @@
+<div
+  mat-dialog-content
+  style="max-height: 90vh"
+  class="m-b-20"
+  *ngIf="data"
+  [formGroup]="formGroup"
+>
+  <div class="row">
+    <div class="col-12">
+      <h5 class="d-inline">{{ param.header }}</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+
+    <div class="col-md-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.name.touched && f.name.errors
+        }"
+      >
+        <label for="info">ชื่อผู้รับ *</label>
+        <input
+          id="name"
+          autocomplete="off"
+          class="form-control form-control-sm"
+          formControlName="name"
+          [(ngModel)]="data.name"
+          [ngClass]="{
+            'is-invalid': f.name.touched && f.name.errors,
+            'is-valid': f.name.touched && !f.name.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.name.touched && f.name.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.info.touched && f.info.errors
+        }"
+      >
+        <label for="info">ที่อยู่จัดส่ง *</label>
+        <textarea
+          autocomplete="off"
+          id="info"
+          class="form-control form-control-sm"
+          formControlName="info"
+          [(ngModel)]="data.info"
+          rows="3"
+          [ngClass]="{
+            'is-invalid': f.info.touched && f.info.errors,
+            'is-valid': f.info.touched && !f.info.errors
+          }"
+        >
+        </textarea>
+        <small
+          class="text-danger"
+          *ngIf="f.info.touched && f.info.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.subdistrict.touched && f.subdistrict.errors
+        }"
+      >
+        <label for="subdistrict">แขวง / ตำบล *</label>
+
+        <input
+          id="subdistrict"
+          autocomplete="off"
+          class="form-control form-control-sm"
+          formControlName="subdistrict"
+          [(ngModel)]="data.subDistrict"
+          [ngClass]="{
+            'is-invalid': f.subdistrict.touched && f.subdistrict.errors,
+            'is-valid': f.subdistrict.touched && !f.subdistrict.errors
+          }"
+        />
+
+        <small
+          class="text-danger"
+          *ngIf="f.subdistrict.touched && f.subdistrict.errors?.required"
+          >กรุณากรอกข้อมูล</small
+        >
+      </div>
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.district.touched && f.district.errors
+        }"
+      >
+        <label for="district">เขต / อำเภอ*</label>
+
+        <input
+          autocomplete="off"
+          class="form-control form-control-sm"
+          formControlName="district"
+          [(ngModel)]="data.district"
+          [ngClass]="{
+            'is-invalid': f.district.touched && f.district.errors,
+            'is-valid': f.district.touched && !f.district.errors
+          }"
+        />
+
+        <small
+          class="text-danger"
+          *ngIf="f.district.touched && f.district.errors?.required"
+          >กรุณากรอกข้อมูล</small
+        >
+      </div>
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.province.touched && f.province.errors
+        }"
+      >
+        <label for="province">จังหวัด *</label>
+
+        <input
+          autocomplete="off"
+          class="form-control form-control-sm"
+          formControlName="province"
+          [(ngModel)]="data.province"
+          [ngClass]="{
+            'is-invalid': f.province.touched && f.province.errors,
+            'is-valid': f.province.touched && !f.province.errors
+          }"
+        />
+
+        <small
+          class="text-danger"
+          *ngIf="f.province.touched && f.province.errors?.required"
+          >กรุณากรอกข้อมูล</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
+          'is-invalid': f.zipcode.touched && f.zipcode.errors
+        }"
+      >
+        <label for="zipcode">รหัสไปรษณีย์ *</label>
+        <input
+          autocomplete="off"
+          maxlength="5"
+          class="form-control form-control-sm"
+          formControlName="zipcode"
+          [(ngModel)]="data.zipcode"
+          [ngClass]="{
+            'is-invalid': f.zipcode.touched && f.zipcode.errors,
+            'is-valid': f.zipcode.touched && !f.zipcode.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.zipcode.touched && f.zipcode.errors?.required"
+          >กรุณากรอกข้อมูล</small
+        >
+        <small
+          class="text-danger"
+          *ngIf="f.zipcode.touched && f.zipcode.errors?.invalidZipcode"
+          >รหัสไปรษณีย์ไม่ถูกต้อง</small
+        >
+      </div>
+    </div>
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{ 'is-invalid': f.tel.touched && f.tel.errors }"
+      >
+        <label for="tel">เบอร์โทรศัพท์ *</label>
+        <input
+          autocomplete="off"
+          id="tel"
+          class="form-control form-control-sm"
+          formControlName="tel"
+          [(ngModel)]="data.contact"
+          [ngClass]="{
+            'is-invalid': f.tel.touched && f.tel.errors,
+            'is-valid': f.tel.touched && !f.tel.errors
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="f.tel.touched && f.tel.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12 text-right">
+      <button
+        id="btnCancel"
+        type="button"
+        class="btn btn-secondary"
+        (click)="onNoClick()"
+      >
+        ยกเลิก
+      </button>
+      <button
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary m-l-10"
+        (click)="save()"
+      >
+        ยืนยัน
+      </button>
+    </div>
+  </div>
+</div>

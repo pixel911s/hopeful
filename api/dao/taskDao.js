@@ -1,5 +1,7 @@
 "use strict";
 
+var DateUtil = require("../utils/dateUtil");
+
 module.exports = {
   get,
   save,
@@ -49,10 +51,11 @@ async function save(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `task` (`activityId`,`description`,`scheduleDate`,`scheduleTime`,`noticeDay`,`isClose`,`closeDate`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
-      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO `task` (orderId,`activityId`,`description`,`scheduleDate`,`scheduleTime`,`noticeDay`,`isClose`,`closeDate`, `createBy`, `createDate`, `updateBy`, `updateDate`) ";
+      sql += "  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
 
       let _result = await conn.query(sql, [
+        model.orderId,
         model.activityId,
         model.description.trim(),
         model.scheduleDate ? new Date(model.scheduleDate) : null,
@@ -119,7 +122,7 @@ async function getTaskList(conn, criteria) {
     let params = [];
 
     let sql =
-      "select t.*, activity.code as activityCode, activity.customerId  from task t left join activity activity on t.activityId = activity.id where  1=1 ";
+      "select o.orderNo , u.nickName as createByNickName , t.*, activity.code as activityCode, activity.customerId  from task t left join activity activity on t.activityId = activity.id left join user u on t.createBy = u.username left join `order` o on t.orderId = o.id where  1=1 ";
     if (criteria.username) {
       sql += " and t.createBy=?";
       params.push(criteria.username);
@@ -128,6 +131,25 @@ async function getTaskList(conn, criteria) {
     if (criteria.customerId) {
       sql += " and activity.customerId=?";
       params.push(criteria.customerId);
+    }
+
+    if (criteria.fillterType == 4) {
+      sql += " and scheduleDate between ? and ?";
+
+      let fromDate = new Date();
+      let toDate = new Date();
+
+      if (criteria.dayCondition > 0) {
+        //=== ก่อนถึงกำหนดกี่วัน
+        toDate.setDate(toDate.getDate() + criteria.dayCondition);
+        params.push(DateUtil.convertForSqlFromDate(fromDate));
+        params.push(DateUtil.convertForSqlToDate(toDate));
+      } else {
+        //==== เลยกำหนดกี่วัน
+        fromDate.setDate(toDate.getDate() + criteria.dayCondition);
+        params.push(DateUtil.convertForSqlFromDate(fromDate));
+        params.push(DateUtil.convertForSqlToDate(toDate));
+      }
     }
 
     if (criteria.taskStatus == "C") {

@@ -1,5 +1,5 @@
 <app-nav-bar></app-nav-bar>
-<div class="row">
+<div class="row" *ngIf="user">
   <div class="col-12 col-md-8">
     <div class="card">
       <div class="card-body">
@@ -202,18 +202,20 @@
           >
             <table class="table table-hover custom-table" id="tblData">
               <thead>
-                <tr>
+                <tr style="zoom: 90%">
                   <th class="text-center"></th>
-                  <th class="text-left">ชื่อลูกค้า</th>
-                  <th class="text-left">สินค้า</th>
-                  <th class="text-center">ผู้ดูแล</th>
-                  <th class="text-center">วันที่ต้องติดตาม</th>
-                  <th class="text-center">วันที่ของจะหมด</th>
+                  <th class="text-left" colspan="2">รายละเอียด</th>
+                  <th class="text-center">ต้องติดตาม</th>
+                  <th class="text-center">สินค้าหมด</th>
+                  <th class="text-center">สถานะ</th>
                   <th style="width: 70px"></th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of data.data">
+                <tr
+                  *ngFor="let item of data.data"
+                  [ngClass]="{ 'warning-col': !item.ownerUser }"
+                >
                   <td class="text-center">
                     <div
                       class="form-check"
@@ -223,58 +225,86 @@
                       "
                     >
                       <input
-                        class="form-check-input"
+                        class="form-check-input poiter"
                         type="checkbox"
                         [(ngModel)]="item.selected"
                       />
                     </div>
                   </td>
-                  <td class="text-left">
+                  <td class="text-left" style="zoom: 90%; width: 120px">
+                    <div>
+                      <b>{{ item.code }}</b>
+                    </div>
                     <div>{{ item.customerName }}</div>
                     <div>
-                      <small>{{ item.mobile }}</small>
+                      {{ item.mobile }}
                     </div>
-                    <small>{{ item.code }}</small>
                   </td>
-                  <td class="text-left">
-                    <div>{{ item.description }}</div>
-                    <small>ตัวแทนจำหน่าย : {{ item.agentName }}</small>
-                  </td>
-                  <td class="text-center">
-                    <span *ngIf="item.ownerUser">{{ item.ownerUser }}</span>
-                    <span *ngIf="!item.ownerUser">-</span>
-                  </td>
-                  <td class="text-center">
-                    <div>{{ item.dueDate | date: "dd/MM/yyyy" }}</div>
-                    <small>
-                      <span
-                        class="badge bg-warning"
-                        *ngIf="item.activityStatusId == 0"
-                        >{{ item.status }}</span
+                  <td style="zoom: 90%">
+                    <div>
+                      <b>{{ item.description }}</b>
+                    </div>
+                    <div class="d-block">
+                      ตัวแทนจำหน่าย : {{ item.agentName }}
+                    </div>
+                    <div class="d-block">
+                      ผู้ขาย :
+                      {{
+                        item.createByNickName
+                          ? item.createByNickName
+                          : item.createBy
+                      }}
+                    </div>
+                    <div>
+                      <b
+                        >ผู้ดูแล :
+                        {{
+                          item.ownerNickName
+                            ? item.ownerNickName
+                            : item.ownerUser
+                            ? item.ownerUser
+                            : "-"
+                        }}</b
                       >
-                      <span
-                        class="badge bg-success"
-                        *ngIf="
-                          item.activityStatusId == 1 ||
-                          item.activityStatusId == 2 ||
-                          item.activityStatusId == 3
-                        "
-                        >{{ item.status }}</span
-                      >
-                      <span
-                        class="badge bg-danger"
-                        *ngIf="item.activityStatusId == 4"
-                        >{{ item.status }}</span
-                      >
-                    </small>
+                    </div>
                   </td>
-                  <td class="text-center">
-                    <div class="text-danger" *ngIf="isOverdue(item)">
+
+                  <td class="text-center" style="zoom: 90%">
+                    <div [ngClass]="{ 'text-danger': isOverdue(item.dueDate) }">
+                      {{ item.dueDate | date: "dd/MM/yyyy" }}
+                    </div>
+                  </td>
+                  <td class="text-center" style="zoom: 90%">
+                    <div class="text-danger" *ngIf="isOverdue(item.endOfDose)">
                       {{ item.endOfDose | date: "dd/MM/yyyy" }}
                     </div>
-                    <div class="text-success" *ngIf="!isOverdue(item)">
+                    <div
+                      class="text-success"
+                      *ngIf="!isOverdue(item.endOfDose)"
+                    >
                       {{ item.endOfDose | date: "dd/MM/yyyy" }}
                     </div>
+                  </td>
+                  <td class="text-center" style="zoom: 90%">
+                    <span
+                      class="badge bg-warning"
+                      *ngIf="item.activityStatusId == 0"
+                      >{{ item.status }}</span
+                    >
+                    <span
+                      class="badge bg-success"
+                      *ngIf="
+                        item.activityStatusId == 1 ||
+                        item.activityStatusId == 2 ||
+                        item.activityStatusId == 3
+                      "
+                      >{{ item.status }}</span
+                    >
+                    <span
+                      class="badge bg-danger"
+                      *ngIf="item.activityStatusId == 4"
+                      >{{ item.status }}</span
+                    >
                   </td>
                   <td class="text-left">
                     <div ngbDropdown container="body">
@@ -344,6 +374,25 @@
             <h5 class="d-inline">Tasks</h5>
             <hr />
           </div>
+
+          <div class="col-12 m-b-20">
+            <drag-scroll>
+              <button
+                drag-scroll-item
+                *ngFor="let item of master.taskDate; let index = index"
+                type="button"
+                class="btn btn-sm"
+                (click)="loadTasks(index)"
+                [ngClass]="{
+                  'btn-primary': index == criteria2.selectBtnIndex,
+                  'btn-outline-primary': index != criteria2.selectBtnIndex
+                }"
+              >
+                <small>{{ item.display }}</small>
+              </button>
+            </drag-scroll>
+          </div>
+
           <div
             *ngIf="openTasks.length == 0 && closeTasks.length == 0"
             style="border: 1px solid #e3e3e3; padding: 20px"
@@ -351,6 +400,13 @@
           >
             ไม่มีข้อมูล Task
           </div>
+
+          <div class="col-12 text-center" *ngIf="loadOpenTask">
+            <div class="task-box">
+              <div class="loader"></div>
+            </div>
+          </div>
+
           <div
             class="col-12 text-right"
             *ngIf="openTasks && openTasks.length > 0"
@@ -372,19 +428,14 @@
             [isAnimated]="true"
             class="m-b-20"
           >
-            <div class="col-12 text-center" *ngIf="loadOpenTask">
-              <div class="task-box">
-                <div class="loader"></div>
-              </div>
-            </div>
-
             <div
+              style="zoom: 90%"
               class="col-12 m-b-5"
               *ngFor="let item of openTasks; let index = index"
             >
               <div class="task-box">
                 <div class="row">
-                  <div class="col-8">
+                  <div class="col-12">
                     <div class="custom-control custom-checkbox">
                       <input
                         type="checkbox"
@@ -396,15 +447,23 @@
                       <label
                         class="custom-control-label poiter"
                         for="selectViewOrder{{ index }}"
-                        style="word-break: break-all"
+                        style="word-break: break-all; white-space: pre-line"
                         >{{ item.description }}</label
                       >
                     </div>
                   </div>
-                  <div class="col-4 text-right">{{ item.createBy }}</div>
                   <div class="col-6">
-                    <a class="text-info" (click)="viewByTodo(item)"
+                    <a
+                      *ngIf="item.activityCode"
+                      class="text-info"
+                      (click)="viewByTodo(item)"
                       ><small>{{ item.activityCode }}</small></a
+                    >
+                    <a
+                      *ngIf="item.orderNo"
+                      class="text-info"
+                      (click)="viewOrderByTodo(item)"
+                      ><small>{{ item.orderNo }}</small></a
                     >
                   </div>
                   <div class="col-6 text-right">
@@ -449,16 +508,14 @@
             [collapse]="isTodoCollapsed2"
             [isAnimated]="true"
           >
-            <div class="col-12 text-center" *ngIf="loadCloseTask">
-              <div class="task-box">
-                <div class="loader"></div>
-              </div>
-            </div>
-
-            <div class="col-12 m-b-5" *ngFor="let item of closeTasks">
+            <div
+              style="zoom: 90%"
+              class="col-12 m-b-5"
+              *ngFor="let item of closeTasks"
+            >
               <div class="task-box">
                 <div class="row">
-                  <div class="col-8">
+                  <div class="col-12">
                     <div class="custom-control custom-checkbox">
                       <input
                         type="checkbox"
@@ -473,15 +530,24 @@
                         style="
                           word-break: break-all;
                           text-decoration-line: line-through;
+                          white-space: pre-line;
                         "
                         >{{ item.description }}</label
                       >
                     </div>
                   </div>
-                  <div class="col-4 text-right">{{ item.createBy }}</div>
                   <div class="col-6">
-                    <a class="text-info" (click)="viewByTodo(item)"
+                    <a
+                      *ngIf="item.activityCode"
+                      class="text-info"
+                      (click)="viewByTodo(item)"
                       ><small>{{ item.activityCode }}</small></a
+                    >
+                    <a
+                      *ngIf="item.orderNo"
+                      class="text-info"
+                      (click)="viewOrderByTodo(item)"
+                      ><small>{{ item.orderNo }}</small></a
                     >
                   </div>
                   <div class="col-6 text-right">

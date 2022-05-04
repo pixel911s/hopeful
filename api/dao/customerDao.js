@@ -6,9 +6,12 @@ module.exports = {
   save,
   deleteCustomer,
   addAddress,
+  updateAddress,
+  clearDefaultAddress,
   deleteAddress,
   getAddress,
   updateOwner,
+  cancelOwner,
 };
 
 async function getByMobileNo(conn, criteria) {
@@ -45,6 +48,25 @@ async function get(conn, id) {
     return result[0];
   } catch (err) {
     throw err;
+  }
+}
+
+async function cancelOwner(conn, model) {
+  try {
+    if (model.id) {
+      let params = [];
+
+      let sql = "UPDATE `business` SET `activityOwner` = null  WHERE `id` = ?";
+
+      params.push(model.id);
+
+      await conn.query(sql, params);
+    }
+
+    return model;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }
 
@@ -164,6 +186,49 @@ async function addAddress(conn, model) {
       new Date(),
       model.username,
       new Date(),
+    ]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function clearDefaultAddress(conn, model) {
+  try {
+    //insert
+    let sql = "UPDATE `address` SET `isDefault` = false";
+    sql += "  WHERE `businessId` = ?;";
+
+    await conn.query(sql, [model.businessId]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function updateAddress(conn, model) {
+  try {
+    //insert
+    let sql =
+      "UPDATE `address` SET `isDefault` = ?, `name` = ?, `info` = ?, `subDistrict` = ?, `district` = ?, `province` = ?, `zipcode` = ?, `contact` = ?, `updateBy` = ?, `updateDate` = ? ";
+    sql += "  WHERE `id` = ?;";
+
+    await conn.query(sql, [
+      model.isDefault,
+      model.name.trim(),
+      model.info.trim(),
+      model.subDistrict,
+      model.district,
+      model.province,
+      model.zipcode,
+      model.contact.trim(),
+      model.username,
+      new Date(),
+      model.id,
     ]);
 
     return true;

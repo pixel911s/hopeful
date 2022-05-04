@@ -160,6 +160,7 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
             netAmount: 0,
             error: [],
             orderDetail: [],
+            paymentStatus: "W",
           };
           console.log(item);
 
@@ -191,7 +192,7 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
               : null;
 
             data.saleChannel = item["ช่องทาง"]
-              ? item["ช่องทาง"] + "".trim()
+              ? item["ช่องทาง"] + "".toUpperCase().trim()
               : null;
 
             data.saleChannelName = item["ชื่อช่องทาง"]
@@ -203,6 +204,10 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
             data.crmOwner = item["คนดูแล"] ? item["คนดูแล"] + "".trim() : null;
 
             data.remark = item["หมายเหตุ"] ? item["หมายเหตุ"] + "".trim() : "";
+
+            data.socialName = item["ชื่อในโซเชียลมีเดีย"]
+              ? item["ชื่อในโซเชียลมีเดีย"] + "".trim()
+              : "";
 
             data.activityStatus = item["activityStatus"]
               ? item["activityStatus"]
@@ -284,10 +289,14 @@ export class ImportOrderComponent extends BaseComponent implements OnInit {
               data.saleChannel.toUpperCase() != "Lazada".toUpperCase() &&
               data.saleChannel.toUpperCase() != "Tiktok".toUpperCase() &&
               data.saleChannel != "แนะนำ" &&
-              data.saleChannel != "สวัสดิการ"
+              data.saleChannel != "สวัสดิการ" &&
+              data.saleChannel.toUpperCase() != "LINE".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "GOOGLEADS".toUpperCase() &&
+              data.saleChannel.toUpperCase() != "INSTRAGRAM".toUpperCase() &&
+              data.saleChannel != "อื่นๆ"
             ) {
               data.error.push(
-                "ช่องทางต้องใส่ Facebook , CRM , LineAd , Inbcall , WEB , Shopee , Lazada , Tiktok , แนะนำ , สวัสดิการ  เท่านั้น."
+                "ช่องทางต้องใส่ Facebook , CRM , LineAd , Inbcall , WEB , Shopee , Lazada , Tiktok , แนะนำ , สวัสดิการ, Line, GoogleAds, Instragram, อื่นๆ  เท่านั้น."
               );
             }
 

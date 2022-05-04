@@ -14,9 +14,10 @@ export class UserConfigService {
       .toPromise();
   }
 
-  getActivityDateConfigByUsername() {
+  getActivityDateConfigByUsername(type) {
     let data = {
       username: this.authService.getUser().username,
+      type: type,
     };
 
     return this.http

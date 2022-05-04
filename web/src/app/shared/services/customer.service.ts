@@ -36,11 +36,47 @@ export class CustomerService {
       .toPromise();
   }
 
+  getAddresses(id) {
+    let criteria = {
+      customerId: id,
+    };
+
+    return this.http
+      .post(environment.apiUrl + "/customer/getAddress", criteria)
+      .toPromise();
+  }
+
   updateProfile(data) {
     data.username = this.authService.getUser().username;
 
     return this.http
       .post(environment.apiUrl + "/customer/updateProfile", data)
+      .toPromise();
+  }
+
+  deleteAddress(id) {
+    let data = {
+      id: id,
+    };
+
+    return this.http
+      .post(environment.apiUrl + "/customer/removeAddress", data)
+      .toPromise();
+  }
+
+  updateAddress(data) {
+    data.username = this.authService.getUser().username;
+
+    return this.http
+      .post(environment.apiUrl + "/customer/updateAddress", data)
+      .toPromise();
+  }
+
+  createAddress(data) {
+    data.username = this.authService.getUser().username;
+
+    return this.http
+      .post(environment.apiUrl + "/customer/createAddress", data)
       .toPromise();
   }
 }

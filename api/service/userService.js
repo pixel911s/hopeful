@@ -5,6 +5,8 @@ var encypt = require("../utils/encypt");
 var userDao = require("../dao/userDao");
 var requestService = require("./requestServiceProcessor");
 
+const fileUtil = require("../utils/fileUtil");
+
 const config = require("config");
 const mysql = require("promise-mysql");
 const pool = mysql.createPool(config.mysql);
@@ -14,6 +16,7 @@ module.exports = {
   get,
   search,
   save,
+  updateUserInfo,
   changePassword,
   saveAgents,
 
@@ -238,6 +241,52 @@ async function search(req, res) {
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
   } catch (e) {
     console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function updateUserInfo(req, res) {
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = JSON.parse(req.body.data);
+    // let model = req.body;
+    let files = req.files;
+    let inputFile = config.path.user_file_input;
+    let outputFile = config.path.user_file_output;
+
+    if (files) {
+      console.log("UPLOAD FILE");
+      let img = files["image"];
+
+      if (img) {
+        model.displayImgUrl = await fileUtil.uploadImg(
+          inputFile,
+          outputFile,
+          model.username,
+          img
+        );
+      }
+    }
+
+    console.log(model);
+
+    let user = await userDao.get(conn, model.username);
+
+    user.id = model.username;
+    user.lineNotifyToken = model.lineNotifyToken;
+    user.displayImgUrl = model.displayImgUrl;
+    user.nickName = model.nickName;
+
+    await userDao.save(conn, user);
+
+    conn.commit();
+
+    return res.send(util.callbackSuccess("Save Data success.", true));
+  } catch (e) {
+    conn.rollback();
     return res.status(500).send(e.message);
   } finally {
     conn.release();

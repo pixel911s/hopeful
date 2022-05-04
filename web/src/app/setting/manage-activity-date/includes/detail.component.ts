@@ -42,6 +42,13 @@ export class ActivityDateConfigDetailComponent implements OnInit {
 
   prepareFormGroup() {
     this.formGroup.addControl(
+      "type",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [
+        Validators.required,
+      ])
+    );
+
+    this.formGroup.addControl(
       "display",
       new FormControl({ value: "", disabled: this.isReadOnly }, [
         Validators.required,

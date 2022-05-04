@@ -89,8 +89,9 @@ async function search(conn, criteria) {
     let sql = "select count(id) as qty from note where customerId=?";
 
     if (!criteria.isCount) {
-      sql = "select * from note where customerId=?";
-      sql += " order by createDate desc";
+      sql =
+        "select u.nickName as createByNickName , n.* from note n left join user u on n.createBy = u.username where n.customerId=? ";
+      sql += " order by n.createDate desc";
       sql += " limit " + startRecord + "," + criteria.size;
     }
 

@@ -24,6 +24,7 @@ module.exports = {
   getSummaryActivityCount,
   searchList,
   assignActivityOwner,
+  cancelActivityOwner,
   searchHistories,
 };
 
@@ -502,7 +503,71 @@ async function assignActivityOwner(req, res) {
       customerId: model.customerId,
       activityCode: "",
       action: "CUSTOMER ASSIGN",
-      description: model.username + "เข้าเป็นผู้ดูแลลูกค้า",
+      description: model.ownerUser + "เข้าเป็นผู้ดูแลลูกค้า",
+      username: model.username,
+    };
+
+    await crmHistoryDao.create(conn, history);
+
+    await auditLogDao.save(conn, _auditLog);
+
+    conn.commit();
+
+    return res.send(
+      util.callbackSuccess("บันทึกข้อมูล Owner Activity เสร็จสมบูรณ์", true)
+    );
+  } catch (e) {
+    console.log(e);
+    conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function cancelActivityOwner(req, res) {
+  //=== Assign Owner ของ Activity
+  //==== Parameter
+  //==== activityId   : เลขที่ Activity
+  //==== ownerUser    : Owner to Assigned
+  //==== username     : ผู้ทำรายการ
+  //==== customerId     : รหัสลูกค้า
+
+  const conn = await pool.getConnection();
+  conn.beginTransaction();
+  try {
+    let model = req.body;
+    console.log("AssignActivityOwnerModel: ", model);
+
+    let _logDesc =
+      "Cancel Activity Owner : Customer ID-->" +
+      model.customerId +
+      " : Update by -->" +
+      model.username;
+
+    let _auditLog = {
+      logType: "customer_owner",
+      logDesc: _logDesc,
+      logBy: model.username,
+      refTable: "business",
+      refId: model.customerId,
+    };
+
+    await activityDao.cancelOwner(conn, model.customerId, model.username);
+
+    await taskDao.closeAllTask(conn, model.activityId, model.username);
+
+    let updateOwner = {
+      id: model.customerId,
+    };
+
+    await customerDao.cancelOwner(conn, updateOwner);
+
+    let history = {
+      customerId: model.customerId,
+      activityCode: "",
+      action: "CUSTOMER CANCEL",
+      description: model.username + "ยกเลิกเป็นผู้ดูแลลูกค้า",
       username: model.username,
     };
 

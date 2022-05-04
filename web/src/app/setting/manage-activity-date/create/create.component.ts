@@ -23,6 +23,7 @@ export class CreateActivityDateConfigComponent
 {
   public data: any = {
     condition: 0,
+    type: "ACTIVITY",
   };
   public formGroup: FormGroup;
 

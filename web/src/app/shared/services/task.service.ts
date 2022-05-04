@@ -13,6 +13,13 @@ export class TaskService {
     return this.http.post(environment.apiUrl + "/task/save", data).toPromise();
   }
 
+  getAllTask(criteria) {
+    criteria.username = this.authService.getUser().username;
+    return this.http
+      .post(environment.apiUrl + "/task/getAllTask", criteria)
+      .toPromise();
+  }
+
   getOpenTask(customerId = null) {
     let data = {
       username: this.authService.getUser().username,

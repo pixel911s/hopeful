@@ -67,4 +67,9 @@ export const Full_ROUTES: Routes = [
         (m) => m.ChangePasswordModule
       ),
   },
+  {
+    path: "user-info",
+    loadChildren: () =>
+      import("../../user-info/user-info.module").then((m) => m.UserInfoModule),
+  },
 ];

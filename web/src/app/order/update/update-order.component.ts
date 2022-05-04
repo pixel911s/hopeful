@@ -10,6 +10,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { AgentService } from "app/shared/services/agent.service";
 import { ProductService } from "app/shared/services/product.service";
 import { OrderService } from "app/shared/services/order.service";
+import { Location } from "@angular/common";
 
 @Component({
   selector: "app-update-order",
@@ -29,7 +30,8 @@ export class UpdateOrderComponent extends BaseComponent implements OnInit {
     private cdRef: ChangeDetectorRef,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private _location: Location
   ) {
     super();
   }
@@ -60,5 +62,8 @@ export class UpdateOrderComponent extends BaseComponent implements OnInit {
     this.spinner.hide();
     this.toastr.show(this.translate.instant("success.save-complete"));
     this.router.navigateByUrl("/order");
+  }
+  back() {
+    this._location.back();
   }
 }

@@ -246,4 +246,8 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     sessionStorage.removeItem("NAV");
     sessionStorage.removeItem("HOPEFUL_CRITERIA");
   }
+
+  getUser() {
+    return this.authService.getUser();
+  }
 }

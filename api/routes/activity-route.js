@@ -23,4 +23,6 @@ router.route("/assignActivityOwner").post(activityService.assignActivityOwner);
 router.route("/searchHistories").post(activityService.searchHistories);
 router.route("/updateEndOfDose").post(activityService.updateEndOfDose);
 
+router.route("/cancelActivityOwner").post(activityService.cancelActivityOwner);
+
 module.exports = router;

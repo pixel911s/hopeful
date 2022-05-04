@@ -1,0 +1,83 @@
+<div mat-dialog-content class="m-b-20" *ngIf="data">
+  <div class="row">
+    <div class="col-12">
+      <h5 class="d-inline">จัดการที่อยู่ลูกค้า</h5>
+      <i class="fas fa-times float-right poiter" (click)="onNoClick()"></i>
+      <hr />
+    </div>
+
+    <div class="col-12">
+      <button
+        (click)="create()"
+        id="btnSearch"
+        type="button"
+        class="btn btn-primary"
+      >
+        เพิ่มที่อยู่ใหม่
+      </button>
+    </div>
+
+    <div class="col-12">
+      <div class="row">
+        <div class="col-12">
+          <div class="table-responsive">
+            <table class="table table-hover custom-table" id="tblData">
+              <thead>
+                <tr>
+                  <th class="text-left">ที่อยู่ผู้รับ</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of data; let i = index">
+                  <td class="text-left">
+                    <div *ngIf="item.isDefault">
+                      <span class="badge bg-success">ที่อยู่ตั้งต้น</span>
+                    </div>
+                    <div>{{ item.name }}</div>
+                    <div>{{ item.info }}</div>
+                    <div>{{ item.subDistrict }} {{ item.district }}</div>
+                    <div>{{ item.province }} {{ item.zipcode }}</div>
+                    <div>{{ item.contact }}</div>
+                  </td>
+                  <td class="text-right" style="width: 50px; font-size: 0.8rem">
+                    <div ngbDropdown container="body">
+                      <a id="ddMenu2" style="color: #007bff" ngbDropdownToggle
+                        ><b><small>ตัวจัดการ</small></b></a
+                      >
+                      <div ngbDropdownMenu aria-labelledby="ddMenu2">
+                        <button
+                          class="w-100"
+                          (click)="edit(item)"
+                          ngbDropdownItem
+                        >
+                          แก้ไขที่อยู่
+                        </button>
+
+                        <button
+                          class="w-100"
+                          (click)="setDefault(item)"
+                          ngbDropdownItem
+                        >
+                          ตั้งเป็นที่อยู่ตั้งต้น
+                        </button>
+
+                        <button
+                          class="w-100"
+                          (click)="delete(item)"
+                          ngbDropdownItem
+                        >
+                          ลบที่อยู่
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

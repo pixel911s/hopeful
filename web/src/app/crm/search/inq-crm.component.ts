@@ -23,6 +23,11 @@ import { ManageTodoComponent } from "../includes/manage-todo/manage-todo.compone
 })
 export class InqCRMComponent implements OnInit {
   public data: any = {};
+
+  public criteria2: any = {
+    selectBtnIndex: 0,
+  };
+
   public criteria: any = {
     page: 1,
     size: 20,
@@ -32,6 +37,7 @@ export class InqCRMComponent implements OnInit {
   public master: any = {
     agents: [],
     activityDate: [],
+    taskDate: [],
   };
 
   user;
@@ -91,10 +97,11 @@ export class InqCRMComponent implements OnInit {
     await this.loadAgents();
     await this.loadStatus();
     await this.getDateTab();
+    await this.getDateTabTask();
 
     this.spinner.hide();
 
-    this.loadTasks();
+    this.loadTasks(this.criteria2.selectBtnIndex);
     await this.searchDate(this.criteria.selectBtnIndex);
 
     this.loadActivityDate();
@@ -111,14 +118,38 @@ export class InqCRMComponent implements OnInit {
       },
     ];
 
-    let res: any =
-      await this.userConfigService.getActivityDateConfigByUsername();
+    let res: any = await this.userConfigService.getActivityDateConfigByUsername(
+      "ACTIVITY"
+    );
 
     for (let index = 0; index < res.data.length; index++) {
       const data = res.data[index];
       data.fillterType = 4;
       data.qty = 0;
       this.master.activityDate.push(data);
+    }
+  }
+
+  async getDateTabTask() {
+    this.master.taskDate = [
+      {
+        id: 0,
+        fillterType: 1,
+        condition: 0,
+        display: "ทั้งหมด",
+        qty: 0,
+      },
+    ];
+
+    let res: any = await this.userConfigService.getActivityDateConfigByUsername(
+      "TASK"
+    );
+
+    for (let index = 0; index < res.data.length; index++) {
+      const data = res.data[index];
+      data.fillterType = 4;
+      data.qty = 0;
+      this.master.taskDate.push(data);
     }
   }
 
@@ -158,15 +189,18 @@ export class InqCRMComponent implements OnInit {
     this.spinner.hide();
   }
 
-  async loadTasks() {
-    this.loadCloseTask = true;
-    let res: any = await this.taskService.getCloseTask();
-    this.closeTasks = res.data;
-    this.loadCloseTask = false;
+  async loadTasks(index) {
+    this.criteria2.fillterType = this.master.taskDate[index].fillterType;
+    this.criteria2.dayCondition = this.master.taskDate[index].condition;
+    this.criteria2.selectBtnIndex = index;
 
     this.loadOpenTask = true;
-    let res2: any = await this.taskService.getOpenTask();
-    this.openTasks = res2.data;
+
+    let res: any = await this.taskService.getAllTask(this.criteria2);
+
+    this.closeTasks = res.data.closeTasks;
+    this.openTasks = res.data.openTasks;
+
     this.loadOpenTask = false;
   }
 
@@ -218,6 +252,12 @@ export class InqCRMComponent implements OnInit {
     this.router.navigateByUrl("/CRM/main/" + item.customerId);
   }
 
+  viewOrderByTodo(item) {
+    console.log(item);
+    sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
+    this.router.navigateByUrl("/order/view/" + item.orderId);
+  }
+
   update(item) {
     sessionStorage.setItem("HOPEFUL_CRITERIA", JSON.stringify(this.criteria));
     this.router.navigateByUrl("/agent/update/" + item.code);
@@ -225,12 +265,12 @@ export class InqCRMComponent implements OnInit {
 
   async close(item) {
     await this.taskService.closeTask(item.id);
-    await this.loadTasks();
+    await this.loadTasks(this.criteria2.selectBtnIndex);
   }
 
   async reopen(item) {
     await this.taskService.recallTask(item.id);
-    await this.loadTasks();
+    await this.loadTasks(this.criteria2.selectBtnIndex);
   }
 
   assignActivityOwner(item) {
@@ -332,7 +372,7 @@ export class InqCRMComponent implements OnInit {
           await this.taskService.save(result);
         }
 
-        await this.loadTasks();
+        await this.loadTasks(this.criteria2.selectBtnIndex);
 
         this.spinner.hide();
 
@@ -342,7 +382,7 @@ export class InqCRMComponent implements OnInit {
   }
 
   isOverdue(item) {
-    let endOfDose = new Date(item.endOfDose);
+    let endOfDose = new Date(item);
     let date = new Date();
     return date.getTime() > endOfDose.getTime();
   }

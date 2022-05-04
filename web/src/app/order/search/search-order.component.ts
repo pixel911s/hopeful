@@ -234,6 +234,12 @@ export class SearchOrderComponent implements OnInit {
     this.spinner.hide();
   }
 
+  async exportNinjaVan() {
+    this.spinner.show();
+    await this.transactionService.exportNinjaVan(this.criteria);
+    this.spinner.hide();
+  }
+
   async exportOrder() {
     this.spinner.show();
     await this.transactionService.exportOrder(this.criteria);

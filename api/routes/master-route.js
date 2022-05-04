@@ -12,6 +12,8 @@ router.route("/getProvinces").post(masterService.getProvinces);
 router.route("/getDistricts").post(masterService.getDistricts);
 router.route("/getSubDistricts").post(masterService.getSubDistricts);
 
+router.route("/searchZipCode").post(masterService.searchZipcode);
+
 router.route("/getActivityStatus").post(masterService.getActivityStatus);
 
 module.exports = router;

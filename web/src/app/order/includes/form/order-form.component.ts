@@ -10,6 +10,8 @@ import { CustomerService } from "app/shared/services/customer.service";
 import { ToastrService } from "ngx-toastr";
 import { Ng4FilesSelected } from "app/shared/ng4-files";
 import { SelectAddressComponent } from "../select-address/select-address.component";
+import { OperatorFunction, Observable } from "rxjs";
+import { debounceTime, distinctUntilChanged, map } from "rxjs/operators";
 
 @Component({
   selector: "app-hf-order-form",
@@ -17,7 +19,9 @@ import { SelectAddressComponent } from "../select-address/select-address.compone
   styleUrls: ["./order-form.component.scss"],
 })
 export class OrderFormComponent extends BaseComponent implements OnInit {
-  public master: any = {};
+  public master: any = {
+    subDistrict: [],
+  };
 
   @Input()
   data: any;
@@ -33,12 +37,6 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
 
   @Input()
   isReadOnly: any;
-
-  provinces = [];
-  districts = [];
-  subdistricts = [];
-
-  salepages: any = {};
 
   constructor(
     private authService: AuthService,
@@ -60,26 +58,14 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.prepareFormGroup();
 
-    let resx: any = await this.masterService.getProvinces();
-    this.provinces = resx.data;
-
-    if (this.data.deliveryProvince) {
-      let res2: any = await this.masterService.getDistricts(
-        this.data.deliveryProvince
-      );
-      this.districts = res2.data;
-    }
-
-    if (this.data.deliveryDistrict) {
-      let res3: any = await this.masterService.getSubDistricts(
-        this.data.deliveryDistrict
-      );
-      this.subdistricts = res3.data;
-    }
-
-    this.checkMobile();
-
     this.data.updateStatusDate = new Date(this.data.updateStatusDate);
+
+    let res: any = await this.masterService.getZipCode(null);
+
+    this.master.subDistrict = res.data;
+    console.log(this.master.subDistrict);
+
+    this.selectAddressObj();
   }
 
   prepareFormGroup() {
@@ -204,40 +190,40 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     }
   }
 
-  async selectProvince() {
-    let res: any = await this.masterService.getDistricts(
-      this.data.deliveryProvince
-    );
-    this.districts = res.data;
-    this.data.deliveryDistrict = undefined;
-    this.data.deliverySubDistrict = undefined;
-    this.data.deliveryZipcode = undefined;
+  // async selectProvince() {
+  //   let res: any = await this.masterService.getDistricts(
+  //     this.data.deliveryProvince
+  //   );
+  //   this.districts = res.data;
+  //   this.data.deliveryDistrict = undefined;
+  //   this.data.deliverySubDistrict = undefined;
+  //   this.data.deliveryZipcode = undefined;
 
-    this.cdf.detectChanges();
-  }
+  //   this.cdf.detectChanges();
+  // }
 
-  async selectDistrict() {
-    let res: any = await this.masterService.getSubDistricts(
-      this.data.deliveryDistrict
-    );
-    this.subdistricts = res.data;
-    this.data.deliverySubDistrict = undefined;
-    this.data.deliveryZipcode = undefined;
+  // async selectDistrict() {
+  //   let res: any = await this.masterService.getSubDistricts(
+  //     this.data.deliveryDistrict
+  //   );
+  //   this.subdistricts = res.data;
+  //   this.data.deliverySubDistrict = undefined;
+  //   this.data.deliveryZipcode = undefined;
 
-    this.cdf.detectChanges();
-  }
+  //   this.cdf.detectChanges();
+  // }
 
-  async selectSubDistrict() {
-    for (let index = 0; index < this.subdistricts.length; index++) {
-      const subdistrict = this.subdistricts[index];
+  // async selectSubDistrict() {
+  //   for (let index = 0; index < this.subdistricts.length; index++) {
+  //     const subdistrict = this.subdistricts[index];
 
-      if (subdistrict.id == this.data.deliverySubDistrict) {
-        this.data.deliveryZipcode = subdistrict.zipCode;
-      }
-    }
+  //     if (subdistrict.id == this.data.deliverySubDistrict) {
+  //       this.data.deliveryZipcode = subdistrict.zipCode;
+  //     }
+  //   }
 
-    this.cdf.detectChanges();
-  }
+  //   this.cdf.detectChanges();
+  // }
 
   selectProduct() {
     const dialogRef = this.dialog.open(SelectProductComponent, {
@@ -323,6 +309,11 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     this.data.socialName = undefined;
 
     await this.getCustomer(this.data.deliveryContact);
+
+    this.selectAddressObj();
+    console.log(this.data);
+
+    this.cdf.detectChanges();
   }
 
   async selectAddress() {
@@ -340,6 +331,7 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
         this.data.deliveryDistrict = address.district;
         this.data.deliveryProvince = address.province;
         this.data.deliveryZipcode = address.zipcode;
+        this.selectAddressObj();
       }
     });
   }
@@ -350,7 +342,16 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     if (res.data) {
       this.data.customer = res.data;
 
-      let address = this.data.customer.addresses[0];
+      let address = this.data.customer.addresses.find(
+        (element) => element.isDefault
+      );
+
+      if (!address) {
+        address = this.data.customer.addresses[0];
+      }
+
+      console.log(address);
+
       this.data.deliveryName = address.name;
       this.data.deliveryAddressInfo = address.info;
       this.data.deliverySubDistrict = address.subDistrict;
@@ -408,5 +409,39 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     if ((event.ctrlKey || event.metaKey) && event.keyCode == 86) {
       console.log(this.data.deliveryAddressInfo);
     }
+  }
+
+  search: OperatorFunction<string, readonly { name; flag }[]> = (
+    text$: Observable<string>
+  ) =>
+    text$.pipe(
+      debounceTime(200),
+      distinctUntilChanged(),
+      map((term) =>
+        term === ""
+          ? []
+          : this.master.subDistrict
+              .filter(
+                (v) =>
+                  (v.zipCode + "").toLowerCase().indexOf(term.toLowerCase()) >
+                  -1
+              )
+              .slice(0, 40)
+      )
+    );
+
+  formatter = (x: any) => x.zipCode;
+
+  selectItem(event) {
+    console.log(event);
+    this.data.deliverySubDistrict = event.item.subdistrict;
+    this.data.deliveryDistrict = event.item.district;
+    this.data.deliveryProvince = event.item.province;
+    this.data.deliveryZipcode = event.item.zipCode;
+    console.log(this.data);
+  }
+
+  selectAddressObj() {
+    this.data.deliveryZipcodeObj = { zipCode: this.data.deliveryZipcode };
   }
 }

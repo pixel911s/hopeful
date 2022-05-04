@@ -12,7 +12,25 @@ module.exports = {
   getDistricts,
   getSubDistricts,
   getActivityStatus,
+
+  searchZipcode,
 };
+
+async function searchZipcode(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    let result = await masterDao.searchZipCode(conn, criteria);
+
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
 
 async function getActivityStatus(req, res) {
   const conn = await pool.getConnection();

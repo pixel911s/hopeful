@@ -89,6 +89,34 @@
       <div
         class="form-group"
         [ngClass]="{
+          'is-invalid': f.socialName.touched && f.socialName.errors?.required
+        }"
+      >
+        <label for="socialName">ชื่อในโซเชียล *</label>
+        <input
+          autocomplete="off"
+          id="socialName"
+          maxlength="300"
+          class="form-control form-control-sm"
+          formControlName="socialName"
+          [(ngModel)]="data.socialName"
+          [ngClass]="{
+            'is-invalid': f.socialName.touched && f.socialName.errors,
+            'is-valid': f.socialName.touched && !f.socialName.errors
+          }"
+        />
+        <small
+          class="text-danger d-block"
+          *ngIf="f.socialName.touched && f.socialName.errors?.required"
+          >{{ "error.required" | translate }}</small
+        >
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div
+        class="form-group"
+        [ngClass]="{
           'is-invalid': f.mobile.touched && f.mobile.errors?.required
         }"
       >

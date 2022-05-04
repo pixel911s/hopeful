@@ -13,6 +13,8 @@
     "path": {
         "dir": "/opt/ran/ecommerce/assets",
         "temp_path": "D://work/PBANK",
+        "user_file_input": "D://P-BANK/GIT/hopeful/web/src/assets/img/test-img/user/",
+        "user_file_output": "http://localhost:4200/assets/img/test-img/user/",
         "product_file_input": "D://P-BANK/GIT/hopeful/web/src/assets/img/test-img/product/",
         "product_file_output": "http://localhost:4200/assets/img/test-img/product/",
         "slip_file_input": "D://P-BANK/GIT/hopeful/web/src/assets/img/test-img/slip/",

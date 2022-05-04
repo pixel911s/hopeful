@@ -90,7 +90,7 @@
             id="status"
           >
             <option [ngValue]="undefined">ทั้งหมด</option>
-            <option [ngValue]="'COD'">เก็บเงินปลายทาง</option>
+            <option [ngValue]="'COD'">COD</option>
             <option [ngValue]="'TRANSFER'">โอนเงิน</option>
           </select>
         </div>
@@ -191,7 +191,7 @@
           </div>
         </div>
 
-        <button
+        <!-- <button
           type="button"
           class="btn btn-outline-warning d-inline"
           (click)="exportKerry()"
@@ -219,12 +219,81 @@
 
         <button
           type="button"
+          class="btn btn-outline-info d-inline"
+          (click)="exportNinjaVan()"
+          *ngIf="user.function.EXPORT_TRANSPORT"
+        >
+          นำออกไป Ninja Van
+        </button>
+
+        <button
+          type="button"
           class="btn btn-outline-success d-inline"
           (click)="exportOrder()"
           *ngIf="user.function.EXPORT_ORDER"
         >
           นำออก Excel
         </button>
+        -->
+
+        <div
+          ngbDropdown
+          container="body"
+          class="d-inline m-l-10"
+          *ngIf="user.function.EXPORT_TRANSPORT || user.function.EXPORT_ORDER"
+        >
+          <button
+            type="button"
+            class="btn btn-outline-success"
+            id="exportMenu"
+            ngbDropdownToggle
+          >
+            นำออกไฟล์
+          </button>
+
+          <div ngbDropdownMenu aria-labelledby="exportMenu">
+            <button
+              class="w-100"
+              ngbDropdownItem
+              (click)="exportKerry()"
+              *ngIf="user.function.EXPORT_TRANSPORT"
+            >
+              นำออกไป Kerry Esyship
+            </button>
+            <button
+              class="w-100"
+              ngbDropdownItem
+              (click)="exportKA()"
+              *ngIf="user.function.EXPORT_TRANSPORT"
+            >
+              นำออกไป KA System
+            </button>
+            <button
+              class="w-100"
+              ngbDropdownItem
+              (click)="exportJT()"
+              *ngIf="user.function.EXPORT_TRANSPORT"
+            >
+              นำออกไป JT
+            </button>
+            <button
+              class="w-100"
+              ngbDropdownItem
+              (click)="exportNinjaVan()"
+              *ngIf="user.function.EXPORT_TRANSPORT"
+            >
+              นำออกไป Ninja Van
+            </button>
+            <button
+              class="w-100"
+              ngbDropdownItem
+              (click)="exportOrder()"
+              *ngIf="user.function.EXPORT_ORDER"
+            >
+              นำออก Excel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

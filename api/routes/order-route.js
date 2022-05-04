@@ -20,9 +20,14 @@ router.route("/exportTemplate").post(orderService.exportTemplate);
 router
   .route("/exportOrderStatusTemplate")
   .post(orderService.exportOrderStatusTemplate);
+
 router.route("/exportKerry").post(orderService.exportKerry);
 router.route("/exportKA").post(orderService.exportFlashTransaction);
 router.route("/exportJT").post(orderService.exportJTTransaction);
+router
+  .route("/exportNinjaVanTransaction")
+  .post(orderService.exportNinjaVanTransaction);
+
 router.route("/exportOrder").post(orderService.exportOrder);
 router.route("/deleteByUpload").post(orderService.deleteByUpload);
 router.route("/searchUpload").post(orderService.searchUpload);

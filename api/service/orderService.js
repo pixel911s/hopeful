@@ -6,11 +6,13 @@ var util = require("../utils/responseUtils");
 var encypt = require("../utils/encypt");
 var orderDao = require("../dao/orderDao");
 var agentDao = require("../dao/agentDao");
+var agentProductDao = require("../dao/agentProductDao");
 var productDao = require("../dao/productDao");
 var customerDao = require("../dao/customerDao");
 var runningDao = require("../dao/runingDao");
 var activityDao = require("../dao/activityDao");
 var noteDao = require("../dao/noteDao");
+var taskDao = require("../dao/taskDao");
 
 var auditLogDao = require("../dao/auditLogDao");
 
@@ -38,6 +40,7 @@ module.exports = {
   exportJTTransaction,
   exportOrder,
   exportOrderStatusTemplate,
+  exportNinjaVanTransaction,
 
   searchUpload,
   deleteByUpload,
@@ -49,17 +52,22 @@ async function updateStatus(req, res) {
   const conn = await pool.getConnection();
 
   try {
+    conn.beginTransaction();
+
     let model = req.body;
+
+    let items = [];
 
     for (let index = 0; index < model.items.length; index++) {
       const item = model.items[index];
       item.username = model.username;
+      items.push(item.id);
       await orderDao.updateStatus(conn, item);
     }
 
     let orderLog = {
       logType: "update-order",
-      logDesc: JSON.stringify(model.items),
+      logDesc: JSON.stringify(items),
       logBy: model.username,
     };
     await auditLogDao.save(conn, orderLog);
@@ -73,10 +81,14 @@ async function updateStatus(req, res) {
       await lineService.notify(agent.lineNotifyToken, msg);
     }
 
+    conn.commit();
+
     return res.send(
       util.callbackSuccess("ทำการลบข้อมูลออเดอร์เสร็จสมบูรณ์", true)
     );
   } catch (e) {
+    conn.rollback();
+    console.log(e);
     return res.status(500).send(e.message);
   } finally {
     conn.release();
@@ -283,9 +295,7 @@ async function create(req, res) {
       msg +=
         "\nวันที่ในใบสั่งซื้อ" +
         " : " +
-        moment(saveModel.transactionDttm)
-          .tz("Asia/Bangkok")
-          .format("DD/MM/yyyy");
+        moment(saveModel.orderDate).tz("Asia/Bangkok").format("DD/MM/yyyy");
 
       msg +=
         "\nวันที่สร้างรายการ" +
@@ -304,6 +314,8 @@ async function create(req, res) {
 
       console.log("=== SEND LINE SUCCESS ===");
     }
+
+    //TODO ตัด Stock ตัวแทน
 
     conn.commit();
 
@@ -521,7 +533,7 @@ async function addOrder(model, conn) {
     });
 
     if (!product) {
-      product = await productDao.get(conn, orderItem.id);
+      product = await agentProductDao.get(conn, model.ownerId, orderItem.id);
       productLoadLists.push(product);
     }
 
@@ -546,8 +558,15 @@ async function addOrder(model, conn) {
       _date.getFullYear(),
       month
     );
+
+    let productRemainingDay = product.agentRemainingDay;
+
+    if (productRemainingDay) {
+      productRemainingDay = product.remainingDay;
+    }
+
     //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
-    let _remainingDay = +product.remainingDay * +orderItem.qty;
+    let _remainingDay = +productRemainingDay * +orderItem.qty;
 
     let _dueDate = new Date(model.orderDate);
     _dueDate.setDate(_dueDate.getDate() + _remainingDay);
@@ -597,6 +616,37 @@ async function addOrder(model, conn) {
     };
 
     await noteDao.save(conn, noteObj);
+  }
+
+  let orderDate = new Date(model.orderDate);
+  let currentDate = new Date();
+  orderDate.setHours(0);
+  orderDate.setMinutes(0);
+  orderDate.setSeconds(0);
+  orderDate.setMilliseconds(0);
+
+  currentDate.setHours(0);
+  currentDate.setMinutes(0);
+  currentDate.setSeconds(0);
+  currentDate.setMilliseconds(0);
+
+  if (currentDate < orderDate) {
+    let taskDesc = "ลูกค้าสั่งซื้อล่วงหน้า";
+    taskDesc += "\n" + model.deliveryName;
+    taskDesc += "\nยอด :" + model.netAmount;
+    taskDesc += " , โทร :" + model.deliveryContact;
+
+    orderDate.setDate(orderDate.getDate() - 1);
+
+    let taskModel = {
+      orderId: _orderId,
+      description: taskDesc,
+      scheduleDate: orderDate,
+      scheduleTime: "11:00",
+      noticeDay: 1,
+      username: model.username,
+    };
+    await taskDao.save(conn, taskModel);
   }
 
   return model;
@@ -691,6 +741,14 @@ async function update(req, res) {
 
     await orderDao.save(conn, model);
 
+    let customer = await customerDao.get(conn, model.customerId);
+
+    if (customer.socialName != model.socialName) {
+      customer.socialName = model.socialName;
+
+      await customerDao.save(conn, customer);
+    }
+
     conn.commit();
 
     return res.send(
@@ -733,6 +791,8 @@ async function deleteOrder(req, res) {
       msg += "\nโดย " + model.username;
       await lineService.notify(order.lineNotifyToken, msg);
     }
+
+    //TODO คืน STOCK ตัวแทน
 
     conn.commit();
 
@@ -1101,6 +1161,65 @@ async function exportFlashTransaction(req, res) {
   }
 }
 
+async function exportNinjaVanTransaction(req, res) {
+  const conn = await pool.getConnection();
+
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(__dirname + "/ninjava_template.xlsx");
+    const worksheet = workbook.getWorksheet("Sheet1");
+
+    req.body.page = undefined;
+
+    let criteria = req.body;
+
+    let result = await orderDao.search(conn, criteria);
+
+    for (let index = 0; index < result.length; index++) {
+      const transasction = result[index];
+
+      let address = transasction.deliveryAddressInfo;
+
+      if (transasction.deliveryProvince.includes("กรุงเทพ")) {
+        address +=
+          " แขวง" +
+          transasction.deliverySubDistrict +
+          " เขต" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      } else {
+        address +=
+          " ตำบล" +
+          transasction.deliverySubDistrict +
+          " อำเภอ" +
+          transasction.deliveryDistrict +
+          " " +
+          transasction.deliveryProvince;
+      }
+
+      const row = worksheet.getRow(index + 2);
+      row.getCell(1).value = transasction.orderNo;
+      row.getCell(2).value = transasction.deliveryName;
+      row.getCell(3).value = transasction.deliveryContact;
+      row.getCell(5).value = address;
+      row.getCell(6).value = transasction.deliveryZipcode;
+      row.getCell(7).value = "s";
+      row.getCell(8).value = transasction.remark;
+      row.getCell(11).value = transasction.weightKg;
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
 async function exportJTTransaction(req, res) {
   const conn = await pool.getConnection();
 
@@ -1185,6 +1304,8 @@ async function exportOrder(req, res) {
     let result = await orderDao.exportOrder(conn, criteria);
 
     for (let index = 0; index < result.length; index++) {
+      let col = 1;
+
       const transasction = result[index];
 
       var dd = moment(transasction.orderDate)
@@ -1192,18 +1313,18 @@ async function exportOrder(req, res) {
         .format("DD/MM/yyyy");
 
       const row = worksheet.getRow(index + 2);
-      row.getCell(1).value = index + 1;
-      row.getCell(2).value = transasction.orderNo;
-      row.getCell(3).value = dd;
-      row.getCell(4).value = transasction.paymentType;
-      row.getCell(5).value = transasction.deliveryContact;
-      row.getCell(6).value = transasction.deliveryName;
-      row.getCell(7).value = transasction.deliveryAddressInfo;
-      row.getCell(8).value = transasction.deliveryDistrict;
-      row.getCell(9).value = transasction.deliverySubDistrict;
-      row.getCell(10).value = transasction.deliveryProvince;
-      row.getCell(11).value = transasction.deliveryZipcode;
-      row.getCell(12).value = transasction.remark;
+      row.getCell(col++).value = index + 1;
+      row.getCell(col++).value = transasction.orderNo;
+      row.getCell(col++).value = dd;
+      row.getCell(col++).value = transasction.paymentType;
+      row.getCell(col++).value = transasction.deliveryContact;
+      row.getCell(col++).value = transasction.deliveryName;
+      row.getCell(col++).value = transasction.deliveryAddressInfo;
+      row.getCell(col++).value = transasction.deliveryDistrict;
+      row.getCell(col++).value = transasction.deliverySubDistrict;
+      row.getCell(col++).value = transasction.deliveryProvince;
+      row.getCell(col++).value = transasction.deliveryZipcode;
+      row.getCell(col++).value = transasction.remark;
 
       transasction.orderitem = JSON.parse(transasction.orderitem);
 
@@ -1216,25 +1337,33 @@ async function exportOrder(req, res) {
         }
       }
 
-      row.getCell(13).value = orderItem;
+      row.getCell(col++).value = orderItem;
 
-      row.getCell(14).value = transasction.deliveryPrice;
-      row.getCell(15).value =
+      row.getCell(col++).value = transasction.deliveryPrice;
+      row.getCell(col++).value =
         transasction.itemDiscountAmount + transasction.billDiscountAmount;
-      row.getCell(16).value = transasction.netAmount;
+      row.getCell(col++).value = transasction.netAmount;
 
-      row.getCell(17).value = transasction.createBy;
-      row.getCell(18).value = transasction.activityOwner;
+      row.getCell(col++).value = transasction.createBy;
+      row.getCell(col++).value = transasction.sellNickName;
 
-      row.getCell(19).value = transasction.saleChannel;
-      row.getCell(20).value = transasction.saleChannelName;
+      row.getCell(col++).value = transasction.activityOwner;
+      row.getCell(col++).value = transasction.activityOwnerNickName;
 
-      row.getCell(21).value = transasction.agentCode;
-      row.getCell(22).value = transasction.agentName;
-      row.getCell(23).value = transasction.orderCount;
+      row.getCell(col++).value = transasction.saleChannel;
+      row.getCell(col++).value = transasction.saleChannelName;
 
-      row.getCell(24).value = transasction.status;
-      row.getCell(25).value = transasction.paymentStatus;
+      row.getCell(col++).value = transasction.agentCode;
+      row.getCell(col++).value = transasction.agentName;
+      row.getCell(col++).value = transasction.orderCount;
+
+      row.getCell(col++).value = transasction.status;
+      row.getCell(col++).value = transasction.paymentStatus;
+      row.getCell(col++).value = transasction.updateCODDate
+        ? moment(transasction.updateCODDate)
+            .tz("Asia/Bangkok")
+            .format("DD/MM/yyyy")
+        : null;
     }
 
     const buffer = await workbook.xlsx.writeBuffer();

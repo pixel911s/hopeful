@@ -69,14 +69,16 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     ];
 
-    this.menuItems.push({
-      path: "/CRM",
-      title: "CRM",
-      icon: "ft-calendar",
-      class: "",
-      isExternalLink: false,
-      submenu: [],
-    });
+    if (this.user.function.CRM) {
+      this.menuItems.push({
+        path: "/CRM",
+        title: "CRM",
+        icon: "ft-calendar",
+        class: "",
+        isExternalLink: false,
+        submenu: [],
+      });
+    }
 
     if (this.user.function.CREATE_ORDER || this.user.function.VIEW_ORDER) {
       this.menuItems.push({
@@ -124,12 +126,33 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.user.function.CREATE_PRODUCT || this.user.function.VIEW_PRODUCT) {
       this.menuItems.push({
-        path: "/product",
+        path: "",
         title: "ข้อมูลสินค้า",
         icon: "ft-box",
-        class: "",
+        class: "has-sub",
         isExternalLink: false,
-        submenu: [],
+        submenu: [
+          {
+            path: "/product",
+            title: "จัดการข้อมูลสินค้า",
+            icon: "ft-arrow-right submenu-icon",
+            class: "",
+            badge: "",
+            badgeClass: "",
+            isExternalLink: false,
+            submenu: [],
+          },
+          {
+            path: "/product-group",
+            title: "จัดการกลุ่มสินค้า",
+            icon: "ft-arrow-right submenu-icon",
+            class: "",
+            badge: "",
+            badgeClass: "",
+            isExternalLink: false,
+            submenu: [],
+          },
+        ],
       });
     }
 

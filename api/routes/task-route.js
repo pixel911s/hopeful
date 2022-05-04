@@ -16,5 +16,6 @@ router.route("/closeTask").post(taskService.closeTask);
 router.route("/recallTask").post(taskService.recallTask);
 router.route("/getOpenTask").post(taskService.getOpenTask);
 router.route("/getCloseTask").post(taskService.getCloseTask);
+router.route("/getAllTask").post(taskService.getAllTask);
 
 module.exports = router;

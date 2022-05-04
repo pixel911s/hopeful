@@ -246,6 +246,16 @@ async function save(conn, model) {
         params.push(model.lineNotifyToken);
       }
 
+      if (model.displayImgUrl) {
+        sql += ",displayImgUrl = ? ";
+        params.push(model.displayImgUrl);
+      }
+
+      if (model.nickName) {
+        sql += ",nickName = ? ";
+        params.push(model.nickName);
+      }
+
       sql += " where username = ?";
       params.push(model.id);
 
@@ -361,10 +371,12 @@ async function getAgentObj(conn, username) {
 
 async function getUseragent(conn, agentId) {
   try {
-    let sql = "SELECT * FROM useragent where agentId = ? order by username asc";
+    let sql =
+      "SELECT ua.* , u.nickName FROM useragent ua left join user u on ua.username = u.username  where ua.agentId = ? and u.status = 1  order by ua.username asc";
 
     if (agentId == 1) {
-      sql = "SELECT * FROM user where businessId = ? order by username asc";
+      sql =
+        "SELECT * FROM user where businessId = ? and status = 1 order by username asc";
     }
 
     const result = await conn.query(sql, [agentId]);

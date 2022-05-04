@@ -80,7 +80,12 @@ async function exportOrder(conn, criteria) {
     let params = [];
 
     let sql =
-      "SELECT ( select JSON_ARRAYAGG(JSON_OBJECT(   'sku', p.code,   'qty', qty ))  FROM orderitem left join product p on productId = p.id where orderId = o.id ) AS orderitem  , o.* , b.code as agentCode , b.name as agentName , c.activityOwner FROM `order` o left join business b on o.ownerId = b.id left join business c on o.customerId = c.id where 1 = 1";
+      "SELECT ao.nickName as activityOwnerNickName , sell.nickName as sellNickName , ( select JSON_ARRAYAGG(JSON_OBJECT(   'sku', p.code,   'qty', qty ))  FROM orderitem left join product p on productId = p.id where orderId = o.id ) AS orderitem  , o.* , b.code as agentCode , b.name as agentName , c.activityOwner FROM `order` o left join business b on o.ownerId = b.id left join business c on o.customerId = c.id ";
+
+    sql += " left join user sell on o.createBy = sell.username ";
+    sql += " left join user ao on c.activityOwner = ao.username ";
+
+    sql += " where 1 = 1";
 
     if (criteria.agent != undefined) {
       sql += " and b.id = ?";
@@ -157,7 +162,7 @@ async function exportOrder(conn, criteria) {
 async function get(conn, id) {
   try {
     let sql =
-      "select o.*, bu.name as businessName, bu.lineNotifyToken from `order` o left join business bu on o.ownerId = bu.id where o.id = ?";
+      "select u.nickName as createByNickname, customer.socialName ,o.*, bu.name as businessName, bu.lineNotifyToken from `order` o left join business bu on o.ownerId = bu.id left join business customer on o.customerId = customer.id left join user u on o.createBy = u.username where o.id = ?";
     const result = await conn.query(sql, [id]);
 
     return result[0];
@@ -240,6 +245,11 @@ async function count(conn, criteria) {
       params.push("%" + criteria.tel + "%");
     }
 
+    if (criteria.paymentType) {
+      sql += " and o.paymentType = ?";
+      params.push(criteria.paymentType);
+    }
+
     if (criteria.status) {
       sql += " and o.status = ?";
       params.push(criteria.status);
@@ -292,7 +302,7 @@ async function search(conn, criteria) {
     let params = [];
 
     let sql =
-      "select o.*, b.name as businessName from `order` o left join business b on o.ownerId = b.id  where 1=1";
+      "select u.nickName as createByNickName , o.*, b.name as businessName from `order` o left join business b on o.ownerId = b.id left join user u on o.createBy = u.username  where 1=1";
 
     if (criteria.agent != undefined) {
       sql += " and b.id = ?";
@@ -318,6 +328,11 @@ async function search(conn, criteria) {
     if (criteria.tel) {
       sql += " and o.deliveryContact like ?";
       params.push("%" + criteria.tel + "%");
+    }
+
+    if (criteria.paymentType) {
+      sql += " and o.paymentType = ?";
+      params.push(criteria.paymentType);
     }
 
     if (criteria.orderNo) {

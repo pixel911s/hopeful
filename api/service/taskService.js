@@ -21,6 +21,7 @@ module.exports = {
   getCloseTask,
   getNotify,
   updateNotifyFlag,
+  getAllTask,
 };
 
 async function get(req, res) {
@@ -83,17 +84,19 @@ async function closeTask(req, res) {
 
     await taskDao.closeTask(conn, model.id, model.username);
 
-    let _activity = await activityDao.get(conn, task.activityId);
+    if (task.activityId) {
+      let _activity = await activityDao.get(conn, task.activityId);
 
-    let history = {
-      customerId: _activity.customerId,
-      activityCode: "",
-      action: "CLOSE TASK",
-      description: task.description,
-      username: model.username,
-    };
+      let history = {
+        customerId: _activity.customerId,
+        activityCode: "",
+        action: "CLOSE TASK",
+        description: task.description,
+        username: model.username,
+      };
 
-    await crmHistoryDao.create(conn, history);
+      await crmHistoryDao.create(conn, history);
+    }
 
     conn.commit();
 
@@ -123,17 +126,19 @@ async function recallTask(req, res) {
 
     await taskDao.recallTask(conn, model.id, model.username);
 
-    let _activity = await activityDao.get(conn, task.activityId);
+    if (task.activityId) {
+      let _activity = await activityDao.get(conn, task.activityId);
 
-    let history = {
-      customerId: _activity.customerId,
-      activityCode: "",
-      action: "REOPEN TASK",
-      description: task.description,
-      username: model.username,
-    };
+      let history = {
+        customerId: _activity.customerId,
+        activityCode: "",
+        action: "REOPEN TASK",
+        description: task.description,
+        username: model.username,
+      };
 
-    await crmHistoryDao.create(conn, history);
+      await crmHistoryDao.create(conn, history);
+    }
 
     conn.commit();
 
@@ -142,6 +147,37 @@ async function recallTask(req, res) {
     );
   } catch (e) {
     conn.rollback();
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getAllTask(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+
+    //==== Criteria
+    //username = ใส่ค่าว่างหรือไม่ส่ง หากต้องการดูทั้งหมด , หากต้องการดูเฉพาะของตัวเอง ให้ส่ง username มา
+    //taskStatus = O - Task ที่ยังไม่ปิด
+
+    criteria.taskStatus = "O";
+
+    let open = await taskDao.getTaskList(conn, criteria);
+
+    criteria.taskStatus = "C";
+
+    let close = await taskDao.getTaskList(conn, criteria);
+
+    let result = {
+      closeTasks: close,
+      openTasks: open,
+    };
+
+    return res.send(util.callbackSuccess(null, result));
+  } catch (e) {
+    console.error(e);
     return res.status(500).send(e.message);
   } finally {
     conn.release();

@@ -42,8 +42,29 @@ export class ManageActivityDateComponent implements OnInit {
   async search() {
     this.spinner.show();
 
-    let res: any = await this.configService.getActivityDateConfigByUsername();
-    this.data = res.data;
+    let res: any = await this.configService.getActivityDateConfigByUsername(
+      null
+    );
+    this.data = [];
+    let group: any = {
+      name: "",
+    };
+
+    for (let index = 0; index < res.data.length; index++) {
+      const element = res.data[index];
+      if (element.type != group.name) {
+        group = {
+          name: element.type,
+          items: [],
+        };
+
+        this.data.push(group);
+      }
+
+      group.items.push(element);
+    }
+
+    console.log(this.data);
 
     this.spinner.hide();
   }

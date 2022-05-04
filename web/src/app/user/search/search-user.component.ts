@@ -65,6 +65,8 @@ export class SearchUserComponent implements OnInit {
     let res: any = await this.userService.search(this.criteria);
     this.data = res;
 
+    console.log(res);
+
     this.spinner.hide();
   }
 

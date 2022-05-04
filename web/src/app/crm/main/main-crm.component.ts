@@ -20,6 +20,7 @@ import { ToastrService } from "ngx-toastr";
 import { ChangeEndDoseComponent } from "../includes/change-end-dose/change-end-dose.component";
 import { ChangeOwnerComponent } from "../includes/change-owner/change-owner.component";
 import { CreateNoteComponent } from "../includes/create-note/create-notecomponent";
+import { ManageAddressComponent } from "../includes/manage-address/manage-address.component";
 import { ManageTodoComponent } from "../includes/manage-todo/manage-todo.component";
 import { UpdateCustomerComponent } from "../includes/update-customer/update-customer.component";
 
@@ -158,8 +159,9 @@ export class MainCRMComponent implements OnInit {
       },
     ];
 
-    let res: any =
-      await this.userConfigService.getActivityDateConfigByUsername();
+    let res: any = await this.userConfigService.getActivityDateConfigByUsername(
+      "ACTIVITY"
+    );
 
     for (let index = 0; index < res.data.length; index++) {
       const data = res.data[index];
@@ -173,7 +175,27 @@ export class MainCRMComponent implements OnInit {
     this.loadingCustomer = true;
     let res: any = await this.customerService.getById(id);
     this.customer = res.data;
+
+    let res2: any = await this.customerService.getAddresses(id);
+    this.customer.addresses = res2.data;
+
+    if (this.customer.addresses && this.customer.addresses.length > 0) {
+      this.setDefaultAddres();
+
+      if (!this.customer.defaultAddress) {
+        this.customer.defaultAddress = this.customer.addresses[0];
+      }
+    }
+
+    console.log(this.customer);
+
     this.loadingCustomer = false;
+  }
+
+  async setDefaultAddres() {
+    this.customer.defaultAddress = this.customer.addresses.find(
+      (element) => element.isDefault
+    );
   }
 
   async loadOrderHistories() {
@@ -501,6 +523,37 @@ export class MainCRMComponent implements OnInit {
     });
   }
 
+  cancelActivityOwner() {
+    const dialogRef = this.dialog.open(PopupConfirmComponent, {
+      maxWidth: "300px",
+      minWidth: "300px",
+      data: {
+        message: "ยืนยันการยกเลิกการเป็นผู้ดูแล.",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        let data = {
+          activityId: this.selectedActivity.id,
+          ownerUser: this.user.username,
+          customerId: this.customer.id,
+        };
+
+        this.spinner.show();
+
+        await this.activityService.cancelActivityOwner(data);
+        await this.loadCustomer(this.customer.id);
+        await this.loadActivity();
+        await this.loadOrderHistories();
+        await this.loadHistories();
+
+        this.spinner.hide();
+        this.toastr.show(this.translate.instant("success.save-complete"));
+      }
+    });
+  }
+
   assignActivityOwner() {
     const dialogRef = this.dialog.open(PopupConfirmComponent, {
       maxWidth: "300px",
@@ -591,6 +644,19 @@ export class MainCRMComponent implements OnInit {
         this.spinner.hide();
         this.toastr.show(this.translate.instant("success.save-complete"));
       }
+    });
+  }
+
+  async selectAddress() {
+    const dialogRef = this.dialog.open(ManageAddressComponent, {
+      maxWidth: "800px",
+      minWidth: "300px",
+      data: this.customer.id,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe(async (address) => {
+      await this.loadCustomer(this.criteria.customerId);
     });
   }
 }

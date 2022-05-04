@@ -21,8 +21,9 @@
       </div>
     </div>
 
-    <div class="row" *ngIf="data.length > 0">
+    <div class="row" *ngFor="let group of data">
       <div class="col-12 col-lg-4">
+        <h5>{{ group.name }}</h5>
         <div class="table-responsive">
           <table class="table table-hover custom-table" id="tblData">
             <thead>
@@ -33,7 +34,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of data">
+              <tr *ngFor="let item of group.items">
                 <td class="text-left">{{ item.display }}</td>
                 <td class="text-center">
                   <span *ngIf="item.condition > 0">+</span>{{ item.condition }}

@@ -69,6 +69,14 @@ export class ActivityService {
       .toPromise();
   }
 
+  cancelActivityOwner(data) {
+    data.username = this.authService.getUser().username;
+    data.agentId = this.authService.getUser().businessId;
+    return this.http
+      .post(environment.apiUrl + "/activity/cancelActivityOwner", data)
+      .toPromise();
+  }
+
   updateEndOfDose(data) {
     data.username = this.authService.getUser().username;
     return this.http

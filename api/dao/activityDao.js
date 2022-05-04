@@ -11,6 +11,7 @@ module.exports = {
   inquiry,
   getActivityDateConfig,
   updateOwner,
+  cancelOwner,
   clearOwner,
   updateDueDate,
   updateEndOfDose,
@@ -18,12 +19,13 @@ module.exports = {
 
 async function get(conn, id) {
   try {
-    let sql = "select a.* ";
+    let sql = "select ou.nickName as ownerNickName , a.* ";
     sql += ",b.code as productCode, b.name as productName";
     sql += ",c.code as agentCode, c.name as agentName";
     sql += ",d.code as customerCode, d.name as customerName, d.activityOwner";
     sql += ",e.status";
     sql += " from activity a ";
+    sql += " left join user ou on a.ownerUser = ou.username";
     sql += " left join product b on a.productId=b.id";
     sql += " left join business c on a.agentId=c.id";
     sql += " left join business d on a.customerId=d.id";
@@ -175,7 +177,8 @@ async function inquiry(conn, criteria) {
     let sql = "select count(a.id) as qty from activity a ";
 
     if (criteria.isCount == false) {
-      sql = "select a.* ";
+      sql =
+        "select ou.nickName as ownerNickName , u.nickName as createByNickName,a.* ";
       sql += ",b.code as productCode, b.name as productName";
       sql += ",c.code as agentCode, c.name as agentName";
       sql += ",d.code as customerCode, d.name as customerName, d.mobile";
@@ -183,6 +186,8 @@ async function inquiry(conn, criteria) {
       sql += " from activity a ";
 
       sql += " left join product b on a.productId=b.id";
+      sql += " left join user u on a.createBy = u.username";
+      sql += " left join user ou on a.ownerUser = ou.username";
       sql += " left join activitystatus e on a.activityStatusId=e.id";
     }
 
@@ -217,12 +222,14 @@ async function inquiry(conn, criteria) {
 
           if (criteria.dayCondition > 0) {
             //=== ก่อนถึงกำหนดกี่วัน
+            fromDate.setDate(fromDate.getDate() + 1);
             toDate.setDate(toDate.getDate() + criteria.dayCondition);
             params.push(DateUtil.convertForSqlFromDate(fromDate));
             params.push(DateUtil.convertForSqlToDate(toDate));
           } else {
             //==== เลยกำหนดกี่วัน
-            fromDate.setDate(toDate.getDate() + criteria.dayCondition);
+            fromDate.setDate(fromDate.getDate() + criteria.dayCondition);
+            toDate.setDate(toDate.getDate() - 1);
             params.push(DateUtil.convertForSqlFromDate(fromDate));
             params.push(DateUtil.convertForSqlToDate(toDate));
           }
@@ -306,6 +313,21 @@ async function getActivityDateConfig(conn, username) {
     return result;
   } catch (err) {
     throw err;
+  }
+}
+
+async function cancelOwner(conn, customerId, username) {
+  try {
+    //Update Activity Status
+    let sql =
+      "update activity set `ownerUser`= null, `updateBy`=?, `updateDate`=? where customerId = ? and activityStatusId != 3 and activityStatusId != 4";
+
+    await conn.query(sql, [username, new Date(), customerId]);
+
+    return true;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
   }
 }
 

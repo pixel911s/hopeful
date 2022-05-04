@@ -1,8 +1,2 @@
-{
-  "Page": "Página",
-  "Menu Levels": "Níveis de menu",
-  "Second Level": "Segundo nível",
-  "Second Level Child": "Criança de Segundo Nível",
-  "Third Level 1.1": "Terceiro nível 1.1",
-  "Third Level 1.2": "Terceiro nível 1.2"
+{"data":{"username":"modtest001","loginType":"SYSTEM","status":1,"businessId":26,"lineNotifyToken":"CCCC","createBy":"canonmix","createDttm":"2022-01-25T12:24:15+07:00","updateBy":null,"updateDttm":"2022-04-19T02:31:01+07:00","lineNotifyId":null,"displayImgUrl":"http://localhost:4200/assets/img/test-img/user/modtest001/ทดสอบ.webp?v=1650310261279","nickName":"SSSSS","business":{"id":26,"businessType":"A","ownerId":null,"code":"AGENTMOD","name":"เอเจ้นทดสอบมด","mobile":null,"contactName":null,"email":null,"memo":null,"lineNotifyToken":"OBa4WWYpMIiJqy6d45425RaDg9A2EdjhSGSoT9APudp","hashTag":null,"activityOwner":null,"createBy":"canonmix","createDate":"2021-12-02T05:10:53+07:00","updateBy":"modtest001","updateDate":"2022-03-17T15:06:58+07:00","lastBuyDate":null,"lockBy":null,"unlockDate":null,"channel":"SYSTEM","age":null,"dob":null,"sex":null,"clearActivityDay":1,"socialName":null},"function":{"CREATE_CUSTOMER":true,"CREATE_ORDER":true,"CREATE_USER":true,"CRM":true,"EXPORT_ORDER":true,"EXPORT_TRANSPORT":true,"SUPERVISOR":true,"UPLOAD_ORDER":true,"VIEW_CUSTOMER":true,"VIEW_ORDER":true,"VIEW_USER":true},"userAgents":[{"id":26,"businessType":"A","ownerId":null,"code":"AGENTMOD","name":"เอเจ้นทดสอบมด","mobile":null,"contactName":null,"email":null,"memo":null,"lineNotifyToken":"OBa4WWYpMIiJqy6d45425RaDg9A2EdjhSGSoT9APudp","hashTag":null,"activityOwner":null,"createBy":"canonmix","createDate":"2021-12-02T05:10:53+07:00","updateBy":"modtest001","updateDate":"2022-03-17T15:06:58+07:00","lastBuyDate":null,"lockBy":null,"unlockDate":null,"channel":"SYSTEM","age":null,"dob":null,"sex":null,"clearActivityDay":1,"socialName":null}]}
 }

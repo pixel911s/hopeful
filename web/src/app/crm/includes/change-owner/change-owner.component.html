@@ -28,6 +28,7 @@
         >
           <option [ngValue]="undefined">ทั้งหมด</option>
           <option *ngFor="let item of master.users" [ngValue]="item.username">
+            <span *ngIf="item.nickName">{{ item.nickName }} :</span>
             {{ item.username }}
           </option>
         </select>

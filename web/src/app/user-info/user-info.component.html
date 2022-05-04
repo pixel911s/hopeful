@@ -1,0 +1,130 @@
+<app-nav-bar></app-nav-bar>
+<div class="bg-custom">
+  <div class="container" style="padding-top: 80px">
+    <div class="row">
+      <div class="col-lg-4"></div>
+      <div class="col-md-6 col-lg-4 text-center verticalLine">
+        <div class="card">
+          <div class="card-body">
+            <div class="row" [formGroup]="fromGroup">
+              <div class="col-12 m-b-20">
+                <h5>ข้อมูลผู้ใช้งาน</h5>
+              </div>
+              <div class="col-12 col-md-1"></div>
+              <div class="col-12 col-md-10 text-left">
+                <div class="row">
+                  <div class="col-12 text-center m-b-20">
+                    <ng4-files-drop
+                      (filesSelect)="filesSelect($event)"
+                      mat-line
+                    >
+                      <ng4-files-click (filesSelect)="filesSelect($event)">
+                        <div
+                          class="avatar text-center"
+                          style="height: 100px; width: 100px"
+                        >
+                          <div
+                            *ngIf="!user.displayImgUrl"
+                            style="font-size: 60px"
+                            class="d-block w-100"
+                          >
+                            M
+                          </div>
+                          <img
+                            style="max-width: 100%"
+                            [src]="user.displayImgUrl"
+                            *ngIf="user.displayImgUrl"
+                          />
+                        </div>
+                      </ng4-files-click>
+                    </ng4-files-drop>
+                    <small>คลิกที่อวาตาร์เพื่ออัพเดทรุปภาพ</small>
+                  </div>
+
+                  <div class="col-12">
+                    <div
+                      class="form-group"
+                      [ngClass]="{
+                        'is-invalid': f.nickName.touched && f.nickName.errors
+                      }"
+                    >
+                      <label for="nickName">Display Name</label>
+                      <input
+                        formControlName="nickName"
+                        autocomplete="off"
+                        placeholder="nickName"
+                        [(ngModel)]="user.nickName"
+                        id="nickName"
+                        class="form-control form-control-sm"
+                        [ngClass]="{
+                          'is-invalid': f.nickName.invalid,
+                          'is-valid': !f.nickName.invalid
+                        }"
+                      />
+                      <div
+                        *ngIf="
+                          f.nickName.touched && f.nickName.errors?.required
+                        "
+                        class="help-block mt-1 text-danger"
+                      >
+                        <i class="ft-alert-circle align-middle"></i>
+                        บังคับกรอกข้อมูล
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <div
+                      class="form-group"
+                      [ngClass]="{
+                        'is-invalid':
+                          f.lineNotifyToken.touched && f.lineNotifyToken.errors
+                      }"
+                    >
+                      <label for="lineNotifyToken">Line Notify Token</label>
+                      <input
+                        formControlName="lineNotifyToken"
+                        autocomplete="off"
+                        placeholder="lineNotifyToken"
+                        [(ngModel)]="user.lineNotifyToken"
+                        id="lineNotifyToken"
+                        class="form-control form-control-sm"
+                        [ngClass]="{
+                          'is-invalid': f.lineNotifyToken.invalid,
+                          'is-valid': !f.lineNotifyToken.invalid
+                        }"
+                      />
+                      <div
+                        *ngIf="
+                          f.lineNotifyToken.touched &&
+                          f.lineNotifyToken.errors?.required
+                        "
+                        class="help-block mt-1 text-danger"
+                      >
+                        <i class="ft-alert-circle align-middle"></i>
+                        บังคับกรอกข้อมูล
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 m-b-20">
+                    <button
+                      id="btnLogin"
+                      type="button"
+                      class="btn btn-primary w-100"
+                      (click)="save()"
+                    >
+                      บันทึกข้อมูล
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4"></div>
+    </div>
+  </div>
+</div>

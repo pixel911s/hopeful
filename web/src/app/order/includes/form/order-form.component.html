@@ -15,7 +15,14 @@
                   {{ data.orderDate | date: "dd/MM/yyyy" }}
                 </div>
 
-                <div class="col-6">ผู้ทำรายการ : {{ data.createBy }}</div>
+                <div class="col-6">
+                  ผู้ทำรายการ :
+                  <span>{{
+                    data.createByNickname
+                      ? data.createByNickname
+                      : data.createBy
+                  }}</span>
+                </div>
                 <div class="col-6 text-right">
                   สาขา : {{ data.businessName }}
                 </div>
@@ -395,6 +402,7 @@
                 <option [ngValue]="'FACEBOOK'">FACEBOOK</option>
                 <option [ngValue]="'CRM'">CRM</option>
                 <option [ngValue]="'LINEAD'">LINEAD</option>
+
                 <option [ngValue]="'INBCALL'">INBCALL</option>
                 <option [ngValue]="'WEB'">WEB</option>
 
@@ -403,6 +411,12 @@
                 <option [ngValue]="'TIKTOK'">TIKTOK</option>
                 <option [ngValue]="'แนะนำ'">แนะนำ</option>
                 <option [ngValue]="'สวัสดิการ'">สวัสดิการ</option>
+
+                <option [ngValue]="'LINE'">LINE</option>
+                <option [ngValue]="'GOOGLEADS'">GOOGLE ADS</option>
+                <option [ngValue]="'INSTRAGRAM'">INSTRAGRAM</option>
+
+                <option [ngValue]="'อื่นๆ'">อื่นๆ</option>
               </select>
               <small
                 class="text-danger"
@@ -620,10 +634,15 @@
               <label for="zipcode">รหัสไปรษณีย์ *</label>
               <input
                 autocomplete="off"
-                maxlength="5"
+                (selectItem)="selectItem($event)"
+                [ngbTypeahead]="search"
+                [resultTemplate]="rt"
+                [inputFormatter]="formatter"
+                [resultFormatter]="formatter2"
+                [editable]="false"
                 class="form-control form-control-sm"
                 formControlName="zipcode"
-                [(ngModel)]="data.deliveryZipcode"
+                [(ngModel)]="data.deliveryZipcodeObj"
                 [ngClass]="{
                   'is-invalid': f.zipcode.touched && f.zipcode.errors,
                   'is-valid': f.zipcode.touched && !f.zipcode.errors
@@ -640,6 +659,20 @@
                 >รหัสไปรษณีย์ไม่ถูกต้อง</small
               >
             </div>
+            <ng-template #rt let-r="result" let-t="term">
+              <ngb-highlight
+                [result]="
+                  r.subdistrict +
+                  ' ' +
+                  r.district +
+                  ' ' +
+                  r.province +
+                  ' ' +
+                  r.zipCode
+                "
+                [term]="t"
+              ></ngb-highlight>
+            </ng-template>
           </div>
           <div class="col-12 col-md-4" *ngIf="isReadOnly || isEdit">
             <div

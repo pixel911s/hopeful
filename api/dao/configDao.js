@@ -34,12 +34,22 @@ async function getActivityDateConfig(conn, id) {
   }
 }
 
-async function getActivityDateConfigByUsername(conn, username) {
+async function getActivityDateConfigByUsername(conn, username, type) {
   try {
-    let sql =
-      "select * from activitydateconfig where username = ? order by `condition` asc";
+    let criteria = [];
 
-    const result = await conn.query(sql, [username]);
+    let sql = "select * from activitydateconfig where username = ?";
+
+    criteria.push(username);
+
+    if (type != null) {
+      sql += " and `type` = ?";
+      criteria.push(type);
+    }
+
+    sql += "  order by `type` asc,`condition` asc";
+
+    const result = await conn.query(sql, criteria);
 
     return result;
   } catch (err) {
@@ -62,6 +72,9 @@ async function saveActivityDateConfig(conn, model) {
       sql += ", `condition` = ? ";
       params.push(model.condition);
 
+      sql += ", `type` = ? ";
+      params.push(model.type);
+
       sql += " where id = ?";
       params.push(model.id);
 
@@ -69,13 +82,14 @@ async function saveActivityDateConfig(conn, model) {
     } else {
       //insert
       let sql =
-        "INSERT INTO `activitydateconfig` (`display`,`condition`,`username`)";
-      sql += "  VALUES (?,?,?)";
+        "INSERT INTO `activitydateconfig` (`display`,`condition`,`username`,`type`)";
+      sql += "  VALUES (?,?,?,?)";
 
       await conn.query(sql, [
         model.display.trim(),
         model.condition,
         model.username,
+        model.type,
       ]);
     }
 

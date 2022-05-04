@@ -11,20 +11,22 @@ import { BaseComponent } from "app/base/base.component";
 import { ToastrService } from "ngx-toastr";
 
 @Component({
-  selector: "app-update-customer",
-  templateUrl: "update-customer.component.html",
-  styleUrls: ["update-customer.component.scss"],
+  selector: "app-from-address",
+  templateUrl: "from-address.component.html",
+  styleUrls: ["from-address.component.scss"],
 })
-export class UpdateCustomerComponent extends BaseComponent implements OnInit {
+export class FromAddressComponent extends BaseComponent implements OnInit {
   public formGroup: FormGroup;
+
+  public data: any;
 
   get f() {
     return this.formGroup.controls;
   }
 
   constructor(
-    public dialogRef: MatDialogRef<UpdateCustomerComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    public dialogRef: MatDialogRef<FromAddressComponent>,
+    @Inject(MAT_DIALOG_DATA) public param: any,
     private translate: TranslateService,
     private formBuilder: FormBuilder,
     private toastr: ToastrService
@@ -33,6 +35,8 @@ export class UpdateCustomerComponent extends BaseComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.data = this.param.data;
+
     this.formGroup = this.formBuilder.group({});
 
     this.formGroup.addControl(
@@ -41,23 +45,34 @@ export class UpdateCustomerComponent extends BaseComponent implements OnInit {
     );
 
     this.formGroup.addControl(
-      "socialName",
+      "info",
       new FormControl({ value: "" }, [Validators.required])
     );
 
     this.formGroup.addControl(
-      "mobile",
+      "subdistrict",
       new FormControl({ value: "" }, [Validators.required])
     );
 
     this.formGroup.addControl(
-      "sex",
+      "district",
       new FormControl({ value: "" }, [Validators.required])
     );
 
-    this.formGroup.addControl("age", new FormControl({ value: "" }, []));
+    this.formGroup.addControl(
+      "province",
+      new FormControl({ value: "" }, [Validators.required])
+    );
 
-    this.formGroup.addControl("email", new FormControl({ value: "" }, []));
+    this.formGroup.addControl(
+      "zipcode",
+      new FormControl({ value: "" }, [Validators.required])
+    );
+
+    this.formGroup.addControl(
+      "tel",
+      new FormControl({ value: "" }, [Validators.required])
+    );
   }
 
   onNoClick(): void {
@@ -70,8 +85,6 @@ export class UpdateCustomerComponent extends BaseComponent implements OnInit {
       await this.markFormGroupTouched(this.formGroup);
       return;
     }
-
-    this.data.dob = new Date();
 
     this.dialogRef.close(this.data);
   }

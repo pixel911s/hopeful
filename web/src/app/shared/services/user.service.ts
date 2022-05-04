@@ -113,6 +113,22 @@ export class UserService {
       .toPromise();
   }
 
+  updateUserInfo(data) {
+    data.username = this.authService.getUser().username;
+    const fd = new FormData();
+    if (data.newImageFlag) {
+      fd.append("image", data.tmpNewImage);
+      data.tmpNewImage = undefined;
+      data.imageUrl = undefined;
+    }
+
+    fd.append("data", JSON.stringify(data));
+
+    return this.http
+      .post(environment.apiUrl + "/user/updateUserInfo", fd)
+      .toPromise();
+  }
+
   getAll() {
     let compCode = this.authService.getUser().compCode;
     return this.http

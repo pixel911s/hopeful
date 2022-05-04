@@ -47,7 +47,8 @@ async function getActivityDateConfigByUsername(req, res) {
   try {
     let result = await configDao.getActivityDateConfigByUsername(
       conn,
-      req.body.username
+      req.body.username,
+      req.body.type
     );
 
     return res.send(util.callbackSuccess(null, result));
