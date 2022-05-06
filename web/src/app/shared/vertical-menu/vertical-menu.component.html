@@ -116,6 +116,7 @@
             [routerLinkActive]="
               menuSubItem.submenu.length != 0 ? 'open' : 'active'
             "
+            (click)="beforRoute()"
           >
             <a
               appSidebarAnchorToggle
@@ -139,6 +140,7 @@
               *ngIf="
                 menuSubItem.submenu.length === 0 && !menuSubItem.isExternalLink
               "
+              (click)="beforRoute()"
             >
               <i [ngClass]="[menuSubItem.icon]"></i>
               <span class="menu-title">{{
@@ -185,6 +187,7 @@
                     ? menuSubsubItem.class
                     : ''
                 "
+                (click)="beforRoute()"
               >
                 <a
                   appSidebarAnchorToggle

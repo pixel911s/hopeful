@@ -135,6 +135,8 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     return this.formGroup.controls;
   }
 
+  user;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -171,6 +173,9 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     await this.search();
     await this.searchTransaction();
     await this.searchCharts();
+
+    this.user = this.authService.getUser();
+    console.log('user ==> ', this.user)
   }
 
   async search() {
@@ -238,6 +243,15 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result === true) {
         this.spinner.show();
+
+        console.log('data: ', this.data);
+
+        // เพิ่ม ข้อมูลผู้ส่ง
+        this.data = {
+          ...this.data,
+          agentId: this.user?.businessId || null,
+          createBy: this.user?.username || null
+        }
 
         let res: any = await this.smsService.sendManual(this.data);
 

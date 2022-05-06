@@ -145,7 +145,10 @@ export class UserDetailComponent implements OnInit {
       "supervisor",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])
     );
-
+    this.formGroup.addControl(
+      "selectViewSMS",
+      new FormControl({ value: "", disabled: this.isReadOnly }, [])
+    );
     this.formGroup.addControl(
       "selectSendSMS",
       new FormControl({ value: "", disabled: this.isReadOnly }, [])

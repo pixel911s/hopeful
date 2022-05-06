@@ -13,6 +13,8 @@ module.exports = {
   getSuccesPaymentLogs,
   countSuccesPaymentLogs,
   getGraphIncomes,
+  getSummaryByAgent,
+  countSummaryByAgent,
 };
 
 async function getGraphIncomes(conn) {
@@ -194,6 +196,10 @@ async function countSms(conn, criteria) {
       params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
       params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
     }
+    if (criteria.agentId) {
+      sql += " and agentId = ?";
+      params.push(criteria.agentId);
+    }
 
     let result = await conn.query(sql, params);
 
@@ -213,12 +219,17 @@ async function searchSms(conn, criteria) {
 
     let params = [];
 
-    let sql = "select * from sms_transaction where 1=1";
+    let sql = "select sms.*, b.name as agentName from sms_transaction sms left join business b on sms.agentId = b.id where 1=1";
 
     if (criteria.dates != undefined) {
       sql += " and sendDttm  between ? AND ?";
       params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
       params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    if (criteria.agentId) {
+      sql += " and agentId = ?";
+      params.push(criteria.agentId);
     }
 
     sql += " order by sendDttm desc ";
@@ -238,8 +249,8 @@ async function searchSms(conn, criteria) {
 async function createSms(conn, model) {
   try {
     let sql =
-      "INSERT INTO `sms_transaction` (`mobile`, `sendDttm`, `status`, sms, data, message)  ";
-    sql += " VALUES (?,?,?,?,?,?)";
+      "INSERT INTO `sms_transaction` (`mobile`, `sendDttm`, `status`, sms, data, message, agentId, createBy)  ";
+    sql += " VALUES (?,?,?,?,?,?,?,?)";
     let result = await conn.query(sql, [
       model.mobile,
       new Date(),
@@ -247,6 +258,8 @@ async function createSms(conn, model) {
       model.sms,
       model.data,
       model.message,
+      model.agentId,
+      model.createBy
     ]);
 
     return result;
@@ -299,6 +312,70 @@ async function getByToken(conn, token) {
     let result = await conn.query(sql, [token]);
 
     return result[0];
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getSummaryByAgent(conn, criteria) {
+  try {
+    let startRecord = 0;
+
+    if (criteria.page && criteria.size) {
+      startRecord = (criteria.page - 1) * criteria.size;
+    }
+
+    let params = [];
+    let sql = 'SELECT smst.agentId, SUM(smst.sms) AS sms, b.name FROM sms_transaction smst left join business b on (smst.agentId = b.id) WHERE 1=1';
+
+    if (criteria.agentId) {
+      sql += " AND smst.agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    if (criteria.dates != undefined) {
+      sql += " AND sendDttm BETWEEN ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    sql += ' GROUP BY smst.agentId ORDER BY sms DESC, smst.agentId ASC';
+
+    if (criteria.page && criteria.size) {
+      sql += " LIMIT " + startRecord + "," + criteria.size;
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function countSummaryByAgent(conn, criteria) {
+  try {
+    let params = [];
+    let sql = 'SELECT smst.agentId FROM sms_transaction smst WHERE 1=1';
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    if (criteria.dates != undefined) {
+      sql += " AND sendDttm BETWEEN ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    sql += ' GROUP BY agentId';
+
+    sql = `SELECT count(*) as totalRecord FROM (${sql}) as T`;
+
+    let result = await conn.query(sql, params);
+
+    return result[0].totalRecord;
   } catch (e) {
     throw e;
   }

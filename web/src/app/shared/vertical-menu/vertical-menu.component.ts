@@ -142,16 +142,16 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
             isExternalLink: false,
             submenu: [],
           },
-          {
-            path: "/product-group",
-            title: "จัดการกลุ่มสินค้า",
-            icon: "ft-arrow-right submenu-icon",
-            class: "",
-            badge: "",
-            badgeClass: "",
-            isExternalLink: false,
-            submenu: [],
-          },
+          // {
+          //   path: "/product-group",
+          //   title: "จัดการกลุ่มสินค้า",
+          //   icon: "ft-arrow-right submenu-icon",
+          //   class: "",
+          //   badge: "",
+          //   badgeClass: "",
+          //   isExternalLink: false,
+          //   submenu: [],
+          // },
         ],
       });
     }
@@ -199,7 +199,10 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       ],
     };
 
-    if (this.user.function.SUPERVISOR) {
+    if (
+      this.user.function.SUPERVISOR &&
+      this.user.business.businessType == "A"
+    ) {
       setupMenu.submenu.push({
         path: "/setting/agent",
         title: "ตั้งค่าตัวแทนจำหน่าย",
@@ -214,16 +217,42 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.menuItems.push(setupMenu);
 
-    if (this.user.function.SENDSMS) {
-      this.menuItems.push({
-        path: "/sms",
+
+    if (this.user.function.SENDSMS || this.user.function.VIEW_SMS) {
+      let smsMenu = {
+        path: "",
         title: "SMS",
-        icon: "ft-pocket",
-        class: "",
+        icon: "ft-mail",
+        class: "has-sub",
         isExternalLink: false,
         submenu: [],
-      });
+      };
+
+      if (this.user.function.VIEW_SMS) {
+        smsMenu.submenu.push({
+          path: "/sms-dashboard",
+          title: "SMS Dashboard",
+          icon: "ft-arrow-right submenu-icon",
+          class: "",
+          isExternalLink: false,
+          submenu: [],
+        });
+      }
+      
+      if (this.user.function.SENDSMS) {
+        smsMenu.submenu.push({
+          path: "/sms",
+          title: "Manual SMS",
+          icon: "ft-arrow-right submenu-icon",
+          class: "",
+          isExternalLink: false,
+          submenu: [],
+        });
+      }
+  
+      this.menuItems.push(smsMenu);
     }
+
   }
 
   ngAfterViewInit() {
