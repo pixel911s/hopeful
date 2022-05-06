@@ -1,7 +1,7 @@
 import { OnInit, Component } from "@angular/core";
 import { Subject } from "rxjs";
-import { BaseComponent } from "src/app/base/base.component";
-import { AuthService } from "src/app/services/auth.service";
+import { BaseComponent } from "app/base/base.component";
+import { AuthService } from "app/shared/auth/auth.service";
 
 @Component({
   selector: "app-alert-message",

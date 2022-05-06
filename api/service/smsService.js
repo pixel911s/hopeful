@@ -19,6 +19,7 @@ module.exports = {
   search,
   smsCharts,
   getSMSCredit,
+  searchSummaryAgent,
 };
 
 async function getSMSCredit(req, res) {
@@ -114,7 +115,7 @@ async function manualSms(req, res) {
         mobileNo += "66" + mobile.substring(1);
       }
 
-      await sendSms(conn, mobileNo, "HOPEFUL", data.message, temparray.length);
+      await sendSms(conn, mobileNo, "HOPEFUL", data.message, temparray.length, data.agentId, data.createBy);
     }
 
     conn.commit();
@@ -129,7 +130,7 @@ async function manualSms(req, res) {
   }
 }
 
-async function sendSms(conn, mobile, senderId, message, length) {
+async function sendSms(conn, mobile, senderId, message, length, agentId, createBy) {
   var propertiesObject = {
     user: config.smsGateway.username,
     password: config.smsGateway.password,
@@ -155,6 +156,8 @@ async function sendSms(conn, mobile, senderId, message, length) {
       mobile: "0" + mobile.substring(2),
       data: mobile,
       message: message,
+      agentId,
+      createBy
     };
 
     if (audit.mobile.length > 10) {
@@ -199,4 +202,31 @@ function countMsg(text) {
   }
 
   return totalMsg;
+}
+
+async function searchSummaryAgent(req, res) {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    let criteria = req.body;
+    let result = null;
+
+    let totalRecord = await auditDao.countSummaryByAgent(conn, criteria);
+
+    let totalPage = Math.round(totalRecord / criteria.size);
+    if (totalPage <= 0) {
+      totalPage = 1;
+    }
+
+    if (totalRecord > 0) {
+      result = await auditDao.getSummaryByAgent(conn, criteria);
+    }
+
+    return res.send(util.callbackPaging(result, totalPage, totalRecord));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
 }

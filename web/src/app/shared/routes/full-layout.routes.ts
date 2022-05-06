@@ -72,4 +72,9 @@ export const Full_ROUTES: Routes = [
     loadChildren: () =>
       import("../../user-info/user-info.module").then((m) => m.UserInfoModule),
   },
+  {
+    path: "sms-dashboard",
+    loadChildren: () =>
+      import("../../sms-dashboard/sms-dashboard.module").then(m => m.SmsDashboardModule)
+  }
 ];

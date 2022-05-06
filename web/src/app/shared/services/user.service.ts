@@ -88,6 +88,10 @@ export class UserService {
       data.functions.push("SUPERVISOR");
     }
 
+    if (data.selectViewSMS) {
+      data.functions.push("VIEW_SMS");
+    }
+
     if (data.selectSendSMS) {
       data.functions.push("SENDSMS");
     }

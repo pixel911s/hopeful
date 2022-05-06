@@ -217,16 +217,42 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.menuItems.push(setupMenu);
 
-    if (this.user.function.SENDSMS) {
-      this.menuItems.push({
-        path: "/sms",
+
+    if (this.user.function.SENDSMS || this.user.function.VIEW_SMS) {
+      let smsMenu = {
+        path: "",
         title: "SMS",
-        icon: "ft-pocket",
-        class: "",
+        icon: "ft-mail",
+        class: "has-sub",
         isExternalLink: false,
         submenu: [],
-      });
+      };
+
+      if (this.user.function.VIEW_SMS) {
+        smsMenu.submenu.push({
+          path: "/sms-dashboard",
+          title: "SMS Dashboard",
+          icon: "ft-arrow-right submenu-icon",
+          class: "",
+          isExternalLink: false,
+          submenu: [],
+        });
+      }
+      
+      if (this.user.function.SENDSMS) {
+        smsMenu.submenu.push({
+          path: "/sms",
+          title: "Manual SMS",
+          icon: "ft-arrow-right submenu-icon",
+          class: "",
+          isExternalLink: false,
+          submenu: [],
+        });
+      }
+  
+      this.menuItems.push(smsMenu);
     }
+
   }
 
   ngAfterViewInit() {

@@ -1,0 +1,93 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="row m-b-2">
+  <div class="col-md-12">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>ค้นหารายการส่ง SMS</h5>
+        <hr />
+        <div class="row">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="dates">วันที่ส่ง SMS</label>
+              <input readonly autocomplete="off" [(ngModel)]="criteria.dates" [bsValue]="criteria.dates"
+                class="form-control form-control-sm" id="dates" bsDaterangepicker [bsConfig]="{
+                  rangeInputFormat: 'DD/MM/YYYY',
+                  dateInputFormat: 'DD/MM/YYYY',
+                  showWeekNumbers: false,
+                  ranges: ranges
+                }" />
+            </div>
+          </div>
+
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="agent">ตัวแทนจำหน่าย</label>
+              <select [(ngModel)]="criteria.agentId" class="form-control form-control-sm" id="agent"
+                [disabled]="this.master?.agents?.length === 1">
+                <option [ngValue]="undefined">ทั้งหมด</option>
+                <option *ngFor="let item of master.agents" [ngValue]="item.id">
+                  {{ item.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <button style="margin-top: 23px" id="btnSearch" type="button" class="btn btn-sm btn-secondary"
+              (click)="onClickSearch()">
+              ค้นหา
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-center row m-b-2">
+  <div class="col-md-4">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>จำนวนที่ส่งไปในวันนี้</h5>
+        <div>5 ครั้ง</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4" *ngIf="isUserHQ">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>เครดิตคงเหลือ</h5>
+        <div>9,994</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>จำนวนที่ส่งไปในเดือนนี้</h5>
+        <div>5 ครั้ง</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- เครดิตคงเหลือ : 9,994 -->
+</div>
+
+<app-sms-chart [criteria]="chartCriteria" [datasets]="chartDatasets" [label]="chartLabels"
+  [events]="eventsSubject.asObservable()" (search)="searchCharts()">
+</app-sms-chart>
+
+<div class="row">
+  <div [class]="isUserHQ ? 'col-md-6' : 'col-md-12'">
+    <app-sms-trans-log [smsLog]="smsLog" [(criteria)]="transLogCriteria" (search)="searchTransLog()">
+    </app-sms-trans-log>
+  </div>
+  <div *ngIf="isUserHQ" class="col-md-6">
+    <app-sms-agent-summary [summarySmsTrans]="summarySmsTrans" [(criteria)]="summaryCriteria"
+      (search)="searchAgentSummarry()"></app-sms-agent-summary>
+  </div>
+</div>
