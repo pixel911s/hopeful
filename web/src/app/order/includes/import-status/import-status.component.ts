@@ -269,6 +269,15 @@ export class ImportStatusComponent extends BaseComponent implements OnInit {
                 element.updateStatusDate = found.updateStatusDate
                   ? new Date(found.updateStatusDate)
                   : new Date();
+
+                if (!(element.updateStatusDate instanceof Date)) {
+                  element.error.push("วันที่ทำรายการผิด format.");
+                } else {
+                  // element.updateStatusDate.setDate(
+                  //   element.updateStatusDate.getDate() + 1
+                  // );
+                  element.updateStatusDate.setHours(0, 0, 0);
+                }
               }
 
               if (found.paymentStatus) {
@@ -278,20 +287,24 @@ export class ImportStatusComponent extends BaseComponent implements OnInit {
                   );
                 }
 
-                if (
-                  found.paymentStatus == "S" &&
-                  element.updateCODDate == null
-                ) {
-                  element.updateCODDate = new Date();
+                if (found.paymentStatus == "S") {
+                  element.updateCODDate = found.updateCODDate
+                    ? new Date(found.updateCODDate)
+                    : new Date();
+
+                  if (!(element.updateCODDate instanceof Date)) {
+                    element.error.push("วันที่ทำรายการผิด format.");
+                  } else {
+                    // element.updateCODDate.setDate(
+                    //   element.updateCODDate.getDate() + 1
+                    // );
+                    element.updateCODDate.setHours(0, 0, 0);
+                  }
                 }
 
                 if (found.paymentStatus == "W") {
                   element.updateCODDate = null;
                 }
-
-                element.updateCODDate = found.updateCODDate
-                  ? new Date(found.updateCODDate)
-                  : new Date();
               }
             }
           } else {
