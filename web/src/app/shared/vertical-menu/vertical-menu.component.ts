@@ -142,16 +142,16 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
             isExternalLink: false,
             submenu: [],
           },
-          {
-            path: "/product-group",
-            title: "จัดการกลุ่มสินค้า",
-            icon: "ft-arrow-right submenu-icon",
-            class: "",
-            badge: "",
-            badgeClass: "",
-            isExternalLink: false,
-            submenu: [],
-          },
+          // {
+          //   path: "/product-group",
+          //   title: "จัดการกลุ่มสินค้า",
+          //   icon: "ft-arrow-right submenu-icon",
+          //   class: "",
+          //   badge: "",
+          //   badgeClass: "",
+          //   isExternalLink: false,
+          //   submenu: [],
+          // },
         ],
       });
     }
@@ -199,7 +199,10 @@ export class VerticalMenuComponent implements OnInit, AfterViewInit, OnDestroy {
       ],
     };
 
-    if (this.user.function.SUPERVISOR) {
+    if (
+      this.user.function.SUPERVISOR &&
+      this.user.business.businessType == "A"
+    ) {
       setupMenu.submenu.push({
         path: "/setting/agent",
         title: "ตั้งค่าตัวแทนจำหน่าย",

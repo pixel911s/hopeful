@@ -115,6 +115,14 @@ export class UserService {
 
   updateUserInfo(data) {
     data.username = this.authService.getUser().username;
+
+    let model = {
+      username: data.username,
+      lineNotifyToken: data.lineNotifyToken,
+      displayImgUrl: data.displayImgUrl,
+      nickName: data.nickName,
+    };
+
     const fd = new FormData();
     if (data.newImageFlag) {
       fd.append("image", data.tmpNewImage);
@@ -122,7 +130,7 @@ export class UserService {
       data.imageUrl = undefined;
     }
 
-    fd.append("data", JSON.stringify(data));
+    fd.append("data", JSON.stringify(model));
 
     return this.http
       .post(environment.apiUrl + "/user/updateUserInfo", fd)

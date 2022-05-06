@@ -287,6 +287,7 @@ async function updateUserInfo(req, res) {
     return res.send(util.callbackSuccess("Save Data success.", true));
   } catch (e) {
     conn.rollback();
+    console.log(e);
     return res.status(500).send(e.message);
   } finally {
     conn.release();

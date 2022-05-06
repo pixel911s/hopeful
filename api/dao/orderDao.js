@@ -110,7 +110,7 @@ async function exportOrder(conn, criteria) {
 
     if (criteria.orderNo) {
       sql += " and o.orderNo like ?";
-      params.push("%" + criteria.code + "%");
+      params.push("%" + criteria.orderNo + "%");
     }
 
     if (criteria.deliveryName) {
