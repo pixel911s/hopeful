@@ -28,6 +28,19 @@ export class SmsChartComponent implements OnInit, OnDestroy {
 
   public lineChartOptions = {
     responsive: true,
+    scale: {
+      ticks: {
+        precision: 0
+      }
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'ปริมาณการส่งข้อมูล'
+        }
+      },
+    },
     plugins: {
       legend: {
         display: false

@@ -20,6 +20,8 @@ module.exports = {
   smsCharts,
   getSMSCredit,
   searchSummaryAgent,
+  getTotalDailySMS,
+  getTotalMonthlySMS,
 };
 
 async function getSMSCredit(req, res) {
@@ -223,6 +225,42 @@ async function searchSummaryAgent(req, res) {
     }
 
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getTotalDailySMS(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+    let result = null;
+
+    result = await auditDao.getTotalDailySmsTrans(conn, criteria);
+    let totalDaily = result.totalDaily ?? 0;
+
+    return res.send(util.callbackSuccess("", totalDaily));
+  } catch (e) {
+    console.error(e);
+    return res.status(500).send(e.message);
+  } finally {
+    conn.release();
+  }
+}
+
+async function getTotalMonthlySMS(req, res) {
+  const conn = await pool.getConnection();
+  try {
+    let criteria = req.body;
+    let result = null;
+
+    result = await auditDao.getTotalMonthlySmsTrans(conn, criteria);
+    let totalMonthly = result.totalMonthly ?? 0;
+
+    return res.send(util.callbackSuccess("", totalMonthly));
   } catch (e) {
     console.error(e);
     return res.status(500).send(e.message);

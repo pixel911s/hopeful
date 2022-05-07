@@ -6,7 +6,7 @@ const routes: Routes = [
   {
     path: "",
     component: SearchComponent,
-    data: { name: "SMS Dashboard", id: "SMS_DASHBOARD" },
+    data: { name: "SMS Dashboard", id: "VIEW_SMS" },
     canActivate: [AuthGuard],
   },
 ];

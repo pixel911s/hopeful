@@ -15,6 +15,8 @@ module.exports = {
   getGraphIncomes,
   getSummaryByAgent,
   countSummaryByAgent,
+  getTotalDailySmsTrans,
+  getTotalMonthlySmsTrans,
 };
 
 async function getGraphIncomes(conn) {
@@ -85,6 +87,11 @@ async function genChartsSms(conn, criteria) {
       sql +=
         "select YEAR(sendDttm) as year, MONTH(sendDttm) as month, sum(sms) as sms from sms_transaction where 1=1";
 
+      if (criteria.agentId) {
+        sql += " and agentId = ?";
+        params.push(criteria.agentId);
+      }
+
       let d = new Date();
       let year = d.getFullYear();
 
@@ -128,9 +135,14 @@ async function genChartsSms(conn, criteria) {
       sql +=
         "select YEAR(sendDttm) as year, MONTH(sendDttm) as month, DAY(sendDttm) as day, sum(sms) as sms from sms_transaction where 1=1";
 
+      if (criteria.agentId) {
+        sql += " and agentId = ?";
+        params.push(criteria.agentId);
+      }
+
       let startDate = new Date();
       let endDate = new Date();
-      startDate.setDate(startDate.getDate() - 11);
+      startDate.setDate(startDate.getDate() - 13);
       startDate.setHours(0);
       startDate.setMinutes(0);
       startDate.setSeconds(0);
@@ -149,7 +161,7 @@ async function genChartsSms(conn, criteria) {
 
       let items = [];
 
-      for (let index = 1; index <= 12; index++) {
+      for (let index = 1; index <= 14; index++) {
         let item = {
           label:
             startDate.getFullYear() +
@@ -376,6 +388,42 @@ async function countSummaryByAgent(conn, criteria) {
     let result = await conn.query(sql, params);
 
     return result[0].totalRecord;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getTotalDailySmsTrans(conn, criteria) {
+  try {
+    let params = [];
+    let sql = " SELECT SUM(sms) as totalDaily FROM sms_transaction WHERE YEAR(sendDttm) = YEAR(CURDATE()) AND MONTH(sendDttm) = MONTH(CURDATE()) AND DAY(sendDttm) = DAY(CURDATE())";
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result[0];
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getTotalMonthlySmsTrans(conn, criteria) {
+  try {
+    let params = [];
+    let sql = " SELECT SUM(sms) as totalMonthly FROM sms_transaction WHERE YEAR(sendDttm) = YEAR(CURDATE()) AND MONTH(sendDttm) = MONTH(CURDATE())";
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result[0];
   } catch (e) {
     throw e;
   }

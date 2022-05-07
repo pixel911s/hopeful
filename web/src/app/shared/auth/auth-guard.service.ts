@@ -83,6 +83,13 @@ export class AuthGuard implements CanActivate {
       this.authService.logout();
     }
 
+    if (
+      "VIEW_SMS" == route.routeConfig.data.id &&
+      !this.authService.getUser().function.SENDSMS
+    ) {
+      this.authService.logout();
+    }
+
     return true;
   }
 }

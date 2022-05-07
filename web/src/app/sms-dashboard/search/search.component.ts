@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { SMSService } from 'app/shared/services/sms.service';
-import { UserService } from 'app/shared/services/user.service';
 import { AuthService } from "app/shared/auth/auth.service";
 import { NgxSpinnerService } from 'ngx-spinner';
 import { Subject } from 'rxjs';
+import { DATE_RANGES } from 'app/shared/data/date-range';
 
 @Component({
   selector: 'app-sms-dashboard-search',
@@ -52,56 +52,26 @@ export class SearchComponent implements OnInit {
   chartLabels = [];
   eventsSubject: Subject<any> = new Subject<any>();
 
-  ranges: any = [
-    {
-      value: [new Date(), new Date()],
-      label: "วันนี้",
-    },
-    {
-      value: [
-        new Date(new Date().setDate(new Date().getDate() - 7)),
-        new Date(),
-      ],
-      label: "7 วัน",
-    },
-    {
-      value: [
-        new Date(new Date().setDate(new Date().getDate() - 15)),
-        new Date(),
-      ],
-      label: "15 วัน",
-    },
-    {
-      value: [
-        new Date(new Date().setMonth(new Date().getMonth() - 1)),
-        new Date(),
-      ],
-      label: "1 เดือน",
-    },
-    {
-      value: [
-        new Date(new Date().setMonth(new Date().getMonth() - 3)),
-        new Date(),
-      ],
-      label: "3 เดือน",
-    },
-  ];
+  credit: number = 0;
+  totalDaily: number = 0;
+  totalMonthly: number = 0;
+
+  ranges = DATE_RANGES;
 
   constructor(
     private smsService: SMSService,
     private spinner: NgxSpinnerService,
-    private userService: UserService,
     private authService: AuthService,
     ) { }
 
   async ngOnInit() {
-    this.user = await this.authService.getUserWithLoadAgents();
+    this.user = this.authService.getUser();
     this.isUserHQ = this.user.business.businessType === 'H';
     this.master.agents = this.user.userAgents;
 
     if (this.isUserHQ) {
       this.master.agents = [this.user.business].concat(this.master.agents);
-    }else if (this.master.agents && this.master.agents.length === 1) {
+    } else if (this.master.agents && this.master.agents.length === 1) {
       this.criteria.agentId = this.master.agents[0].id;
     }
 
@@ -132,7 +102,11 @@ export class SearchComponent implements OnInit {
   }
 
   async searchCharts() {
-    let res: any = await this.smsService.smsCharts(this.chartCriteria);
+    let criteriaSearch  = {
+      ...this.criteria,
+      ...this.chartCriteria,
+    }
+    let res: any = await this.smsService.smsCharts(criteriaSearch);
     this.chartDatasets = res.data.map(d => d.sms);
     this.chartLabels = res.data.map(d => d.label);
     this.eventsSubject.next({
@@ -142,17 +116,34 @@ export class SearchComponent implements OnInit {
     return res;
   }
 
+  async searchCredit() {
+    let res: any = await this.smsService.getSMSCredit();
+    this.credit = res.data;
+    return res;
+  }
+
+  async searchTotalDaily() {
+    let res: any = await this.smsService.getTotalDailySms(this.criteria);
+    this.totalDaily = res.data;
+    return res;
+  }
+
+  async searchTotalMonthly() {
+    let res: any = await this.smsService.getTotalMonthlySms(this.criteria);
+    this.totalMonthly = res.data;
+    return res;
+  }
+
   async search() {
     this.spinner.show();
-
     let res: any = await this.searchTransLog();
-
-    let res2: any = await this.searchAgentSummarry();
-
-    let res3: any = await this.searchCharts();
-
-    this.smsLog = res;
-
+    let res2: any = await this.searchCharts();
+    if (this.isUserHQ) {
+      let res3: any = await this.searchAgentSummarry();
+      let res4: any = await this.searchCredit();
+    }
+    await this.searchTotalDaily();
+    await this.searchTotalMonthly();
     this.spinner.hide();
   }
 

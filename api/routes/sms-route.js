@@ -13,5 +13,7 @@ router.route("/smsCharts").post(smsService.smsCharts);
 router.route("/searchSms").post(smsService.search);
 router.route("/getSMSCredit").post(smsService.getSMSCredit);
 router.route("/summaryAgent").post(smsService.searchSummaryAgent)
+router.route("/totalDailySms").post(smsService.getTotalDailySMS)
+router.route("/totalMonthlySms").post(smsService.getTotalMonthlySMS)
 
 module.exports = router;

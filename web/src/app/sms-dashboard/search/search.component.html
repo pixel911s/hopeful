@@ -46,35 +46,59 @@
 </div>
 
 <div class="d-flex justify-content-center row m-b-2">
-  <div class="col-md-4">
-    <div class="card m-b-20">
+  <div class="col-md-4 px-3">
+    <div class="card m-b-20 p-1">
       <div class="card-body">
-        <h5>จำนวนที่ส่งไปในวันนี้</h5>
-        <div>5 ครั้ง</div>
+        <div class="row">
+          <div class="col-3">
+            <i class="ft-send align-middle font-large-5"></i>
+          </div>
+          <div class="col-9 text-right">
+            <h5 class="text-secondary">จำนวนที่ส่งไปในวันนี้</h5>
+            <div class="">
+              <span class="font-large-3">{{totalDaily | number: ".0"}}</span> ครั้ง
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4" *ngIf="isUserHQ">
-    <div class="card m-b-20">
+  <div class="col-md-4 px-3" *ngIf="isUserHQ">
+    <div class="card m-b-20 p-1">
       <div class="card-body">
-        <h5>เครดิตคงเหลือ</h5>
-        <div>9,994</div>
+        <div class="row">
+          <div class="col-3">
+            <i class="ft-mail align-middle font-large-5"></i>
+          </div>
+          <div class="col-9 text-right">
+            <h5 class="text-secondary">เครดิตคงเหลือ</h5>
+            <div class="">
+              <span class="font-large-3">{{credit | number: ".0"}}</span> ครั้ง
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
-    <div class="card m-b-20">
+  <div class="col-md-4 px-3">
+    <div class="card m-b-20 p-1">
       <div class="card-body">
-        <h5>จำนวนที่ส่งไปในเดือนนี้</h5>
-        <div>5 ครั้ง</div>
+        <div class="row">
+          <div class="col-3">
+            <i class="ft-calendar align-middle font-large-5"></i>
+          </div>
+          <div class="col-9 text-right">
+            <h5 class="text-secondary">จำนวนที่ส่งไปในเดือนนี้</h5>
+            <div class="">
+              <span class="font-large-3">{{totalMonthly | number: ".0"}}</span> ครั้ง
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-
-  <!-- เครดิตคงเหลือ : 9,994 -->
 </div>
 
 <app-sms-chart [criteria]="chartCriteria" [datasets]="chartDatasets" [label]="chartLabels"
