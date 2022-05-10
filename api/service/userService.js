@@ -192,6 +192,10 @@ async function get(req, res) {
         result.supervisor = true;
       }
 
+      if ("VIEW_SMS" == f.functionCode) {
+        result.selectViewSMS = true;
+      }
+
       if ("SENDSMS" == f.functionCode) {
         result.selectSendSMS = true;
       }

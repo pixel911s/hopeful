@@ -28,35 +28,6 @@ import { BaseChartDirective } from "ng2-charts";
 export class ManageSMSComponent extends BaseComponent implements OnInit {
   sender = "MYSHOP";
 
-  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-
-  public barChartOptions: ChartConfiguration["options"] = {
-    responsive: true,
-    // We use these empty structures as placeholders for dynamic theming.
-    scales: {
-      x: {},
-      y: {
-        suggestedMin: 0,
-        suggestedMax: 10,
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-      // datalabels: {
-      //   anchor: 'end',
-      //   align: 'end'
-      // }
-    },
-  };
-  public barChartType: ChartType = "bar";
-
-  public barChartData: ChartData<"bar"> = {
-    labels: ["2006", "2007", "2008", "2009", "2010", "2011", "2012"],
-    datasets: [{ data: [], label: "Series A" }],
-  };
-
   public formGroup: FormGroup;
 
   public data: any = {
@@ -74,20 +45,6 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     page: 1,
     size: 10,
     type: 1,
-  };
-
-  public criteria2: any = {
-    page: 1,
-    size: 10,
-    dates: [new Date(), new Date()],
-  };
-
-  public criteria3: any = {
-    type: 0,
-  };
-
-  smsLog: any = {
-    totalRecord: 0,
   };
 
   master: any = {};
@@ -135,6 +92,8 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     return this.formGroup.controls;
   }
 
+  user;
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -169,45 +128,15 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
     this.sender = "HOPEFUL";
 
     await this.search();
-    await this.searchTransaction();
-    await this.searchCharts();
+
+    this.user = this.authService.getUser();
+    console.log('user ==> ', this.user)
   }
 
   async search() {
     let res: any = await this.smsService.getSMSCredit();
 
     this.credit = res.data;
-  }
-
-  async searchTransaction() {
-    this.spinner.show();
-
-    console.log(this.criteria2);
-
-    let res: any = await this.smsService.searchSms(this.criteria2);
-
-    console.log(res);
-
-    this.smsLog = res;
-
-    this.spinner.hide();
-  }
-
-  async searchCharts() {
-    this.spinner.show();
-    let res: any = await this.smsService.smsCharts(this.criteria3);
-
-    console.log(res);
-    this.barChartData.datasets[0].data = [];
-    this.barChartData.labels = [];
-    for (let index = 0; index < res.data.length; index++) {
-      const element = res.data[index];
-      this.barChartData.datasets[0].data.push(element.sms);
-      this.barChartData.labels.push(element.label);
-    }
-    console.log(this.barChartData);
-    this.chart?.update();
-    this.spinner.hide();
   }
 
   async sendSms() {
@@ -239,10 +168,16 @@ export class ManageSMSComponent extends BaseComponent implements OnInit {
       if (result === true) {
         this.spinner.show();
 
-        let res: any = await this.smsService.sendManual(this.data);
+        console.log('data: ', this.data);
 
-        await this.searchTransaction();
-        await this.searchCharts();
+        // เพิ่ม ข้อมูลผู้ส่ง
+        this.data = {
+          ...this.data,
+          agentId: this.user?.businessId || null,
+          createBy: this.user?.username || null
+        }
+
+        let res: any = await this.smsService.sendManual(this.data);
         await this.search();
 
         this.spinner.hide();

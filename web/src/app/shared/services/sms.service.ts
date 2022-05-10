@@ -30,4 +30,22 @@ export class SMSService {
       .post(environment.apiUrl + "/sms/getSMSCredit", null)
       .toPromise();
   }
+
+  getSMSSummaryByAgent(data) {
+    return this.http
+      .post(environment.apiUrl + "/sms/summaryAgent", data)
+      .toPromise();
+  }
+
+  getTotalDailySms(data) {
+    return this.http
+      .post(environment.apiUrl + "/sms/totalDailySms", data)
+      .toPromise();
+  }
+
+  getTotalMonthlySms(data) {
+    return this.http
+      .post(environment.apiUrl + "/sms/totalMonthlySms", data)
+      .toPromise();
+  }
 }

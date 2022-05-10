@@ -3,4 +3,22 @@
     <div class="content-header">HOPEFUL CRM SYSTEM</div>
     <p class="content-sub-header mb-1">Welcome.</p>
   </div>
+
+  <div class="col-md-4 px-3" *ngIf="isUserHQ">
+    <div class="card m-b-20 p-1">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-3">
+            <i class="ft-mail align-middle font-large-5"></i>
+          </div>
+          <div class="col-9 text-right">
+            <h5 class="text-secondary">เครดิตคงเหลือ</h5>
+            <div class="">
+              <span class="font-large-3">{{credit | number: ".0"}}</span> ครั้ง
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

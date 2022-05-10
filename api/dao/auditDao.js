@@ -13,6 +13,10 @@ module.exports = {
   getSuccesPaymentLogs,
   countSuccesPaymentLogs,
   getGraphIncomes,
+  getSummaryByAgent,
+  countSummaryByAgent,
+  getTotalDailySmsTrans,
+  getTotalMonthlySmsTrans,
 };
 
 async function getGraphIncomes(conn) {
@@ -83,6 +87,11 @@ async function genChartsSms(conn, criteria) {
       sql +=
         "select YEAR(sendDttm) as year, MONTH(sendDttm) as month, sum(sms) as sms from sms_transaction where 1=1";
 
+      if (criteria.agentId) {
+        sql += " and agentId = ?";
+        params.push(criteria.agentId);
+      }
+
       let d = new Date();
       let year = d.getFullYear();
 
@@ -126,9 +135,14 @@ async function genChartsSms(conn, criteria) {
       sql +=
         "select YEAR(sendDttm) as year, MONTH(sendDttm) as month, DAY(sendDttm) as day, sum(sms) as sms from sms_transaction where 1=1";
 
+      if (criteria.agentId) {
+        sql += " and agentId = ?";
+        params.push(criteria.agentId);
+      }
+
       let startDate = new Date();
       let endDate = new Date();
-      startDate.setDate(startDate.getDate() - 11);
+      startDate.setDate(startDate.getDate() - 13);
       startDate.setHours(0);
       startDate.setMinutes(0);
       startDate.setSeconds(0);
@@ -147,7 +161,7 @@ async function genChartsSms(conn, criteria) {
 
       let items = [];
 
-      for (let index = 1; index <= 12; index++) {
+      for (let index = 1; index <= 14; index++) {
         let item = {
           label:
             startDate.getFullYear() +
@@ -194,6 +208,10 @@ async function countSms(conn, criteria) {
       params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
       params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
     }
+    if (criteria.agentId) {
+      sql += " and agentId = ?";
+      params.push(criteria.agentId);
+    }
 
     let result = await conn.query(sql, params);
 
@@ -213,12 +231,17 @@ async function searchSms(conn, criteria) {
 
     let params = [];
 
-    let sql = "select * from sms_transaction where 1=1";
+    let sql = "select sms.*, b.name as agentName from sms_transaction sms left join business b on sms.agentId = b.id where 1=1";
 
     if (criteria.dates != undefined) {
       sql += " and sendDttm  between ? AND ?";
       params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
       params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    if (criteria.agentId) {
+      sql += " and agentId = ?";
+      params.push(criteria.agentId);
     }
 
     sql += " order by sendDttm desc ";
@@ -238,8 +261,8 @@ async function searchSms(conn, criteria) {
 async function createSms(conn, model) {
   try {
     let sql =
-      "INSERT INTO `sms_transaction` (`mobile`, `sendDttm`, `status`, sms, data, message)  ";
-    sql += " VALUES (?,?,?,?,?,?)";
+      "INSERT INTO `sms_transaction` (`mobile`, `sendDttm`, `status`, sms, data, message, agentId, createBy)  ";
+    sql += " VALUES (?,?,?,?,?,?,?,?)";
     let result = await conn.query(sql, [
       model.mobile,
       new Date(),
@@ -247,6 +270,8 @@ async function createSms(conn, model) {
       model.sms,
       model.data,
       model.message,
+      model.agentId,
+      model.createBy
     ]);
 
     return result;
@@ -297,6 +322,106 @@ async function getByToken(conn, token) {
     let sql = "select * from audit where token = ? and status = 0";
 
     let result = await conn.query(sql, [token]);
+
+    return result[0];
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getSummaryByAgent(conn, criteria) {
+  try {
+    let startRecord = 0;
+
+    if (criteria.page && criteria.size) {
+      startRecord = (criteria.page - 1) * criteria.size;
+    }
+
+    let params = [];
+    let sql = 'SELECT smst.agentId, SUM(smst.sms) AS sms, b.name FROM sms_transaction smst left join business b on (smst.agentId = b.id) WHERE 1=1';
+
+    if (criteria.agentId) {
+      sql += " AND smst.agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    if (criteria.dates != undefined) {
+      sql += " AND sendDttm BETWEEN ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    sql += ' GROUP BY smst.agentId ORDER BY sms DESC, smst.agentId ASC';
+
+    if (criteria.page && criteria.size) {
+      sql += " LIMIT " + startRecord + "," + criteria.size;
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function countSummaryByAgent(conn, criteria) {
+  try {
+    let params = [];
+    let sql = 'SELECT smst.agentId FROM sms_transaction smst WHERE 1=1';
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    if (criteria.dates != undefined) {
+      sql += " AND sendDttm BETWEEN ? AND ?";
+      params.push(dateUtil.convertForSqlFromDate(criteria.dates[0]));
+      params.push(dateUtil.convertForSqlToDate(criteria.dates[1]));
+    }
+
+    sql += ' GROUP BY agentId';
+
+    sql = `SELECT count(*) as totalRecord FROM (${sql}) as T`;
+
+    let result = await conn.query(sql, params);
+
+    return result[0].totalRecord;
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getTotalDailySmsTrans(conn, criteria) {
+  try {
+    let params = [];
+    let sql = " SELECT SUM(sms) as totalDaily FROM sms_transaction WHERE YEAR(sendDttm) = YEAR(CURDATE()) AND MONTH(sendDttm) = MONTH(CURDATE()) AND DAY(sendDttm) = DAY(CURDATE())";
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    let result = await conn.query(sql, params);
+
+    return result[0];
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function getTotalMonthlySmsTrans(conn, criteria) {
+  try {
+    let params = [];
+    let sql = " SELECT SUM(sms) as totalMonthly FROM sms_transaction WHERE YEAR(sendDttm) = YEAR(CURDATE()) AND MONTH(sendDttm) = MONTH(CURDATE())";
+
+    if (criteria.agentId) {
+      sql += " AND agentId = ?";
+      params.push(criteria.agentId);
+    }
+
+    let result = await conn.query(sql, params);
 
     return result[0];
   } catch (e) {

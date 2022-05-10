@@ -417,9 +417,21 @@
             </div>
           </div>
 
-          <div class="col-6 col-md-3 m-b-20" *ngIf="data.businessType == 'H'">
+          <div class="col-6 col-md-3 m-b-20">
             <div>
               <h6>จัดการ SMS</h6>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input
+                type="checkbox"
+                class="custom-control-input"
+                id="selectViewSMS"
+                formControlName="selectViewSMS"
+                [(ngModel)]="data.selectViewSMS"
+              />
+              <label class="custom-control-label" for="selectViewSMS"
+                >ดูข้อมูล SMS</label
+              >
             </div>
             <div class="custom-control custom-checkbox">
               <input
