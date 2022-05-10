@@ -3,6 +3,7 @@ import { FormGroup, FormControl, Validators } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { MatDialog } from "@angular/material/dialog";
 import { SelectProductComponent } from "../select-product/select-product.component";
+import { SelectProductGroupComponent } from "../select-product-group/select-product-group.component";
 import { BaseComponent } from "app/base/base.component";
 import { AuthService } from "app/shared/auth/auth.service";
 import { MasterService } from "app/shared/services/master.service";
@@ -233,6 +234,35 @@ export class OrderFormComponent extends BaseComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        if (!this.data.orderDetail) {
+          this.data.orderDetail = [];
+        }
+        let duplicated = false;
+        for (let index = 0; index < this.data.orderDetail.length; index++) {
+          const product = this.data.orderDetail[index];
+          if (product.id == result.id) {
+            duplicated = true;
+          }
+        }
+        if (!duplicated) {
+          result.qty = 1;
+          this.data.orderDetail.push(result);
+          this.calPrice();
+        }
+      }
+    });
+  }
+
+  selectProductGroup() {
+    const dialogRef = this.dialog.open(SelectProductGroupComponent, {
+      maxWidth: "600px",
+      minWidth: "300px",
+      data: { info: true },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log("🚀 ~ result from modal product group", result)
       if (result) {
         if (!this.data.orderDetail) {
           this.data.orderDetail = [];

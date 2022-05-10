@@ -1,0 +1,37 @@
+.info {
+    font-size: 1.2rem;
+    margin-right: 10px;
+    color: #00bfa5;
+}
+
+.error {
+    font-size: 1.2rem;
+    margin-right: 10px;
+    color: #c51162;
+}
+
+.b-error {
+    border: #c51162 1px solid;
+}
+
+.b-info {
+    border: #00bfa5 1px solid;
+}
+
+.product-icon {
+    font-size: 2.5rem;
+    color: #d5d1d1;
+    margin-bottom: 6px;
+}
+
+.card {
+    background: #b9769c;
+    background: -webkit-linear-gradient(left top, #CA619C, #DBC084);
+    background: linear-gradient(to bottom right, #CA619C, #DBC084);
+    border-radius: 5px;
+    padding: 16px;
+    min-width: 2rem;
+    height: 100px;
+    margin: 5px;
+    cursor: pointer;
+}

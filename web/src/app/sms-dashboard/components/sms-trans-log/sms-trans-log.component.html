@@ -1,0 +1,133 @@
+<div class="row m-b-20">
+  <div class="col-md-12">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <h5>รายการส่ง SMS</h5>
+        <hr />
+
+        <!-- <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="dates">วันที่ส่ง SMS</label>
+              <input
+                readonly
+                autocomplete="off"
+                [(ngModel)]="criteria.dates"
+                [bsValue]="criteria.dates"
+                class="form-control form-control-sm"
+                id="dates"
+                bsDaterangepicker
+                [bsConfig]="{
+                  rangeInputFormat: 'DD/MM/YYYY',
+                  dateInputFormat: 'DD/MM/YYYY',
+                  showWeekNumbers: false,
+                  ranges: ranges
+                }"
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <button
+              style="margin-top: 23px"
+              id="btnSearch"
+              type="button"
+              class="btn btn-sm btn-secondary"
+              (click)="criteria.page = 1; searchTransaction()"
+            >
+              ค้นหา
+            </button>
+          </div>
+        </div> -->
+
+        <div class="row" *ngIf="smsLog.totalRecord == 0">
+          <div class="col-12">
+            <div class="bd-callout bd-callout-info text-center">
+              <h5>- ไม่พบข้อมูลการส่ง SMS -</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" *ngIf="smsLog.totalRecord > 0">
+          <div class="col-12">
+            <small class="text-primary text-right d-block"
+              >ทั้งหมด {{ smsLog.totalRecord }} รายการ</small
+            >
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th class="text-left">เบอร์โทรศัพท์</th>
+                    <th class="text-left">ข้อความ</th>
+                    <th class="text-left">ตัวแทนจำหน่าย</th>
+                    <th class="text-right">เครดิตที่ใช้</th>
+                    <th class="text-center">วันที่ส่ง</th>
+                    <th class="text-center">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of smsLog.data; let index = index"
+                    class="poiter"
+                  >
+                    <td class="text-left">
+                      <span *ngIf="item.mobile != 'multi'">{{
+                        item.mobile
+                      }}</span>
+                      <span
+                        class="text-primary"
+                        (click)="viewDetail(item)"
+                        *ngIf="item.mobile == 'multi'"
+                        >{{ item.mobile }} <i class="fas fa-search"></i
+                      ></span>
+                    </td>
+                    <td class="text-left" style="max-width: 200px;">
+                      <span class="d-block text-truncate" [title]="item.message || '-'">{{item.message || '-'}}</span>
+                    </td>
+                    <td class="text-left" style="max-width: 100px;">
+                      <span class="d-block text-truncate" [title]="item.agentName || '-'">{{item.agentName || "-"}}</span>
+                    </td>
+                    <td class="text-right">
+                      {{ item.sms | number: ".0" }}
+                    </td>
+                    <td class="text-center">
+                      {{ item.sendDttm | date: "dd/MM/yyyy HH:mm:ss" }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge badge-success">SUCCESS</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <select
+                (change)="criteria.page = 1; searchTransaction()"
+                [(ngModel)]="criteria.size"
+                class="form-control form-control-sm"
+                id="status"
+                style="width: auto"
+              >
+                <option [ngValue]="1">แสดงผล 1 รายการ</option>
+                <option [ngValue]="5">แสดงผล 5 รายการ</option>
+                <option [ngValue]="20">แสดงผล 20 รายการ</option>
+                <option [ngValue]="100">แสดงผล 100 รายการ</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-6">
+            <ngb-pagination
+              class="float-right"
+              [(page)]="criteria.page"
+              [pageSize]="criteria.size"
+              [maxSize]="10"
+              [collectionSize]="smsLog.totalRecord"
+              (pageChange)="searchTransaction()"
+            ></ngb-pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

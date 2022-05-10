@@ -2,7 +2,7 @@
 
 var util = require("../utils/responseUtils");
 const fileUtil = require("../utils/fileUtil");
-var productDao = require("../dao/productDao");
+var productGroupDao = require("../dao/productGroupDao");
 
 const config = require("config");
 const mysql = require("promise-mysql");
@@ -10,19 +10,17 @@ const pool = mysql.createPool(config.mysql);
 
 module.exports = {
   get,
+  getProductGroups,
   search,
   save,
-  deleteProduct,
-  getByBarcode,
+  deleteProductGroup,
 };
 
-async function getByBarcode(req, res) {
+async function get(req, res) {
   const conn = await pool.getConnection();
   try {
-    let criteria = req.body;
-
-    let result = await productDao.getByBarcode(conn, criteria.barcode);
-
+    const criteria = req.body;
+    const result = await productGroupDao.get(conn, criteria.id);
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
     console.error(e);
@@ -32,21 +30,10 @@ async function getByBarcode(req, res) {
   }
 }
 
-async function get(req, res) {
+async function getProductGroups(req, res) {
   const conn = await pool.getConnection();
   try {
-    let criteria = req.body;
-
-    let result = await productDao.get(conn, criteria.id);
-    result.agentPrices = await productDao.getAgentPrice(conn, criteria.id);
-
-    // for (let index = 0; index < result.itemInSet.length; index++) {
-    //   const element = result.itemInSet[index];
-
-    //   let _prod = await productDao.get(conn, element.itemId);
-    //   element.product = _prod;
-    // }
-
+    const result = await productGroupDao.getProductGroups(conn);
     return res.send(util.callbackSuccess(null, result));
   } catch (e) {
     console.error(e);
@@ -59,10 +46,10 @@ async function get(req, res) {
 async function search(req, res) {
   const conn = await pool.getConnection();
   try {
-    let criteria = req.body;
+    const criteria = req.body;
     let result = null;
 
-    let totalRecord = criteria.productGroupId ? await productDao.countProductGroupItem(conn, criteria) : await productDao.count(conn, criteria);
+    let totalRecord = await productGroupDao.count(conn, criteria);
 
     let totalPage = Math.round(totalRecord / criteria.size);
     if (totalPage <= 0) {
@@ -70,11 +57,7 @@ async function search(req, res) {
     }
 
     if (totalRecord > 0) {
-      if (criteria.productGroupId) {
-        result = await productDao.searchProductGroupItem(conn, criteria);
-      } else {
-        result = await productDao.search(conn, criteria);
-      }
+      result = await productGroupDao.search(conn, criteria);
     }
 
     return res.send(util.callbackPaging(result, totalPage, totalRecord));
@@ -91,36 +74,22 @@ async function save(req, res) {
   conn.beginTransaction();
   try {
     let model = JSON.parse(req.body.data);
-    // let model = req.body;
-    let files = req.files;
-    let inputFile = config.path.product_file_input;
-    let outputFile = config.path.product_file_output;
+    const _productGroupId = await productGroupDao.save(conn, model); // insert product group
 
-    if (files) {
-      let img = files["image"];
+    await productGroupDao.deleteProductGroupItem(conn, _productGroupId);
 
-      if (img) {
-        model.imageUrl = await fileUtil.uploadImg(
-          inputFile,
-          outputFile,
-          model.code.trim(),
-          img
-        );
+    // mapping product group item 
+    if (model) {
+      if (model.itemInSet && model.itemInSet.length > 0) {
+        for (let i = 0; i < model.itemInSet.length; i++) {
+          const productItem = model.itemInSet[i];
+          if (productItem.id) {
+            await productGroupDao.saveProductGroupItem(conn, productItem, _productGroupId);
+          }
+        }
       }
     }
-
-    let _productId = await productDao.save(conn, model);
-
-    await productDao.deleteAgentPrice(conn, _productId);
-
-    for (let index = 0; index < model.agentPrices.length; index++) {
-      model.agentPrices[index].productId = _productId;
-      model.agentPrices[index].createBy = model.updateUser;
-      await productDao.addAgentPrice(conn, model.agentPrices[index]);
-    }
-
     conn.commit();
-
     return res.send(
       util.callbackSuccess("บันทึกข้อมูลสินค้าเสร็จสมบูรณ์", true)
     );
@@ -137,14 +106,14 @@ async function save(req, res) {
   }
 }
 
-async function deleteProduct(req, res) {
+async function deleteProductGroup(req, res) {
   const conn = await pool.getConnection();
   conn.beginTransaction();
   try {
     let model = req.body;
 
-    await productDao.deleteAgentPrice(conn, model.id);
-    await productDao.deleteProduct(conn, model.id);
+    // await productGroupDao.deleteAgentPrice(conn, model.id);
+    await productGroupDao.deleteProductGroup(conn, model.id);
 
     conn.commit();
 

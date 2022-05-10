@@ -33,6 +33,11 @@ export const Full_ROUTES: Routes = [
       import("../../product/product.module").then((m) => m.ProductModule),
   },
   {
+    path: "product-group",
+    loadChildren: () =>
+      import("../../product-group/product-group.module").then((m) => m.ProductGroupModule),
+  },
+  {
     path: "agent-product",
     loadChildren: () =>
       import("../../agent-product/agent-product.module").then(

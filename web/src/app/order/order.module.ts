@@ -12,6 +12,7 @@ import { ViewOrderComponent } from "./view/view-order.component";
 import { ImportOrderComponent } from "./includes/import-order/import-order.component";
 import { SelectAddressComponent } from "./includes/select-address/select-address.component";
 import { ImportStatusComponent } from "./includes/import-status/import-status.component";
+import { SelectProductGroupComponent } from "./includes/select-product-group/select-product-group.component";
 
 @NgModule({
   imports: [CommonModule, SharedModule, OrderRoutingModule],
@@ -24,6 +25,7 @@ import { ImportStatusComponent } from "./includes/import-status/import-status.co
     ImportOrderComponent,
     SelectAddressComponent,
     ImportStatusComponent,
+    SelectProductGroupComponent
   ],
   entryComponents: [
     ImportOrderComponent,

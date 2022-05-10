@@ -559,10 +559,10 @@ async function addOrder(model, conn) {
       month
     );
 
-    let productRemainingDay = product.remainingDay;
+    let productRemainingDay = product.agentRemainingDay;
 
-    if (product.agentRemainingDay) {
-      productRemainingDay = product.agentRemainingDay;
+    if (productRemainingDay) {
+      productRemainingDay = product.remainingDay;
     }
 
     //==== จำนวนวันนัด = จำนวนวันที่ใช้ของสินค้า x จำนวนสินค้าที่สั่งซื้อ
@@ -1358,10 +1358,6 @@ async function exportOrder(req, res) {
       row.getCell(col++).value = transasction.orderCount;
 
       row.getCell(col++).value = transasction.status;
-
-      row.getCell(col++).value = transasction.vendor;
-      row.getCell(col++).value = transasction.trackingNo;
-
       row.getCell(col++).value = transasction.paymentStatus;
       row.getCell(col++).value = transasction.updateCODDate
         ? moment(transasction.updateCODDate)

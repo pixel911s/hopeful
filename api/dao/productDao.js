@@ -3,7 +3,9 @@
 module.exports = {
   get,
   search,
+  searchProductGroupItem,
   count,
+  countProductGroupItem,
   save,
   deleteProduct,
   addAgentPrice,
@@ -73,6 +75,54 @@ async function count(conn, criteria) {
   }
 }
 
+async function countProductGroupItem(conn, criteria) {
+  try {
+    let params = [];
+
+    let sql = `SELECT COUNT(*) as totalRecord
+               FROM productgroupitem prod_item
+               RIGHT join product prod ON prod_item.productId = prod.id
+               WHERE 1=1
+              and prod_item.productGroupId = ${criteria.productGroupId}`
+
+    if (criteria.code) {
+      sql += " and prod.code like ?";
+      params.push("%" + criteria.code + "%");
+    }
+
+    if (criteria.name) {
+      sql += " and prod.name like ?";
+      params.push("%" + criteria.name + "%");
+    }
+
+    if (criteria.status != undefined) {
+      sql += " and prod.status = ?";
+      params.push(criteria.status);
+    }
+
+    if (criteria.keyword) {
+      sql += " and (prod.name like ? or prod.code like ?)";
+      params.push("%" + criteria.keyword + "%");
+      params.push("%" + criteria.keyword + "%");
+    }
+
+    if (criteria.isSet) {
+      if (criteria.isSet == true) {
+        sql += " and prod.isSet=true";
+      } else {
+        sql += " and prod.isSet=false";
+      }
+    }
+
+    const result = await conn.query(sql, params);
+
+    return result[0].totalRecord;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
 async function search(conn, criteria) {
   try {
     let startRecord = (criteria.page - 1) * criteria.size;
@@ -111,6 +161,61 @@ async function search(conn, criteria) {
     }
 
     sql += " order by code";
+
+    sql += " limit " + startRecord + "," + criteria.size;
+
+    let result = await conn.query(sql, params);
+
+    return result;
+  } catch (e) {
+    console.log("ERROR : ", e);
+    throw e;
+  }
+}
+
+async function searchProductGroupItem(conn, criteria) {
+  try {
+    let startRecord = (criteria.page - 1) * criteria.size;
+
+    let params = [];
+
+    let sql = `SELECT 
+                prod_item.productGroupId,
+                prod.*
+              FROM productgroupitem prod_item
+              RIGHT join product prod ON prod_item.productId = prod.id
+              WHERE 1=1
+              and prod_item.productGroupId = ${criteria.productGroupId}`
+    if (criteria.code) {
+      sql += " and prod.code like ?";
+      params.push("%" + criteria.code + "%");
+    }
+
+    if (criteria.name) {
+      sql += " and prod.name like ?";
+      params.push("%" + criteria.name + "%");
+    }
+
+    if (criteria.status != undefined) {
+      sql += " and prod.status = ?";
+      params.push(criteria.status);
+    }
+
+    if (criteria.keyword) {
+      sql += " and (prod.name like ? or prod.code like ?)";
+      params.push("%" + criteria.keyword + "%");
+      params.push("%" + criteria.keyword + "%");
+    }
+
+    if (criteria.isSet) {
+      if (criteria.isSet == true) {
+        sql += " and prod.isSet=true";
+      } else {
+        sql += " and prod.isSet=false";
+      }
+    }
+
+    sql += " order by prod.code";
 
     sql += " limit " + startRecord + "," + criteria.size;
 

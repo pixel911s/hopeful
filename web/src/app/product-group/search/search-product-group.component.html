@@ -1,0 +1,104 @@
+<app-nav-bar></app-nav-bar>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <h5 class="d-inline">จัดการกลุ่มสินค้า</h5>
+        <hr />
+      </div>
+      <div class="col-12 col-md-9">
+        <div class="form-group">
+          <label for="keyword">Keyword</label>
+          <input (keyup.enter)="criteria.page = 1; search()" autocomplete="off" [(ngModel)]="criteria.keyword"
+            class="form-control form-control-sm" id="keyword" />
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="status">สถานะ</label>
+          <select (change)="criteria.page = 1; search()" [(ngModel)]="criteria.status"
+            class="form-control form-control-sm" id="status">
+            <option [ngValue]="undefined">ทั้งหมด</option>
+            <option [ngValue]="1">ใช้งาน</option>
+            <option [ngValue]="0">ไม่ใช้งาน</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12">
+        <button id="btnSearch" type="button" class="btn btn-sm btn-secondary" (click)="criteria.page = 1; search()">
+          ค้นหา
+        </button>
+        <button id="btnSearch" type="button" class="btn btn-sm btn-primary m-l-10" [routerLink]="['/product-group/create']"
+          routerLinkActive="router-link-active" *ngIf="user.function.CREATE_AGENT">
+          เพิ่มสินค้า
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12 text-right">
+        <hr />
+        ข้อมูลทั้งหมด {{ data.totalRecord | number: ".0" }} รายการ
+      </div>
+    </div>
+    <div class="row" *ngIf="data.totalRecord > 0">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-hover custom-table" id="tblData">
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 100px">ชื่อกลุ่มสินค้า</th>
+                <!-- <th class="text-center" style="width: 120px">รายละเอียด</th> -->
+                <th class="text-center" style="width: 120px">ลำดับความสำคัญ</th>
+                <th class="text-center" style="width: 120px">จำนวนสินค้า</th>
+                <th class="text-center" style="width: 70px">สถานะ</th>
+                <th style="width: 70px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of data.data">
+                <td class="text-center">{{ item.description }}</td>
+                <td class="text-center">{{ item.no }}</td>
+                <td class="text-center">{{ item.productCount | number: ".0" }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.status == 0" class="badge bg-light-danger">ไม่ใช้งาน</span>
+                  <span *ngIf="item.status == 1" class="badge bg-light-success">ใช้งาน</span>
+                </td>
+                <td class="text-center" style="width: 120px">
+                  <div ngbDropdown container="body">
+                    <a id="ddMenu1" style="color: #007bff" ngbDropdownToggle><b><small>ตัวจัดการ</small></b></a>
+                    <div ngbDropdownMenu aria-labelledby="ddMenu1">
+                      <button class="w-100" (click)="update(item)" ngbDropdownItem *ngIf="user.function.CREATE_AGENT">
+                        ดู / แก้ไขข้อมูล
+                      </button>
+                      <button class="w-100" (click)="remove(item)" ngbDropdownItem *ngIf="user.function.CREATE_AGENT">
+                        ลบข้อมูล
+                      </button>
+                      <button class="w-100" (click)="view(item)" ngbDropdownItem *ngIf="!user.function.CREATE_AGENT">
+                        ดูข้อมูล
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <select (change)="criteria.page = 1; search()" [(ngModel)]="criteria.size"
+            class="form-control form-control-sm" id="status" style="width: auto">
+            <option [ngValue]="5">แสดงผล 5 รายการ</option>
+            <option [ngValue]="20">แสดงผล 20 รายการ</option>
+            <option [ngValue]="100">แสดงผล 100 รายการ</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <ngb-pagination class="float-right" [(page)]="criteria.page" [pageSize]="criteria.size" [maxSize]="10"
+          [collectionSize]="data.totalRecord" (pageChange)="search()"></ngb-pagination>
+      </div>
+    </div>
+  </div>
+</div>

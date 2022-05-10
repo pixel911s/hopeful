@@ -1,0 +1,19 @@
+<div mat-dialog-content class="m-b-20">
+  <h5>
+    เบอร์โทรศัพท์
+  </h5>
+  <h6>{{data.message}}</h6>
+  <h6 *ngIf="data.remark" class="text-primary">
+    <small>{{ data.remark }}</small>
+  </h6>
+</div>
+<div class="text-center" *ngIf="!data.hideBtn">
+  <button
+    id="btnOk"
+    type="button"
+    class="btn btn-secondary"
+    (click)="onNoClick()"
+  >
+    Ok
+  </button>
+</div>

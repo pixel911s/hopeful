@@ -1,0 +1,99 @@
+<div class="row m-b-20" [formGroup]="formGroup" *ngIf="data">
+  <div class="col-12 m-b-20">
+    <div class="card m-b-20">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <h5 class="d-inline">{{ header }}</h5>
+            <hr />
+          </div>
+          <div class="col-md-4">
+            <div class="form-group"
+              [ngClass]="{ 'is-invalid': f.description.touched && f.description.errors }">
+              <label for="name">ชื่อกลุ่มสินค้า *</label>
+              <input autocomplete="off" maxlength="100" id="description" class="form-control form-control-sm"
+                formControlName="description" [(ngModel)]="data.description" [ngClass]="{
+                    'is-invalid': f.description.touched && f.description.errors,
+                    'is-valid': f.description.touched && !f.description.errors
+                  }" />
+              <small class="text-danger" *ngIf="f.description.touched && f.description.errors?.required">
+                {{ "error.required" | translate }}
+              </small>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group" [ngClass]="{ 'is-invalid': f.no.touched && f.no.errors }">
+              <label for="no">ลำดับความสำคัญ *</label>
+              <input autocomplete="off" maxlength="100" type="number" id="no" class="form-control form-control-sm"
+                formControlName="no" [(ngModel)]="data.no" [ngClass]="{
+                    'is-invalid': f.no.touched && f.no.errors,
+                    'is-valid': f.no.touched && !f.no.errors
+                  }" />
+              <small class="text-danger" *ngIf="f.no.touched && f.no.errors?.required">
+                {{ "error.required" | translate }}
+              </small>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label for="name">สถานะ</label>
+              <select class="form-control form-control-sm" id="status" formControlName="status"
+                [(ngModel)]="data.status" [ngClass]="{
+                  'is-invalid': f.status.touched && f.status.errors,
+                  'is-valid': f.status.touched && !f.status.errors
+                }">
+                <option [ngValue]="1">ใช้งาน</option>
+                <option [ngValue]="0">ไม่ใช้งาน</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <h6 class="d-inline">ข้อมูลสินค้า</h6>
+            <hr />
+          </div>
+          <div class="col-12">
+            <button *ngIf="!isReadOnly" (click)="selectProduct()" type="button" class="btn btn-primary">
+              เพิ่มสินค้า
+            </button>
+          </div>
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-hover custom-table" id="tblData">
+                <thead>
+                  <tr>
+                    <th class="text-center"></th>
+                    <th class="text-left">สินค้า</th>
+                    <th class="text-right">ราคาต่อชิ้น</th>
+                    <th *ngIf="!isReadOnly"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of data.itemInSet; let i = index">
+                    <td style="width: 70px">
+                      <img style="max-width: 100%" [src]="item.imageUrl" />
+                    </td>
+                    <td class="text-left">
+                      <div>
+                        {{ item.code }}
+                      </div>
+                      <small>
+                        {{ item.name }}
+                      </small>
+                    </td>
+                    <td class="text-right">{{ item.price | number: ".2" }}</td>
+                    <!-- <td class="text-center" *ngIf="!isReadOnly && !isEdit"> -->
+                    <td class="text-center">
+                      <i class="far fa-trash-alt" (click)="removeItem(i)"></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
